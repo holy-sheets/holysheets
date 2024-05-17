@@ -15,11 +15,6 @@ const indexToColumn = (index: number): SheetColumn => {
   return alphabet[index]
 }
 
-interface RowSet<RecordType extends Record<string, string>> {
-  range: string
-  fields: Partial<RecordType>
-}
-
 interface SheetHeaders {
   column: SheetColumn
   name: string
@@ -94,26 +89,38 @@ async function write(options: WriteOptions): Promise<void> {
   try {
     const request = {
       spreadsheetId,
-      range: completeRange,
-      valueInputOption: 'RAW',
-      requestBody: {
-        values
+      resource: {
+        data: [
+          {
+            range: completeRange,
+            values
+          }
+        ],
+        valueInputOption: 'RAW'
       }
     } 
     console.log(`[INSERT] Row inserted successfully`) // eslint-disable-line
-    await sheets.spreadsheets.values.update(request)          
+    await sheets.spreadsheets.values.batchUpdate(request)          
   } catch (error) {
     console.error(`[INSERT] Error: ${error}`) // eslint-disable-line
     throw error
   }
 }
 
+/**
+ * Represents a wrapper class for interacting with Google Sheets using the Google Sheets API.
+ * @typeparam RecordType - The type of the records in the table.
+ */
 export default class HollySheets<RecordType extends Record<string, any> = any> {
   public static sheets: sheets_v4.Sheets
   public table: string = ''
   public static spreadsheetId: string = ''
   private readonly credentials: HollySheetsCredentials
 
+  /**
+     * Creates a new instance of the HollySheets class.
+     * @param credentials - The credentials required to authenticate with the Google Sheets API.
+  */
   constructor(credentials: HollySheetsCredentials) {
     this.credentials = credentials
 
@@ -126,6 +133,12 @@ export default class HollySheets<RecordType extends Record<string, any> = any> {
     HollySheets.sheets = google.sheets({ version: 'v4', auth })
   }
 
+  /**
+     * Creates a new instance of HollySheets with the specified table.
+     * @param table - The name of the table to use.
+     * @returns A new instance of HollySheets with the specified table.
+     * @typeparam T - The type of the records in the table.
+  */
   public base<T extends Record<string, any>>(table: string): HollySheets<T> {
     const instance = new HollySheets<T>(this.credentials)
     instance.setTable(table)
@@ -136,6 +149,13 @@ export default class HollySheets<RecordType extends Record<string, any> = any> {
     this.table = table
   }
 
+  /**
+     * Inserts data into the spreadsheet.
+     * @param options - The options for inserting data.
+     * @param options.data - The data to be inserted.
+     * @returns A Promise that resolves when the data is successfully inserted.
+     * @throws An error if no data is found in the sheet.
+  */
   public async insert(options: { data: RecordType[] }) {
     const { data } = options
     const table = this.table

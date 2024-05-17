@@ -16,5 +16,8 @@ void sheets.base<Person>('Person').insert({
   data: [{
     name: 'Alice',
     age: 30
+  },{
+    name: 'Bob',
+    age: 40
   }]
 })
