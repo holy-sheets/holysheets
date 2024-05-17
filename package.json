@@ -1,0 +1,19 @@
+{
+  "name": "hollysheets",
+  "version": "1.0.0",
+  "description": "Unofficial Google Sheets manipulation methods",
+  "main": "index.js",
+  "scripts": {
+    "test": "npm run test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hollysheets/hollysheets.git"
+  },
+  "author": "Teles",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/hollysheets/hollysheets/issues"
+  },
+  "homepage": "https://github.com/hollysheets/hollysheets#readme"
+}
