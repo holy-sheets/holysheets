@@ -1,0 +1,4 @@
+.eslintrc.cjs
+.credentials.json
+.nvmrc
+tsconfig.json
