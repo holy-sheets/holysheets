@@ -2,11 +2,12 @@
   "name": "hollysheets",
   "version": "1.0.0",
   "description": "A Node.js library for interacting with Google Sheets",
-  "main": "index.js",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsc",
-    "test": "jest",
-    "dev": "tsc && node testing.js"
+    "build": "npm run clean && tsc",
+    "clean": "rm -rf dist",
+    "test": "jest"
   },
   "repository": {
     "type": "git",
