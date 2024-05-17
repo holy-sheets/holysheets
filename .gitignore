@@ -1,5 +1,6 @@
 node_modules
 .credentials.json
 */*.js
-testing.js
+*.js
+*.d.ts
 dist
