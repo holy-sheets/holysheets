@@ -3,7 +3,8 @@ import HollySheets from './src/sheets'
 
 const sheets = new HollySheets({
   clientEmail: credentials.client_email,
-  privateKey: credentials.private_key
+  privateKey: credentials.private_key,
+  spreadsheetId: '10EQjKl96GqZFrSSoJKHdJFpAwRfvCzaQY3-u85IBpEA'
 })
 
 interface Person {
@@ -11,4 +12,9 @@ interface Person {
   age: number
 }
 
-sheets.base<Person>('Person').insert({ name: 'John Doe'}) 
+void sheets.base<Person>('Person').insert({
+  data: [{
+    name: 'Alice',
+    age: 30
+  }]
+})
