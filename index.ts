@@ -233,6 +233,15 @@ export default class HollySheets<RecordType extends Record<string, any> = any> {
     })
   }
 
+  /**
+   * Finds the first row in the spreadsheet that matches the specified conditions.
+   * 
+   * @param options - The options for finding the row.
+   * @param options.where - The conditions to filter the rows.
+   * @param options.select - The columns to select from the row.
+   * 
+   * @returns A promise that resolves to a `RowSet` object representing the first matching row, or `undefined` if no match is found.
+   */
   public async findFirst(options: { where: WhereClause<RecordType>, select?: SelectClause<RecordType> }): Promise<RowSet<RecordType>|undefined>{
     const { where } = options
     const table = this.table
@@ -266,6 +275,11 @@ export default class HollySheets<RecordType extends Record<string, any> = any> {
     }
   }  
 
+  /**
+   * Retrieves multiple rows from the spreadsheet based on the provided options.
+   * @param options - The options for the query, including the `where` clause and optional `select` clause.
+   * @returns A promise that resolves to an array of row sets matching the query.
+   */
   public async findMany(options: { where: WhereClause<RecordType>, select?: SelectClause<RecordType> }): Promise<RowSet<RecordType>[]> {
     const { where, select } = options
     const table = this.table
