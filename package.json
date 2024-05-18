@@ -1,6 +1,6 @@
 {
   "name": "holly-sheets",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "A Node.js library for interacting with Google Sheets",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
