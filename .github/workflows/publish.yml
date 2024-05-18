@@ -27,23 +27,29 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-    #   - name: Run tests
-    #     run: npm test
+      - name: Run tests
+        run: npm test
 
-      - name: Bump version and create tag
+      - name: Bump version
         id: bump_version
         run: |
-          NEW_TAG=$(npx standard-version --dry-run | grep "tagging release" | awk '{print $3}')
-          echo "NEW_TAG=$NEW_TAG" >> $GITHUB_ENV
+          # Incrementa a versão usando standard-version
+          npx standard-version --release-as patch
+          # Obter nova versão
+          NEW_VERSION=$(node -p "require('./package.json').version")
+          echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
+          echo "NEW_VERSION=$NEW_VERSION"
+          # Adiciona commit e tag
+          git push --follow-tags origin main
 
       - name: Create GitHub release
         id: create_release
         uses: actions/create-release@v1
         with:
-          tag_name: ${{ env.NEW_TAG }}
-          release_name: Release ${{ env.NEW_TAG }}
+          tag_name: "v${{ env.NEW_VERSION }}"
+          release_name: Release ${{ env.NEW_VERSION }}
           body: |
-            Release notes for ${{ env.NEW_TAG }}
+            Release notes for ${{ env.NEW_VERSION }}
           draft: false
           prerelease: false
         env:
