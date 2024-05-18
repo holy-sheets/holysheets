@@ -265,4 +265,45 @@ export default class HollySheets<RecordType extends Record<string, any> = any> {
       console.error('Error finding data' + error) // eslint-disable-line
     }
   }  
+
+  public async findMany(options: { where: WhereClause<RecordType>, select?: SelectClause<RecordType> }): Promise<RowSet<RecordType>[]> {
+    const { where, select } = options
+    const table = this.table
+    const headers = await getHeaders({ table, sheets: HollySheets.sheets, spreadsheetId: HollySheets.spreadsheetId})
+    const columns = Object.keys(where) as (keyof RecordType)[]
+    const header = headers.find(header => header.name === columns[0])
+    const range = `${table}!${header?.column}:${header?.column}`
+    try {
+      const response = await HollySheets.sheets.spreadsheets.values.get({
+        spreadsheetId: HollySheets.spreadsheetId,
+        range
+      })
+      const rowIndexes = response.data.values?.reduce((acc: number[], row, index) => {
+        if(checkWhereFilter(where[columns[0]] as WhereCondition|string, row[0] as string)) {
+          acc.push(index)
+        }
+        return acc
+      }, [])
+      if(!rowIndexes || rowIndexes.length === 0) {
+        return []
+      }
+      const rowsRange = rowIndexes.map(index => `${table}!A${index + 1}:${indexToColumn(headers.length - 1)}${index + 1}`)
+      const rowsResponse = await Promise.all(rowsRange.map(async rowRange => {
+        const rowResponse = await HollySheets.sheets.spreadsheets.values.get({
+          spreadsheetId: HollySheets.spreadsheetId,
+          range: rowRange
+        })
+        const values = rowResponse.data.values
+        return {range: rowRange, values}
+      }))
+      return rowsResponse.map(({range, values}) => {  
+        const selectedHeaders = headers.filter(header => select ? select[header.name] : true)    
+        const fields = combine<RecordType>(values ? values[0] as string[] : [], selectedHeaders)
+        return { range, fields }
+      })
+    } catch(error) {
+      console.error('Error finding data' + error) // eslint-disable-line
+      return []
+    }    
+  }
 }
