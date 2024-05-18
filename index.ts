@@ -326,4 +326,52 @@ export default class HollySheets<RecordType extends Record<string, any> = any> {
       return []
     }    
   }
+
+  /**
+   * Updates the first record that matches the specified conditions with the provided data.
+   * Throws an error if no record is found to update.
+   * 
+   * @param options - The options for the update operation.
+   * @param options.where - The conditions to match the record.
+   * @param options.data - The data to update the record with.
+   * @returns A promise that resolves to void.
+   */
+  public async updateFirst(options: { where: WhereClause<RecordType>, data: Partial<RecordType> }): Promise<void> {
+    const { where, data } = options
+
+    const record = await this.findFirst({ where })
+  
+    if (!record) {
+      throw new Error('No record found to update')
+    }
+  
+    const { fields } = record
+    const updatedFields = { ...fields, ...data } as RecordType
+    return await this.insert({ data: [updatedFields] })
+  }
+
+  /**
+   * Updates multiple records that match the specified conditions.
+   * 
+   * @param options - The options for the update operation.
+   * @param options.where - The conditions that the records must match.
+   * @param options.data - The partial data to update the matching records with.
+   * @returns A promise that resolves to void when the update operation is complete.
+   * @throws An error if no records are found to update.
+   */
+  public async updateMany(options: { where: WhereClause<RecordType>, data: Partial<RecordType> }): Promise<void> {
+    const { where, data } = options
+    const records = await this.findMany({ where })
+
+    if(records.length === 0) {
+      throw new Error('No records found to update')
+    }
+    const updatedRecords = records.map(record => {
+      const { fields } = record
+      const updatedFields = { ...fields, ...data } as RecordType
+      return updatedFields
+    })
+
+    return await this.insert({ data: updatedRecords })
+  }
 }
