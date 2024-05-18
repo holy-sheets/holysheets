@@ -27,6 +27,8 @@ jobs:
             echo ::set-output name=VERSION::$(node -p "require('./package.json').version")
     - name: Push changes
       run: git push --follow-tags
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}      
     - name: Create Release
       id: create_release
       uses: actions/create-release@v1
