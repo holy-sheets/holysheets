@@ -27,6 +27,11 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Configure Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
       - name: Bump version
         id: bump_version
         run: |
@@ -35,7 +40,6 @@ jobs:
           # Obter nova versão
           NEW_VERSION=$(node -p "require('./package.json').version")
           echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
-          echo "NEW_VERSION=$NEW_VERSION"
           # Adiciona commit e tag
           git push --follow-tags origin main
 
