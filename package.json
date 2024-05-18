@@ -7,7 +7,7 @@
   "scripts": {
     "build": "npm run clean && tsc",
     "clean": "rm -rf dist",
-    "test": "jest",
+    "test": "echo \"Error: no test specified\" && exit 1",
     "sample": "npm run build && node dist/sample.js",
     "prepublishOnly": "npm run build"
   },
