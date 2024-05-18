@@ -28,7 +28,7 @@ jobs:
     - name: Push changes
       run: git push --follow-tags
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}      
+        GH_PAT: ${{ secrets.GH_PAT }}
     - name: Create Release
       id: create_release
       uses: actions/create-release@v1
