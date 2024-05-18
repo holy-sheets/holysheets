@@ -10,6 +10,10 @@ jobs:
     name: Create Release and Publish to npm
     runs-on: ubuntu-latest
 
+    permissions:
+      contents: write
+      packages: write
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -28,19 +32,18 @@ jobs:
 
       - name: Bump version and create tag
         id: bump_version
-        uses: mathieudutour/github-tag-action@v6.0
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          tag_prefix: ''
+        run: |
+          NEW_TAG=$(npx standard-version --dry-run | grep "tagging release" | awk '{print $3}')
+          echo "NEW_TAG=$NEW_TAG" >> $GITHUB_ENV
 
       - name: Create GitHub release
         id: create_release
         uses: actions/create-release@v1
         with:
-          tag_name: ${{ steps.bump_version.outputs.new_tag }}
-          release_name: Release ${{ steps.bump_version.outputs.new_tag }}
+          tag_name: ${{ env.NEW_TAG }}
+          release_name: Release ${{ env.NEW_TAG }}
           body: |
-            Release notes for ${{ steps.bump_version.outputs.new_tag }}
+            Release notes for ${{ env.NEW_TAG }}
           draft: false
           prerelease: false
         env:
