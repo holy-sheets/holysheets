@@ -288,14 +288,20 @@ export default class HollySheets<RecordType extends Record<string, any> = any> {
         return []
       }
       const rowsRange = rowIndexes.map(index => `${table}!A${index + 1}:${indexToColumn(headers.length - 1)}${index + 1}`)
-      const rowsResponse = await Promise.all(rowsRange.map(async rowRange => {
-        const rowResponse = await HollySheets.sheets.spreadsheets.values.get({
-          spreadsheetId: HollySheets.spreadsheetId,
-          range: rowRange
-        })
-        const values = rowResponse.data.values
-        return {range: rowRange, values}
-      }))
+      const ranges = rowsRange
+      const batchGetResponse = await HollySheets.sheets.spreadsheets.values.batchGet({
+        spreadsheetId: HollySheets.spreadsheetId,
+        ranges: ranges
+      })
+
+      if(!batchGetResponse.data.valueRanges) {
+        return []
+      }
+
+      const rowsResponse = batchGetResponse.data.valueRanges.map((valueRange, index) => {
+        return { range: ranges[index], values: valueRange.values }
+      })
+
       return rowsResponse.map(({range, values}) => {  
         const selectedHeaders = headers.filter(header => select ? select[header.name] : true)    
         const fields = combine<RecordType>(values ? values[0] as string[] : [], selectedHeaders)
