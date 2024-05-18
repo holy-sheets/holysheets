@@ -8,6 +8,7 @@
     "build": "npm run clean && tsc",
     "clean": "rm -rf dist",
     "test": "jest",
+    "sample": "npm run build && node dist/sample.js",
     "prepublishOnly": "npm run build"
   },
   "repository": {
