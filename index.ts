@@ -20,6 +20,16 @@ interface SheetHeaders {
   name: string
   index: number
 } 
+
+const combine = <RecordType extends Record<string, string>>(data: string[], headers: SheetHeaders[]): RecordType => {
+  return headers.reduce((acc: RecordType, header) => {
+    const headerByIndex = headers.find(h => h.index === header.index)
+    const key = headerByIndex?.name as keyof RecordType
+    acc[key] = data[header.index] as RecordType[keyof RecordType]
+    return acc
+  }, {} as RecordType)
+}
+
 /**
  * Deconstructs a record object into an array of values based on the provided headers.
  * 
@@ -106,6 +116,49 @@ async function write(options: WriteOptions): Promise<void> {
     throw error
   }
 }
+type WhereFilter = (value: string) => boolean;
+type WhereFilterKey = keyof typeof whereFilters;
+type WhereConditionAcceptedValues = string | string[] | number;
+type WhereCondition = {
+  [key in WhereFilterKey]?: WhereConditionAcceptedValues;
+};
+
+interface RowSet<RecordType extends Record<string, string>> {
+  range: string
+  fields: Partial<RecordType>
+}
+/**
+ * Object containing various filter functions for querying data.
+ */
+const whereFilters = {
+  equals: (value: WhereConditionAcceptedValues): WhereFilter => (expected: WhereConditionAcceptedValues): boolean => expected === value,
+  not: (value: WhereConditionAcceptedValues): WhereFilter => (expected: string) => expected !== value,
+  in: (value: WhereConditionAcceptedValues): WhereFilter => (expected: string) => (Array.isArray(value) ? value.includes(expected) : false),
+  notIn: (value: WhereConditionAcceptedValues): WhereFilter => (expected: string) => (Array.isArray(value) ? !value.includes(expected) : false),
+  lt: (value: WhereConditionAcceptedValues): WhereFilter => (expected: string) => typeof value === 'number' && parseFloat(expected) < value,
+  lte: (value: WhereConditionAcceptedValues): WhereFilter => (expected: string) => typeof value === 'number' && parseFloat(expected) <= value,
+  gt: (value: WhereConditionAcceptedValues): WhereFilter => (expected: string) => typeof value === 'number' && parseFloat(expected) > value,
+  gte: (value: WhereConditionAcceptedValues): WhereFilter => (expected: string) => typeof value === 'number' && parseFloat(expected) >= value,
+  contains: (value: WhereConditionAcceptedValues): WhereFilter => (expected: string) => typeof value === 'string' && expected.includes(value),
+  search: (value: WhereConditionAcceptedValues): WhereFilter => (expected: string) => typeof value === 'string' && expected.search(new RegExp(value, 'i')) !== -1,
+  startsWith: (value: WhereConditionAcceptedValues): WhereFilter => (expected: string) => typeof value === 'string' && expected.startsWith(value),
+  endsWith: (value: WhereConditionAcceptedValues): WhereFilter => (expected: string) => typeof value === 'string' && expected.endsWith(value)
+}
+
+const checkWhereFilter = (filters: WhereCondition | string, data: string): boolean => {
+  if (typeof filters === 'string') {
+    filters = { equals: filters }
+  }
+  return Object.entries(filters).every(([key, expected]) => {
+    const filter = whereFilters[key as WhereFilterKey](expected)
+    return filter(data)
+  })
+}
+
+type WhereClause<RecordType> = {
+  [column in keyof RecordType]?: WhereCondition | string;
+};
+type SelectClause<RecordType> = Partial<{[column in keyof RecordType]: boolean}>
 
 /**
  * Represents a wrapper class for interacting with Google Sheets using the Google Sheets API.
@@ -179,4 +232,37 @@ export default class HollySheets<RecordType extends Record<string, any> = any> {
       sheets: HollySheets.sheets
     })
   }
+
+  public async findFirst(options: { where: WhereClause<RecordType>, select?: SelectClause<RecordType> }): Promise<RowSet<RecordType>|undefined>{
+    const { where } = options
+    const table = this.table
+    const headers = await getHeaders({ table, sheets: HollySheets.sheets, spreadsheetId: HollySheets.spreadsheetId})
+    const columns = Object.keys(where) as (keyof RecordType)[]
+    const header = headers.find(header => header.name === columns[0])
+    const range = `${table}!${header?.column}:${header?.column}`
+    try {    
+      const response = await HollySheets.sheets.spreadsheets.values.get({
+        spreadsheetId: HollySheets.spreadsheetId,
+        range
+      })
+      const rowIndex = response.data.values?.findIndex(row => checkWhereFilter(where[columns[0]] as WhereCondition|string, row[0] as string))
+      if(rowIndex === -1 || !rowIndex) {
+        return undefined
+      }
+      const rowRange = `${table}!A${rowIndex + 1}:${indexToColumn(headers.length - 1)}${rowIndex + 1}`
+      const rowResponse = await HollySheets.sheets.spreadsheets.values.get({
+        spreadsheetId: HollySheets.spreadsheetId,
+        range: rowRange
+      })
+  
+      if(!rowResponse.data.values) {
+        return undefined
+      }
+      const selectedHeaders = headers.filter(header => options.select ? options.select[header.name] : true)
+      const fields = combine<RecordType>(rowResponse.data.values[0] as string[], selectedHeaders)
+      return { range: rowRange, fields }
+    } catch(error) {
+      console.error('Error finding data' + error) // eslint-disable-line
+    }
+  }  
 }
