@@ -1,47 +1,49 @@
-// import { sheets_v4 } from 'googleapis'
-import HollySheets from './index'
-// import { JWT } from 'google-auth-library';
+import HollySheets from './index';
+import { google } from 'googleapis';
 
-function mockGoogleApis(options: {getValue?: string[][], batchGetValue?: string[][], batchUpdateValue?: string[][]}) {
-  const { getValue, batchGetValue, batchUpdateValue } = options;
-  jest.mock('googleapis', () => {
-    return {
-      google: {
-        sheets: jest.fn(() => ({
-          spreadsheets: {
-            values: {
-              get: jest.fn(() => Promise.resolve(getValue ? {data: {values: getValue}} : {data: {values: [[]]}})),
-              batchGet: jest.fn(() => Promise.resolve(batchGetValue ? {
-                data: {
-                  valueRanges: [
-                    {
-                      range:"Users!A2:B2",
-                      majorDimension:"ROWS",
-                      values:batchGetValue
-                    }
-                  ]
-                }
-              }: {data: {valueRanges: []}})),
-              batchUpdate: jest.fn(() => Promise.resolve(batchUpdateValue ? batchUpdateValue : {data: {}})),
-            },
+jest.mock('googleapis', () => {
+  const originalModule = jest.requireActual('googleapis');
+  return {
+    ...originalModule,
+    google: {
+      ...originalModule.google,
+      sheets: jest.fn(() => ({
+        spreadsheets: {
+          values: {
+            get: jest.fn().mockResolvedValue({
+              data: {
+                values: [['name', 'email'], ['John Doe', 'jonh@doe.com']],
+              },
+            }),
+            batchUpdate: jest.fn(),
+            batchGet: jest.fn().mockResolvedValue({
+              data: {
+                valueRanges: [
+                  {
+                    range: 'Users!A1:A100',
+                    majorDimension: 'ROWS',
+                    values: [['John Doe', 'john@doe.com'], ["Mary Jane", ""]],
+                  },
+                ],
+              }
+            }),
           },
-        })),
-      },
-    };
-  });
-}
-
-afterEach(() => {
-  jest.clearAllMocks();
+        },
+      })),
+    },
+    JWT: jest.fn().mockImplementation(() => ({
+      authorize: jest.fn(),
+    })),
+  };
 });
 
 describe('HollySheets', () => {
   const credentials = {
     clientEmail: 'test@example.com',
-    privateKey: 'test-private-key',
+    privateKey: '-----BEGIN PRIVATE KEY-----\ntest\n-----END PRIVATE KEY-----\n',
     spreadsheetId: 'spreadsheet-id',
   };
-  
+
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -53,14 +55,39 @@ describe('HollySheets', () => {
 
   it('should set table with base method', () => {
     const hollySheets = new HollySheets(credentials);
-    const table = 'TestTable'
-    const table2 = 'TestTable2'
+    const table = 'TestTable';
+    const table2 = 'TestTable2';
     expect(hollySheets.table).not.toBe(table);
     const baseInstance = hollySheets.base(table);
     expect(baseInstance.table).toBe(table);
     expect(hollySheets.table).not.toBe(table);
     const baseInstance2 = hollySheets.base(table2);
     expect(baseInstance2.table).toBe(table2);
-  })
+  });
 
+  it('testing mockGoogleApis', async () => {
+    const hollySheets = new HollySheets(credentials);
+    interface User {
+      name: string;
+      email: string;
+    }
+
+    const users = hollySheets.base<User>('Users');
+
+    const result = await users.findMany({
+      where: {
+        name: {
+          contains: 'John',
+        },
+      },
+    });
+
+    const expected = [
+      {
+        range: 'Users!A2:B2',
+        fields: { name: 'John Doe', email: 'john@doe.com' }
+      }
+    ];
+    expect(result).toEqual(expected);
+  });
 });
