@@ -4,4 +4,6 @@ node_modules
 *.js
 !jest.config.js
 *.d.ts
+coverage/lcov-report
 dist
+.DS_Store
