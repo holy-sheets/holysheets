@@ -2,13 +2,12 @@
   "name": "holly-sheets",
   "version": "1.0.4",
   "description": "A Node.js library for interacting with Google Sheets",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "dist/src/index.js",
+  "types": "dist/src/index.d.ts",
   "scripts": {
     "build": "npm run clean && tsc",
     "clean": "rm -rf dist",
     "test": "jest",
-    "sample": "npm run build && node dist/sample.js",
     "coverage": "jest --coverage",
     "prepublishOnly": "npm run build"
   },
