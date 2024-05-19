@@ -2,5 +2,6 @@ node_modules
 .credentials.json
 */*.js
 *.js
+!jest.config.js
 *.d.ts
 dist
