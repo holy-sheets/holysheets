@@ -287,6 +287,7 @@ export default class HollySheets<RecordType extends Record<string, any> = any> {
     const columns = Object.keys(where) as (keyof RecordType)[]
     const header = headers.find(header => header.name === columns[0])
     const range = `${table}!${header?.column}:${header?.column}`
+    console.log({range}) // eslint-disable-line
     try {
       const response = await this.sheets.spreadsheets.values.get({
         spreadsheetId: HollySheets.spreadsheetId,
@@ -311,7 +312,6 @@ export default class HollySheets<RecordType extends Record<string, any> = any> {
       if(!batchGetResponse.data.valueRanges) {
         return []
       }
-
       const rowsResponse = batchGetResponse.data.valueRanges.map((valueRange, index) => {
         return { range: ranges[index], values: valueRange.values }
       })
