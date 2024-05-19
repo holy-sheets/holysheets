@@ -165,7 +165,7 @@ type SelectClause<RecordType> = Partial<{[column in keyof RecordType]: boolean}>
  * @typeparam RecordType - The type of the records in the table.
  */
 export default class HollySheets<RecordType extends Record<string, any> = any> {
-  public static sheets: sheets_v4.Sheets
+  public sheets: sheets_v4.Sheets
   public table: string = ''
   public static spreadsheetId: string = ''
   private readonly credentials: HollySheetsCredentials
@@ -183,7 +183,7 @@ export default class HollySheets<RecordType extends Record<string, any> = any> {
       scopes: ['https://www.googleapis.com/auth/spreadsheets']
     })
     HollySheets.spreadsheetId = credentials.spreadsheetId
-    HollySheets.sheets = google.sheets({ version: 'v4', auth })
+    this.sheets = google.sheets({ version: 'v4', auth })
   }
 
   /**
@@ -212,7 +212,7 @@ export default class HollySheets<RecordType extends Record<string, any> = any> {
   public async insert(options: { data: RecordType[] }) {
     const { data } = options
     const table = this.table
-    const response = await HollySheets.sheets.spreadsheets.values.get({
+    const response = await this.sheets.spreadsheets.values.get({
       spreadsheetId: HollySheets.spreadsheetId,
       range: `${table}!${alphabet[0]}:${alphabet[alphabet.length - 1]}`
     })
@@ -221,7 +221,7 @@ export default class HollySheets<RecordType extends Record<string, any> = any> {
       throw new Error('No data found in the sheet.')
     }
     const lastLine = response.data.values.length
-    const headers = await getHeaders({ table, sheets: HollySheets.sheets, spreadsheetId: HollySheets.spreadsheetId})
+    const headers = await getHeaders({ table, sheets: this.sheets, spreadsheetId: HollySheets.spreadsheetId})
     const valuesFromRecords = data.map(record => decombine(record, headers))  
     const range = `A${lastLine + 1}:${indexToColumn(headers.length - 1)}${lastLine + valuesFromRecords.length}`
     await write({
@@ -229,7 +229,7 @@ export default class HollySheets<RecordType extends Record<string, any> = any> {
       range,
       values: valuesFromRecords,
       spreadsheetId: HollySheets.spreadsheetId,
-      sheets: HollySheets.sheets
+      sheets: this.sheets
     })
   }
 
@@ -245,12 +245,12 @@ export default class HollySheets<RecordType extends Record<string, any> = any> {
   public async findFirst(options: { where: WhereClause<RecordType>, select?: SelectClause<RecordType> }): Promise<RowSet<RecordType>|undefined>{
     const { where } = options
     const table = this.table
-    const headers = await getHeaders({ table, sheets: HollySheets.sheets, spreadsheetId: HollySheets.spreadsheetId})
+    const headers = await getHeaders({ table, sheets: this.sheets, spreadsheetId: HollySheets.spreadsheetId})
     const columns = Object.keys(where) as (keyof RecordType)[]
     const header = headers.find(header => header.name === columns[0])
     const range = `${table}!${header?.column}:${header?.column}`
     try {    
-      const response = await HollySheets.sheets.spreadsheets.values.get({
+      const response = await this.sheets.spreadsheets.values.get({
         spreadsheetId: HollySheets.spreadsheetId,
         range
       })
@@ -259,7 +259,7 @@ export default class HollySheets<RecordType extends Record<string, any> = any> {
         return undefined
       }
       const rowRange = `${table}!A${rowIndex + 1}:${indexToColumn(headers.length - 1)}${rowIndex + 1}`
-      const rowResponse = await HollySheets.sheets.spreadsheets.values.get({
+      const rowResponse = await this.sheets.spreadsheets.values.get({
         spreadsheetId: HollySheets.spreadsheetId,
         range: rowRange
       })
@@ -283,12 +283,13 @@ export default class HollySheets<RecordType extends Record<string, any> = any> {
   public async findMany(options: { where: WhereClause<RecordType>, select?: SelectClause<RecordType> }): Promise<RowSet<RecordType>[]> {
     const { where, select } = options
     const table = this.table
-    const headers = await getHeaders({ table, sheets: HollySheets.sheets, spreadsheetId: HollySheets.spreadsheetId})
+    const headers = await getHeaders({ table, sheets: this.sheets, spreadsheetId: HollySheets.spreadsheetId})
     const columns = Object.keys(where) as (keyof RecordType)[]
     const header = headers.find(header => header.name === columns[0])
     const range = `${table}!${header?.column}:${header?.column}`
+
     try {
-      const response = await HollySheets.sheets.spreadsheets.values.get({
+      const response = await this.sheets.spreadsheets.values.get({
         spreadsheetId: HollySheets.spreadsheetId,
         range
       })
@@ -303,7 +304,7 @@ export default class HollySheets<RecordType extends Record<string, any> = any> {
       }
       const rowsRange = rowIndexes.map(index => `${table}!A${index + 1}:${indexToColumn(headers.length - 1)}${index + 1}`)
       const ranges = rowsRange
-      const batchGetResponse = await HollySheets.sheets.spreadsheets.values.batchGet({
+      const batchGetResponse = await this.sheets.spreadsheets.values.batchGet({
         spreadsheetId: HollySheets.spreadsheetId,
         ranges: ranges
       })
@@ -311,7 +312,6 @@ export default class HollySheets<RecordType extends Record<string, any> = any> {
       if(!batchGetResponse.data.valueRanges) {
         return []
       }
-
       const rowsResponse = batchGetResponse.data.valueRanges.map((valueRange, index) => {
         return { range: ranges[index], values: valueRange.values }
       })
