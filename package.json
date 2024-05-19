@@ -9,6 +9,7 @@
     "clean": "rm -rf dist",
     "test": "jest",
     "sample": "npm run build && node dist/sample.js",
+    "coverage": "jest --coverage",
     "prepublishOnly": "npm run build"
   },
   "repository": {
