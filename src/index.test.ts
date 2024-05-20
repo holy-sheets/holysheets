@@ -74,31 +74,31 @@ describe('HollySheets', () => {
   });
 
   it('should initialize HollySheets with credentials', () => {
-    const hollySheets = new HollySheets(credentials);
-    expect(hollySheets).toBeTruthy();
+    const holySheets = new HollySheets(credentials);
+    expect(holySheets).toBeTruthy();
   });
 
   it('should set table with base method', () => {
-    const hollySheets = new HollySheets(credentials);
+    const holySheets = new HollySheets(credentials);
     const table = 'TestTable';
     const table2 = 'TestTable2';
-    expect(hollySheets.table).not.toBe(table);
-    const baseInstance = hollySheets.base(table);
-    expect(baseInstance.table).toBe(table);
-    expect(hollySheets.table).not.toBe(table);
-    const baseInstance2 = hollySheets.base(table2);
-    expect(baseInstance2.table).toBe(table2);
+    expect(holySheets.sheet).not.toBe(table);
+    const baseInstance = holySheets.base(table);
+    expect(baseInstance.sheet).toBe(table);
+    expect(holySheets.sheet).not.toBe(table);
+    const baseInstance2 = holySheets.base(table2);
+    expect(baseInstance2.sheet).toBe(table2);
   });
 
   // it('testing mockGoogleApis', async () => {
-  //   const hollySheets = new HollySheets(credentials);
+  //   const holySheets = new HollySheets(credentials);
 
   //   interface User {
   //     name: string;
   //     email: string;
   //   }
     
-  //   const users = hollySheets.base<User>('Users');
+  //   const users = holySheets.base<User>('Users');
 
   //   const result = await users.findMany({
   //     where: {

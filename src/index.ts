@@ -2,7 +2,7 @@ import { sheets_v4 } from 'googleapis'
 import { google } from 'googleapis'
 import { JWT } from 'google-auth-library'
 
-interface HollySheetsCredentials {
+interface HolySheetsCredentials {
   clientEmail: string;
   privateKey: string;
   spreadsheetId: string;
@@ -53,12 +53,12 @@ const decombine = <RecordType extends Record<string, string>>(record: RecordType
  * @param options.table - The name of the table.
  * @returns A promise that resolves to an array of SheetHeaders representing the headers of the table.
  */
-async function getHeaders<TableName extends string>(options: {table: TableName, sheets: sheets_v4.Sheets, spreadsheetId: string}): Promise<SheetHeaders[]> {
-  const { table, sheets, spreadsheetId } = options    
+async function getHeaders<SheetName extends string>(options: {sheet: SheetName, sheets: sheets_v4.Sheets, spreadsheetId: string}): Promise<SheetHeaders[]> {
+  const { sheet, sheets, spreadsheetId } = options    
   try {
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId,
-      range: `${table}!1:1`
+      range: `${sheet}!1:1`
     })
   
     const values = response.data.values
@@ -123,7 +123,7 @@ type WhereCondition = {
   [key in WhereFilterKey]?: WhereConditionAcceptedValues;
 };
 
-interface RowSet<RecordType extends Record<string, string>> {
+interface SheetRecord<RecordType extends Record<string, string>> {
   range: string
   row: number
   fields: Partial<RecordType>
@@ -165,17 +165,17 @@ type SelectClause<RecordType> = Partial<{[column in keyof RecordType]: boolean}>
  * Represents a wrapper class for interacting with Google Sheets using the Google Sheets API.
  * @typeparam RecordType - The type of the records in the table.
  */
-export default class HollySheets<RecordType extends Record<string, any> = any> {
+export default class HolySheets<RecordType extends Record<string, any> = any> {
   public sheets: sheets_v4.Sheets
-  public table: string = ''
+  public sheet: string = ''
   public static spreadsheetId: string = ''
-  private readonly credentials: HollySheetsCredentials
+  private readonly credentials: HolySheetsCredentials
 
   /**
-     * Creates a new instance of the HollySheets class.
+     * Creates a new instance of the HolySheets class.
      * @param credentials - The credentials required to authenticate with the Google Sheets API.
   */
-  constructor(credentials: HollySheetsCredentials) {
+  constructor(credentials: HolySheetsCredentials) {
     this.credentials = credentials
 
     const auth = new JWT({
@@ -183,24 +183,24 @@ export default class HollySheets<RecordType extends Record<string, any> = any> {
       key: credentials.privateKey,
       scopes: ['https://www.googleapis.com/auth/spreadsheets']
     })
-    HollySheets.spreadsheetId = credentials.spreadsheetId
+    HolySheets.spreadsheetId = credentials.spreadsheetId
     this.sheets = google.sheets({ version: 'v4', auth })
   }
 
   /**
-     * Creates a new instance of HollySheets with the specified table.
+     * Creates a new instance of HolySheets with the specified table.
      * @param table - The name of the table to use.
-     * @returns A new instance of HollySheets with the specified table.
+     * @returns A new instance of HolySheets with the specified table.
      * @typeparam T - The type of the records in the table.
   */
-  public base<T extends Record<string, any>>(table: string): HollySheets<T> {
-    const instance = new HollySheets<T>(this.credentials)
+  public base<T extends Record<string, any>>(table: string): HolySheets<T> {
+    const instance = new HolySheets<T>(this.credentials)
     instance.setTable(table)
     return instance
   }
 
   private setTable(table: string) {
-    this.table = table
+    this.sheet = table
   }
 
   /**
@@ -212,24 +212,24 @@ export default class HollySheets<RecordType extends Record<string, any> = any> {
   */
   public async insert(options: { data: RecordType[] }) {
     const { data } = options
-    const table = this.table
+    const sheet = this.sheet
     const response = await this.sheets.spreadsheets.values.get({
-      spreadsheetId: HollySheets.spreadsheetId,
-      range: `${table}!${alphabet[0]}:${alphabet[alphabet.length - 1]}`
+      spreadsheetId: HolySheets.spreadsheetId,
+      range: `${sheet}!${alphabet[0]}:${alphabet[alphabet.length - 1]}`
     })
 
     if(!response.data.values) {
       throw new Error('No data found in the sheet.')
     }
     const lastLine = response.data.values.length
-    const headers = await getHeaders({ table, sheets: this.sheets, spreadsheetId: HollySheets.spreadsheetId})
+    const headers = await getHeaders({ sheet: sheet, sheets: this.sheets, spreadsheetId: HolySheets.spreadsheetId})
     const valuesFromRecords = data.map(record => decombine(record, headers))  
     const range = `A${lastLine + 1}:${indexToColumn(headers.length - 1)}${lastLine + valuesFromRecords.length}`
     await write({
-      tableName: table,
+      tableName: sheet,
       range,
       values: valuesFromRecords,
-      spreadsheetId: HollySheets.spreadsheetId,
+      spreadsheetId: HolySheets.spreadsheetId,
       sheets: this.sheets
     })
   }
@@ -243,25 +243,25 @@ export default class HollySheets<RecordType extends Record<string, any> = any> {
    * 
    * @returns A promise that resolves to a `RowSet` object representing the first matching row, or `undefined` if no match is found.
    */
-  public async findFirst(options: { where: WhereClause<RecordType>, select?: SelectClause<RecordType> }): Promise<RowSet<RecordType>|undefined>{
+  public async findFirst(options: { where: WhereClause<RecordType>, select?: SelectClause<RecordType> }): Promise<SheetRecord<RecordType>|undefined>{
     const { where } = options
-    const table = this.table
-    const headers = await getHeaders({ table, sheets: this.sheets, spreadsheetId: HollySheets.spreadsheetId})
+    const sheet = this.sheet
+    const headers = await getHeaders({ sheet, sheets: this.sheets, spreadsheetId: HolySheets.spreadsheetId})
     const columns = Object.keys(where) as (keyof RecordType)[]
     const header = headers.find(header => header.name === columns[0])
-    const range = `${table}!${header?.column}:${header?.column}`
+    const range = `${sheet}!${header?.column}:${header?.column}`
     try {    
       const response = await this.sheets.spreadsheets.values.get({
-        spreadsheetId: HollySheets.spreadsheetId,
+        spreadsheetId: HolySheets.spreadsheetId,
         range
       })
       const rowIndex = response.data.values?.findIndex(row => checkWhereFilter(where[columns[0]] as WhereCondition|string, row[0] as string))
       if(rowIndex === -1 || !rowIndex) {
         return undefined
       }
-      const rowRange = `${table}!A${rowIndex + 1}:${indexToColumn(headers.length - 1)}${rowIndex + 1}`
+      const rowRange = `${sheet}!A${rowIndex + 1}:${indexToColumn(headers.length - 1)}${rowIndex + 1}`
       const rowResponse = await this.sheets.spreadsheets.values.get({
-        spreadsheetId: HollySheets.spreadsheetId,
+        spreadsheetId: HolySheets.spreadsheetId,
         range: rowRange
       })
   
@@ -285,17 +285,17 @@ export default class HollySheets<RecordType extends Record<string, any> = any> {
    * @param options - The options for the query, including the `where` clause and optional `select` clause.
    * @returns A promise that resolves to an array of row sets matching the query.
    */
-  public async findMany(options: { where: WhereClause<RecordType>, select?: SelectClause<RecordType> }): Promise<RowSet<RecordType>[]> {
+  public async findMany(options: { where: WhereClause<RecordType>, select?: SelectClause<RecordType> }): Promise<SheetRecord<RecordType>[]> {
     const { where, select } = options
-    const table = this.table
-    const headers = await getHeaders({ table, sheets: this.sheets, spreadsheetId: HollySheets.spreadsheetId})
+    const sheet = this.sheet
+    const headers = await getHeaders({ sheet, sheets: this.sheets, spreadsheetId: HolySheets.spreadsheetId})
     const columns = Object.keys(where) as (keyof RecordType)[]
     const header = headers.find(header => header.name === columns[0])
-    const range = `${table}!${header?.column}:${header?.column}`
+    const range = `${sheet}!${header?.column}:${header?.column}`
 
     try {
       const response = await this.sheets.spreadsheets.values.get({
-        spreadsheetId: HollySheets.spreadsheetId,
+        spreadsheetId: HolySheets.spreadsheetId,
         range
       })
       const rowIndexes = response.data.values?.reduce((acc: number[], row, index) => {
@@ -307,10 +307,10 @@ export default class HollySheets<RecordType extends Record<string, any> = any> {
       if(!rowIndexes || rowIndexes.length === 0) {
         return []
       }
-      const rowsRange = rowIndexes.map(index => `${table}!A${index + 1}:${indexToColumn(headers.length - 1)}${index + 1}`)
+      const rowsRange = rowIndexes.map(index => `${sheet}!A${index + 1}:${indexToColumn(headers.length - 1)}${index + 1}`)
       const ranges = rowsRange
       const batchGetResponse = await this.sheets.spreadsheets.values.batchGet({
-        spreadsheetId: HollySheets.spreadsheetId,
+        spreadsheetId: HolySheets.spreadsheetId,
         ranges: ranges
       })
 
@@ -388,7 +388,7 @@ export default class HollySheets<RecordType extends Record<string, any> = any> {
    * @returns A promise that resolves when the record is cleared.
    * @throws An error if no record is found to delete.
    */
-  public async clearFirst(options: { where: WhereClause<RecordType> }): Promise<RowSet<RecordType>> {
+  public async clearFirst(options: { where: WhereClause<RecordType> }): Promise<SheetRecord<RecordType>> {
     const { where } = options
     const record = await this.findFirst({ where })
     if (!record) {
@@ -396,7 +396,7 @@ export default class HollySheets<RecordType extends Record<string, any> = any> {
     }
     const { range } = record
     await this.sheets.spreadsheets.values.clear({
-      spreadsheetId: HollySheets.spreadsheetId,
+      spreadsheetId: HolySheets.spreadsheetId,
       range
     })
     return record
@@ -410,7 +410,7 @@ export default class HollySheets<RecordType extends Record<string, any> = any> {
    * @returns A Promise that resolves when the clear operation is complete.
    * @throws An error if no records are found to delete.
    */
-  public async clearMany(options: { where: WhereClause<RecordType> }): Promise<RowSet<RecordType>[]> {
+  public async clearMany(options: { where: WhereClause<RecordType> }): Promise<SheetRecord<RecordType>[]> {
     const { where } = options
     const records = await this.findMany({ where })
     if(records.length === 0) {
@@ -418,7 +418,7 @@ export default class HollySheets<RecordType extends Record<string, any> = any> {
     }
     const ranges = records.map(record => record.range)
     await this.sheets.spreadsheets.values.batchClear({
-      spreadsheetId: HollySheets.spreadsheetId,
+      spreadsheetId: HolySheets.spreadsheetId,
       requestBody: {
         ranges
       }
@@ -434,7 +434,7 @@ export default class HollySheets<RecordType extends Record<string, any> = any> {
    */
   public async getSheetId(title: string): Promise<number> {
     const response = await this.sheets.spreadsheets.get({
-      spreadsheetId: HollySheets.spreadsheetId,
+      spreadsheetId: HolySheets.spreadsheetId,
       includeGridData: false
     })
 
@@ -454,9 +454,9 @@ export default class HollySheets<RecordType extends Record<string, any> = any> {
    * @returns A promise that resolves when the record is deleted.
    * @throws An error if no record is found to delete.
    */
-  public async deleteFirst(options: { where: WhereClause<RecordType> }): Promise<RowSet<RecordType>> {
+  public async deleteFirst(options: { where: WhereClause<RecordType> }): Promise<SheetRecord<RecordType>> {
     const { where } = options
-    const sheetId = await this.getSheetId(this.table)
+    const sheetId = await this.getSheetId(this.sheet)
     const record = await this.findFirst({ where })
     const requests = [{
       deleteDimension: {
@@ -469,12 +469,12 @@ export default class HollySheets<RecordType extends Record<string, any> = any> {
       }
     }]
     await this.sheets.spreadsheets.batchUpdate({
-      spreadsheetId: HollySheets.spreadsheetId,
+      spreadsheetId: HolySheets.spreadsheetId,
       requestBody: {
         requests
       }
     })
-    return record as RowSet<RecordType>
+    return record as SheetRecord<RecordType>
   }
 
   /**
@@ -485,13 +485,13 @@ export default class HollySheets<RecordType extends Record<string, any> = any> {
    * @returns A Promise that resolves when the delete operation is complete.
    * @throws An error if no records are found to delete.
    */
-  public async deleteMany(options: { where: WhereClause<RecordType> }): Promise<RowSet<RecordType>[]> {
+  public async deleteMany(options: { where: WhereClause<RecordType> }): Promise<SheetRecord<RecordType>[]> {
     const { where } = options
     const records = await this.findMany({ where })
     if(records.length === 0) {
       throw new Error('No records found to delete')
     }
-    const sheetId = await this.getSheetId(this.table)
+    const sheetId = await this.getSheetId(this.sheet)
     const requests = records
       .sort((a, b) => b.row - a.row)
       .map((record) => ({
@@ -506,7 +506,7 @@ export default class HollySheets<RecordType extends Record<string, any> = any> {
       ))
 
     await this.sheets.spreadsheets.batchUpdate({
-      spreadsheetId: HollySheets.spreadsheetId,
+      spreadsheetId: HolySheets.spreadsheetId,
       requestBody: {
         requests
       }
