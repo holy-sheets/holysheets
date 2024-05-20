@@ -168,7 +168,7 @@ type SelectClause<RecordType> = Partial<{[column in keyof RecordType]: boolean}>
 export default class HolySheets<RecordType extends Record<string, any> = any> {
   public sheets: sheets_v4.Sheets
   public sheet: string = ''
-  public static spreadsheetId: string = ''
+  public spreadsheetId: string = ''
   private readonly credentials: HolySheetsCredentials
 
   /**
@@ -183,7 +183,7 @@ export default class HolySheets<RecordType extends Record<string, any> = any> {
       key: credentials.privateKey,
       scopes: ['https://www.googleapis.com/auth/spreadsheets']
     })
-    HolySheets.spreadsheetId = credentials.spreadsheetId
+    this.spreadsheetId = credentials.spreadsheetId
     this.sheets = google.sheets({ version: 'v4', auth })
   }
 
@@ -214,7 +214,7 @@ export default class HolySheets<RecordType extends Record<string, any> = any> {
     const { data } = options
     const sheet = this.sheet
     const response = await this.sheets.spreadsheets.values.get({
-      spreadsheetId: HolySheets.spreadsheetId,
+      spreadsheetId: this.spreadsheetId,
       range: `${sheet}!${alphabet[0]}:${alphabet[alphabet.length - 1]}`
     })
 
@@ -222,14 +222,14 @@ export default class HolySheets<RecordType extends Record<string, any> = any> {
       throw new Error('No data found in the sheet.')
     }
     const lastLine = response.data.values.length
-    const headers = await getHeaders({ sheet: sheet, sheets: this.sheets, spreadsheetId: HolySheets.spreadsheetId})
+    const headers = await getHeaders({ sheet: sheet, sheets: this.sheets, spreadsheetId: this.spreadsheetId})
     const valuesFromRecords = data.map(record => decombine(record, headers))  
     const range = `A${lastLine + 1}:${indexToColumn(headers.length - 1)}${lastLine + valuesFromRecords.length}`
     await write({
       tableName: sheet,
       range,
       values: valuesFromRecords,
-      spreadsheetId: HolySheets.spreadsheetId,
+      spreadsheetId: this.spreadsheetId,
       sheets: this.sheets
     })
   }
@@ -246,13 +246,13 @@ export default class HolySheets<RecordType extends Record<string, any> = any> {
   public async findFirst(options: { where: WhereClause<RecordType>, select?: SelectClause<RecordType> }): Promise<SheetRecord<RecordType>|undefined>{
     const { where } = options
     const sheet = this.sheet
-    const headers = await getHeaders({ sheet, sheets: this.sheets, spreadsheetId: HolySheets.spreadsheetId})
+    const headers = await getHeaders({ sheet, sheets: this.sheets, spreadsheetId: this.spreadsheetId})
     const columns = Object.keys(where) as (keyof RecordType)[]
     const header = headers.find(header => header.name === columns[0])
     const range = `${sheet}!${header?.column}:${header?.column}`
     try {    
       const response = await this.sheets.spreadsheets.values.get({
-        spreadsheetId: HolySheets.spreadsheetId,
+        spreadsheetId: this.spreadsheetId,
         range
       })
       const rowIndex = response.data.values?.findIndex(row => checkWhereFilter(where[columns[0]] as WhereCondition|string, row[0] as string))
@@ -261,7 +261,7 @@ export default class HolySheets<RecordType extends Record<string, any> = any> {
       }
       const rowRange = `${sheet}!A${rowIndex + 1}:${indexToColumn(headers.length - 1)}${rowIndex + 1}`
       const rowResponse = await this.sheets.spreadsheets.values.get({
-        spreadsheetId: HolySheets.spreadsheetId,
+        spreadsheetId: this.spreadsheetId,
         range: rowRange
       })
   
@@ -288,14 +288,14 @@ export default class HolySheets<RecordType extends Record<string, any> = any> {
   public async findMany(options: { where: WhereClause<RecordType>, select?: SelectClause<RecordType> }): Promise<SheetRecord<RecordType>[]> {
     const { where, select } = options
     const sheet = this.sheet
-    const headers = await getHeaders({ sheet, sheets: this.sheets, spreadsheetId: HolySheets.spreadsheetId})
+    const headers = await getHeaders({ sheet, sheets: this.sheets, spreadsheetId: this.spreadsheetId})
     const columns = Object.keys(where) as (keyof RecordType)[]
     const header = headers.find(header => header.name === columns[0])
     const range = `${sheet}!${header?.column}:${header?.column}`
 
     try {
       const response = await this.sheets.spreadsheets.values.get({
-        spreadsheetId: HolySheets.spreadsheetId,
+        spreadsheetId: this.spreadsheetId,
         range
       })
       const rowIndexes = response.data.values?.reduce((acc: number[], row, index) => {
@@ -310,7 +310,7 @@ export default class HolySheets<RecordType extends Record<string, any> = any> {
       const rowsRange = rowIndexes.map(index => `${sheet}!A${index + 1}:${indexToColumn(headers.length - 1)}${index + 1}`)
       const ranges = rowsRange
       const batchGetResponse = await this.sheets.spreadsheets.values.batchGet({
-        spreadsheetId: HolySheets.spreadsheetId,
+        spreadsheetId: this.spreadsheetId,
         ranges: ranges
       })
 
@@ -396,7 +396,7 @@ export default class HolySheets<RecordType extends Record<string, any> = any> {
     }
     const { range } = record
     await this.sheets.spreadsheets.values.clear({
-      spreadsheetId: HolySheets.spreadsheetId,
+      spreadsheetId: this.spreadsheetId,
       range
     })
     return record
@@ -418,7 +418,7 @@ export default class HolySheets<RecordType extends Record<string, any> = any> {
     }
     const ranges = records.map(record => record.range)
     await this.sheets.spreadsheets.values.batchClear({
-      spreadsheetId: HolySheets.spreadsheetId,
+      spreadsheetId: this.spreadsheetId,
       requestBody: {
         ranges
       }
@@ -434,7 +434,7 @@ export default class HolySheets<RecordType extends Record<string, any> = any> {
    */
   public async getSheetId(title: string): Promise<number> {
     const response = await this.sheets.spreadsheets.get({
-      spreadsheetId: HolySheets.spreadsheetId,
+      spreadsheetId: this.spreadsheetId,
       includeGridData: false
     })
 
@@ -469,7 +469,7 @@ export default class HolySheets<RecordType extends Record<string, any> = any> {
       }
     }]
     await this.sheets.spreadsheets.batchUpdate({
-      spreadsheetId: HolySheets.spreadsheetId,
+      spreadsheetId: this.spreadsheetId,
       requestBody: {
         requests
       }
@@ -506,7 +506,7 @@ export default class HolySheets<RecordType extends Record<string, any> = any> {
       ))
 
     await this.sheets.spreadsheets.batchUpdate({
-      spreadsheetId: HolySheets.spreadsheetId,
+      spreadsheetId: this.spreadsheetId,
       requestBody: {
         requests
       }
