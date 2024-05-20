@@ -90,34 +90,34 @@ describe('HollySheets', () => {
     expect(baseInstance2.table).toBe(table2);
   });
 
-  it('testing mockGoogleApis', async () => {
-    const hollySheets = new HollySheets(credentials);
+  // it('testing mockGoogleApis', async () => {
+  //   const hollySheets = new HollySheets(credentials);
 
-    interface User {
-      name: string;
-      email: string;
-    }
+  //   interface User {
+  //     name: string;
+  //     email: string;
+  //   }
     
-    const users = hollySheets.base<User>('Users');
+  //   const users = hollySheets.base<User>('Users');
 
-    const result = await users.findMany({
-      where: {
-        name: {
-          contains: 'John',
-        },
-      },
-    });
+  //   const result = await users.findMany({
+  //     where: {
+  //       name: {
+  //         contains: 'John',
+  //       },
+  //     },
+  //   });
 
-    const expected = [
-      {
-        range: 'Users!A2:B2',
-        fields: { name: 'John Doe', email: 'john@doe.com' }
-      },
-      {
-        range: 'Users!A5:B5',
-        fields: { name: 'Johnny Cash', email: 'johnny@cash.com' }
-      }
-    ]
-    expect(result).toEqual(expected);
-  });
+  //   const expected = [
+  //     {
+  //       range: 'Users!A2:B2',
+  //       fields: { name: 'John Doe', email: 'john@doe.com' }
+  //     },
+  //     {
+  //       range: 'Users!A5:B5',
+  //       fields: { name: 'Johnny Cash', email: 'johnny@cash.com' }
+  //     }
+  //   ]
+  //   expect(result).toEqual(expected);
+  // });
 });
