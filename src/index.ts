@@ -125,6 +125,7 @@ type WhereCondition = {
 
 interface RowSet<RecordType extends Record<string, string>> {
   range: string
+  row: number
   fields: Partial<RecordType>
 }
 /**
@@ -145,13 +146,13 @@ const whereFilters = {
   endsWith: (value: WhereConditionAcceptedValues): WhereFilter => (expected: string) => typeof value === 'string' && expected.endsWith(value)
 }
 
-const checkWhereFilter = (filters: WhereCondition | string, data: string): boolean => {
+const checkWhereFilter = (filters: WhereCondition | string, data: string|undefined): boolean => {
   if (typeof filters === 'string') {
     filters = { equals: filters }
   }
   return Object.entries(filters).every(([key, expected]) => {
     const filter = whereFilters[key as WhereFilterKey](expected)
-    return filter(data)
+    return filter(data ?? '')
   })
 }
 
@@ -269,7 +270,11 @@ export default class HollySheets<RecordType extends Record<string, any> = any> {
       }
       const selectedHeaders = headers.filter(header => options.select ? options.select[header.name] : true)
       const fields = combine<RecordType>(rowResponse.data.values[0] as string[], selectedHeaders)
-      return { range: rowRange, fields }
+      return { 
+        range: rowRange, 
+        row: rowIndex + 1,
+        fields 
+      }
     } catch(error) {
       console.error('Error finding data' + error) // eslint-disable-line
     }
@@ -313,13 +318,13 @@ export default class HollySheets<RecordType extends Record<string, any> = any> {
         return []
       }
       const rowsResponse = batchGetResponse.data.valueRanges.map((valueRange, index) => {
-        return { range: ranges[index], values: valueRange.values }
+        return { range: ranges[index], values: valueRange.values, row: rowIndexes[index] + 1}
       })
 
-      return rowsResponse.map(({range, values}) => {  
+      return rowsResponse.map(({range, values, row}) => {  
         const selectedHeaders = headers.filter(header => select ? select[header.name] : true)    
         const fields = combine<RecordType>(values ? values[0] as string[] : [], selectedHeaders)
-        return { range, fields }
+        return { range, row, fields }
       })
     } catch(error) {
       console.error('Error finding data' + error) // eslint-disable-line
@@ -373,5 +378,139 @@ export default class HollySheets<RecordType extends Record<string, any> = any> {
     })
 
     return await this.insert({ data: updatedRecords })
+  }
+
+  /**
+   * Clears the first record that matches the specified condition.
+   * 
+   * @param options - The options for clearing the record.
+   * @param options.where - The condition to match the record.
+   * @returns A promise that resolves when the record is cleared.
+   * @throws An error if no record is found to delete.
+   */
+  public async clearFirst(options: { where: WhereClause<RecordType> }): Promise<RowSet<RecordType>> {
+    const { where } = options
+    const record = await this.findFirst({ where })
+    if (!record) {
+      throw new Error('No record found to delete')
+    }
+    const { range } = record
+    await this.sheets.spreadsheets.values.clear({
+      spreadsheetId: HollySheets.spreadsheetId,
+      range
+    })
+    return record
+  }
+
+  /**
+   * Clear multiple records from the spreadsheet based on the provided conditions.
+   * Throws an error if no records are found to delete.
+   * @param options - The options for the clear operation.
+   * @param options.where - The conditions to filter the records to be cleared.
+   * @returns A Promise that resolves when the clear operation is complete.
+   * @throws An error if no records are found to delete.
+   */
+  public async clearMany(options: { where: WhereClause<RecordType> }): Promise<RowSet<RecordType>[]> {
+    const { where } = options
+    const records = await this.findMany({ where })
+    if(records.length === 0) {
+      throw new Error('No records found to delete')
+    }
+    const ranges = records.map(record => record.range)
+    await this.sheets.spreadsheets.values.batchClear({
+      spreadsheetId: HollySheets.spreadsheetId,
+      requestBody: {
+        ranges
+      }
+    })
+    return records
+  }
+
+  /**
+   * Gets the ID of a sheet from its title.
+   *
+   * @param title The title of the sheet.
+   * @returns A promise that resolves to the ID of the sheet.
+   */
+  public async getSheetId(title: string): Promise<number> {
+    const response = await this.sheets.spreadsheets.get({
+      spreadsheetId: HollySheets.spreadsheetId,
+      includeGridData: false
+    })
+
+    const sheet = response.data.sheets?.find(sheet => sheet.properties?.title === title)
+
+    if (!sheet) {
+      throw new Error(`No sheet found with title: ${title}`)
+    }
+    return sheet.properties?.sheetId as number
+  }
+
+  /**
+   * Deletes the first record that matches the specified condition.
+   * 
+   * @param options - The options for deleting the record.
+   * @param options.where - The condition to match the record.
+   * @returns A promise that resolves when the record is deleted.
+   * @throws An error if no record is found to delete.
+   */
+  public async deleteFirst(options: { where: WhereClause<RecordType> }): Promise<RowSet<RecordType>> {
+    const { where } = options
+    const sheetId = await this.getSheetId(this.table)
+    const record = await this.findFirst({ where })
+    const requests = [{
+      deleteDimension: {
+        range: {
+          sheetId: sheetId,
+          dimension: 'ROWS',
+          startIndex: record?.row as number - 1,
+          endIndex: record?.row as number
+        }
+      }
+    }]
+    await this.sheets.spreadsheets.batchUpdate({
+      spreadsheetId: HollySheets.spreadsheetId,
+      requestBody: {
+        requests
+      }
+    })
+    return record as RowSet<RecordType>
+  }
+
+  /**
+   * Deletes multiple records from the spreadsheet based on the provided conditions.
+   * Throws an error if no records are found to delete.
+   * @param options - The options for the delete operation.
+   * @param options.where - The conditions to filter the records to be deleted.
+   * @returns A Promise that resolves when the delete operation is complete.
+   * @throws An error if no records are found to delete.
+   */
+  public async deleteMany(options: { where: WhereClause<RecordType> }): Promise<RowSet<RecordType>[]> {
+    const { where } = options
+    const records = await this.findMany({ where })
+    if(records.length === 0) {
+      throw new Error('No records found to delete')
+    }
+    const sheetId = await this.getSheetId(this.table)
+    const requests = records
+      .sort((a, b) => b.row - a.row)
+      .map((record) => ({
+        deleteDimension: {
+          range: {
+            sheetId: sheetId,
+            dimension: 'ROWS',
+            startIndex: record.row - 1,
+            endIndex: record.row
+          }
+        }}
+      ))
+
+    await this.sheets.spreadsheets.batchUpdate({
+      spreadsheetId: HollySheets.spreadsheetId,
+      requestBody: {
+        requests
+      }
+    })
+    return records
   }
 }
