@@ -1,11 +1,8 @@
-import { sheets_v4 } from 'googleapis'
-import { google } from 'googleapis'
-import { JWT } from 'google-auth-library'
+import { sheets_v4, Auth, google } from 'googleapis'
 
 interface HolySheetsCredentials {
-  clientEmail: string
-  privateKey: string
   spreadsheetId: string
+  auth: Auth.GoogleAuth | Auth.OAuth2Client | Auth.JWT | Auth.Compute
 }
 
 type SheetColumn =
@@ -331,22 +328,16 @@ export default class HolySheets<RecordType extends Record<string, any> = any> {
   public sheets: sheets_v4.Sheets
   public sheet: string = ''
   public spreadsheetId: string = ''
-  private readonly credentials: HolySheetsCredentials
+  private readonly auth:
+    | Auth.GoogleAuth
+    | Auth.OAuth2Client
+    | Auth.JWT
+    | Auth.Compute
 
-  /**
-   * Creates a new instance of the HolySheets class.
-   * @param credentials - The credentials required to authenticate with the Google Sheets API.
-   */
   constructor(credentials: HolySheetsCredentials) {
-    this.credentials = credentials
-
-    const auth = new JWT({
-      email: credentials.clientEmail,
-      key: credentials.privateKey,
-      scopes: ['https://www.googleapis.com/auth/spreadsheets']
-    })
     this.spreadsheetId = credentials.spreadsheetId
-    this.sheets = google.sheets({ version: 'v4', auth })
+    this.auth = credentials.auth
+    this.sheets = google.sheets({ version: 'v4', auth: credentials.auth })
   }
 
   /**
@@ -356,7 +347,10 @@ export default class HolySheets<RecordType extends Record<string, any> = any> {
    * @typeparam T - The type of the records in the table.
    */
   public base<T extends Record<string, any>>(table: string): HolySheets<T> {
-    const instance = new HolySheets<T>(this.credentials)
+    const instance = new HolySheets<T>({
+      spreadsheetId: this.spreadsheetId,
+      auth: this.auth
+    })
     instance.setTable(table)
     return instance
   }
