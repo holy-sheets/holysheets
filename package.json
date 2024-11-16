@@ -10,6 +10,7 @@
     "test": "jest",
     "coverage": "jest --coverage",
     "sample": "npm run build && node dist/sample.js",
+    "commit": "cz",
     "prepublishOnly": "npm run build"
   },
   "repository": {
@@ -35,6 +36,8 @@
     "@typescript-eslint/eslint-plugin": "^6.21.0",
     "@typescript-eslint/parser": "^6.21.0",
     "babel-jest": "^29.7.0",
+    "commitizen": "^4.3.1",
+    "cz-conventional-changelog": "^3.3.0",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-config-standard-with-typescript": "^43.0.1",
@@ -44,5 +47,10 @@
     "prettier": "^3.3.3",
     "ts-jest": "^29.1.2",
     "typescript": "^5.4.5"
+  },
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    }
   }
 }
