@@ -11,6 +11,7 @@
     "coverage": "jest --coverage",
     "sample": "npm run build && node dist/sample.js",
     "commit": "cz",
+    "run:jwt": "tsc --project tsconfig.json && node dist/.examples/jwt.js",
     "prepublishOnly": "npm run build"
   },
   "repository": {
@@ -38,6 +39,7 @@
     "babel-jest": "^29.7.0",
     "commitizen": "^4.3.1",
     "cz-conventional-changelog": "^3.3.0",
+    "dotenv": "^16.4.5",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-config-standard-with-typescript": "^43.0.1",

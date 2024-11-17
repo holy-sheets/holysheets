@@ -1,9 +1,19 @@
+# Node.js dependencies
 node_modules
+
+# Environment and credentials files
+.env
 .credentials.json
+
+# Build outputs and compiled files
+dist
+*.d.ts
 */*.js
 *.js
 !jest.config.js
-*.d.ts
+
+# Coverage reports
 coverage/lcov-report
-dist
+
+# System files
 .DS_Store
