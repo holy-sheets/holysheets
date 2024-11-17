@@ -18,6 +18,23 @@
     "type": "git",
     "url": "https://github.com/holy-sheets/holy-sheets.git"
   },
+  "release": {
+    "branches": [
+      "main"
+    ],
+    "plugins": [
+      "@semantic-release/commit-analyzer",
+      "@semantic-release/release-notes-generator",
+      "@semantic-release/changelog",
+      [
+        "@semantic-release/npm",
+        {
+          "npmPublish": false
+        }
+      ],
+      "@semantic-release/git"
+    ]
+  },
   "keywords": [
     "google",
     "sheets",
@@ -32,6 +49,9 @@
   },
   "devDependencies": {
     "@babel/preset-env": "^7.24.5",
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/git": "^10.0.1",
+    "@semantic-release/npm": "^12.0.1",
     "@types/jest": "^29.5.12",
     "@types/node": "^20.12.8",
     "@typescript-eslint/eslint-plugin": "^6.21.0",
@@ -47,6 +67,7 @@
     "jest": "^29.7.0",
     "lcov-badge2": "^1.1.2",
     "prettier": "^3.3.3",
+    "semantic-release": "^24.2.0",
     "ts-jest": "^29.1.2",
     "typescript": "^5.4.5"
   },
