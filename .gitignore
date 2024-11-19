@@ -13,7 +13,7 @@ dist
 !jest.config.js
 
 # Coverage reports
-coverage/lcov-report
+coverage
 
 # System files
 .DS_Store
