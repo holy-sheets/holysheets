@@ -90,34 +90,36 @@ describe('HollySheets', () => {
     expect(baseInstance2.sheet).toBe(table2);
   });
 
-  // it('testing mockGoogleApis', async () => {
-  //   const holySheets = new HollySheets(credentials);
-
-  //   interface User {
-  //     name: string;
-  //     email: string;
-  //   }
+  it('testing mockGoogleApis', async () => {
+    const holySheets = new HollySheets(credentials);
+  
+    interface User {
+      name: string;
+      email: string;
+    }
     
-  //   const users = holySheets.base<User>('Users');
-
-  //   const result = await users.findMany({
-  //     where: {
-  //       name: {
-  //         contains: 'John',
-  //       },
-  //     },
-  //   });
-
-  //   const expected = [
-  //     {
-  //       range: 'Users!A2:B2',
-  //       fields: { name: 'John Doe', email: 'john@doe.com' }
-  //     },
-  //     {
-  //       range: 'Users!A5:B5',
-  //       fields: { name: 'Johnny Cash', email: 'johnny@cash.com' }
-  //     }
-  //   ]
-  //   expect(result).toEqual(expected);
-  // });
+    const users = holySheets.base<User>('Users');
+  
+    const result = await users.findMany({
+      where: {
+        name: {
+          contains: 'John',
+        },
+      },
+    });
+  
+    const expected = [
+      {
+        range: 'Users!A2:B2',
+        row: 2,
+        fields: { name: 'John Doe', email: 'john@doe.com' }
+      },
+      {
+        range: 'Users!A5:B5',
+        row: 5,
+        fields: { name: 'Johnny Cash', email: 'johnny@cash.com' }
+      }
+    ]
+    expect(result).toEqual(expected);
+  });
 });

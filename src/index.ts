@@ -1,6 +1,5 @@
 import { sheets_v4 } from 'googleapis'
 import { google } from 'googleapis'
-import { JWT } from 'google-auth-library'
 
 interface HolySheetsCredentials {
   clientEmail: string;
@@ -171,18 +170,15 @@ export default class HolySheets<RecordType extends Record<string, any> = any> {
   public spreadsheetId: string = ''
   private readonly credentials: HolySheetsCredentials
 
-  /**
-     * Creates a new instance of the HolySheets class.
-     * @param credentials - The credentials required to authenticate with the Google Sheets API.
-  */
   constructor(credentials: HolySheetsCredentials) {
     this.credentials = credentials
 
-    const auth = new JWT({
+    const auth = new google.auth.JWT({
       email: credentials.clientEmail,
       key: credentials.privateKey,
       scopes: ['https://www.googleapis.com/auth/spreadsheets']
     })
+
     this.spreadsheetId = credentials.spreadsheetId
     this.sheets = google.sheets({ version: 'v4', auth })
   }
