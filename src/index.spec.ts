@@ -106,6 +106,33 @@ vi.mock('googleapis', () => {
           getClient() {
             return Promise.resolve(fakeAuthClient)
           }
+        },
+        JWT: class {
+          constructor(
+            email: string,
+            keyFile: string | null,
+            key: string,
+            scopes: string[]
+          ) {
+            // Simulate JWT client initialization
+          }
+          authorize() {
+            return Promise.resolve({ access_token: 'fake-access-token' })
+          }
+          // Mock methods if necessary
+        },
+        OAuth2: class {
+          constructor(
+            clientId: string,
+            clientSecret: string,
+            redirectUri: string
+          ) {
+            // Simulate OAuth2 client initialization
+          }
+          setCredentials(credentials: { access_token: string }) {
+            // Simulate setting credentials
+          }
+          // Mock methods if necessary
         }
       },
       sheets: vi.fn().mockImplementation(options => sheetsMock)
@@ -130,6 +157,44 @@ describe('HolySheets', () => {
   })
 
   it('should initialize HolySheets with credentials', () => {
+    const holySheets = new HolySheets(credentials)
+    expect(holySheets).toBeTruthy()
+  })
+
+  it('should initialize HolySheets with JWT authentication', () => {
+    const jwtClient = new google.auth.JWT(
+      'test@example.com', // email
+      undefined, // keyFile
+      '-----BEGIN PRIVATE KEY-----\nYOUR_PRIVATE_KEY\n-----END PRIVATE KEY-----\n', // key
+      ['https://www.googleapis.com/auth/spreadsheets'] // scopes
+    )
+
+    const credentials = {
+      spreadsheetId: 'spreadsheet-id',
+      auth: jwtClient
+    }
+
+    const holySheets = new HolySheets(credentials)
+    expect(holySheets).toBeTruthy()
+  })
+
+  it('should initialize HolySheets with OAuth2 authentication', () => {
+    const oauth2Client = new google.auth.OAuth2(
+      'YOUR_CLIENT_ID',
+      'YOUR_CLIENT_SECRET',
+      'YOUR_REDIRECT_URI'
+    )
+
+    // Simulate setting an access token
+    oauth2Client.setCredentials({
+      access_token: 'YOUR_ACCESS_TOKEN'
+    })
+
+    const credentials = {
+      spreadsheetId: 'spreadsheet-id',
+      auth: oauth2Client
+    }
+
     const holySheets = new HolySheets(credentials)
     expect(holySheets).toBeTruthy()
   })
