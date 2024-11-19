@@ -34,6 +34,10 @@ const fakeAuthClient = {
   getRequestHeaders: vi.fn().mockResolvedValue({})
 }
 
+const clearMock = vi.fn().mockResolvedValue({})
+const batchClearMock = vi.fn().mockResolvedValue({})
+const batchUpdateMock = vi.fn().mockResolvedValue({})
+
 // Define sheetsMock outside vi.mock
 const sheetsMock = {
   spreadsheets: {
@@ -77,18 +81,18 @@ const sheetsMock = {
         // Default empty response for other ranges
         return Promise.resolve({ data: { values: [] } })
       }),
-      batchUpdate: vi.fn().mockResolvedValue({}),
+      batchUpdate: batchUpdateMock,
       batchGet: vi.fn().mockResolvedValue(batchResponse),
-      clear: vi.fn().mockResolvedValue({}),
-      batchClear: vi.fn().mockResolvedValue({})
+      clear: clearMock,
+      batchClear: batchClearMock
     },
     get: vi.fn().mockResolvedValue({
       data: {
         sheets: [{ properties: { title: 'Users', sheetId: 12345 } }]
       }
     }),
-    batchUpdate: vi.fn().mockResolvedValue({}),
-    batchClear: vi.fn().mockResolvedValue({})
+    batchUpdate: batchUpdateMock,
+    batchClear: clearMock
   }
 }
 
@@ -215,7 +219,7 @@ describe('HolySheets', () => {
     ).rejects.toThrow('Test error')
   })
 
-  it.skip('should clear the first record that matches the where condition', async () => {
+  it('should clear the first record that matches the where condition', async () => {
     const holySheets = new HolySheets(credentials)
 
     interface User {
@@ -240,12 +244,10 @@ describe('HolySheets', () => {
     }
 
     expect(result).toEqual(expected)
-    expect(
-      require('googleapis').google.sheets().spreadsheets.values.clear
-    ).toHaveBeenCalledTimes(1)
+    expect(clearMock).toHaveBeenCalledTimes(1)
   })
 
-  it.skip('should clear multiple records that match the where condition', async () => {
+  it('should clear multiple records that match the where condition', async () => {
     const holySheets = new HolySheets(credentials)
 
     interface User {
@@ -277,12 +279,10 @@ describe('HolySheets', () => {
     ]
 
     expect(result).toEqual(expected)
-    expect(
-      require('googleapis').google.sheets().spreadsheets.values.batchClear
-    ).toHaveBeenCalledTimes(1)
+    expect(batchClearMock).toHaveBeenCalledTimes(1)
   })
 
-  it.skip('should delete the first record that matches the where condition', async () => {
+  it('should delete the first record that matches the where condition', async () => {
     const holySheets = new HolySheets(credentials)
 
     interface User {
@@ -307,12 +307,10 @@ describe('HolySheets', () => {
     }
 
     expect(result).toEqual(expected)
-    expect(
-      require('googleapis').google.sheets().spreadsheets.batchUpdate
-    ).toHaveBeenCalledTimes(1)
+    expect(batchUpdateMock).toHaveBeenCalledTimes(1)
   })
 
-  it.skip('should delete multiple records that match the where condition', async () => {
+  it('should delete multiple records that match the where condition', async () => {
     const holySheets = new HolySheets(credentials)
 
     interface User {
@@ -343,9 +341,8 @@ describe('HolySheets', () => {
       }
     ]
 
-    expect(result).toEqual(expected)
-    expect(
-      require('googleapis').google.sheets().spreadsheets.batchUpdate
-    ).toHaveBeenCalledTimes(1)
+    expect(result).toEqual(expect.arrayContaining(expected))
+    expect(result).toHaveLength(expected.length)
+    expect(batchUpdateMock).toHaveBeenCalledTimes(1)
   })
 })
