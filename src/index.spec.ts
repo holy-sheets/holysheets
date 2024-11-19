@@ -1,6 +1,6 @@
-// src/index.spec.ts
-import { describe, it, beforeEach, expect, vi } from 'vitest'
+import { vi, describe, it, beforeEach, expect } from 'vitest'
 import HolySheets from './index'
+import { google } from 'googleapis'
 
 // Mocking the response from Google Sheets API
 const usersMock = [
@@ -34,65 +34,66 @@ const fakeAuthClient = {
   getRequestHeaders: vi.fn().mockResolvedValue({})
 }
 
-// Mock the googleapis module
-vi.mock('googleapis', () => {
-  const sheetsMock = {
-    spreadsheets: {
-      values: {
-        get: vi.fn().mockImplementation(({ range }) => {
-          // Mock responses based on the range
-          if (range === 'Users!1:1') {
-            // Headers
-            return Promise.resolve({ data: { values: [['name', 'email']] } })
-          } else if (range === 'Users!A:A') {
-            // Column A (names)
-            return Promise.resolve({
-              data: {
-                values: [
-                  ['name'],
-                  ['John Doe'],
-                  ['Mary Jane'],
-                  ['Jane Doe'],
-                  ['Johnny Cash']
-                ]
-              }
-            })
-          } else if (range === 'Users!A2:B2') {
-            // Specific row A2:B2
-            return Promise.resolve({
-              data: {
-                values: [['John Doe', 'john@doe.com']]
-              }
-            })
-          } else if (range === 'Users!A5:B5') {
-            // Specific row A5:B5
-            return Promise.resolve({
-              data: {
-                values: [['Johnny Cash', 'johnny@cash.com']]
-              }
-            })
-          } else if (range === 'Users!A:AZ') {
-            // Full data for insert
-            return Promise.resolve({ data: { values: usersMock } })
-          }
-          // Default empty response for other ranges
-          return Promise.resolve({ data: { values: [] } })
-        }),
-        batchUpdate: vi.fn().mockResolvedValue({}),
-        batchGet: vi.fn().mockResolvedValue(batchResponse),
-        clear: vi.fn().mockResolvedValue({}),
-        batchClear: vi.fn().mockResolvedValue({})
-      },
-      get: vi.fn().mockResolvedValue({
-        data: {
-          sheets: [{ properties: { title: 'Users', sheetId: 12345 } }]
+// Define sheetsMock outside vi.mock
+const sheetsMock = {
+  spreadsheets: {
+    values: {
+      get: vi.fn().mockImplementation(({ range }) => {
+        // Mock responses based on the range
+        if (range === 'Users!1:1') {
+          // Headers
+          return Promise.resolve({ data: { values: [['name', 'email']] } })
+        } else if (range === 'Users!A:A') {
+          // Column A (names)
+          return Promise.resolve({
+            data: {
+              values: [
+                ['name'],
+                ['John Doe'],
+                ['Mary Jane'],
+                ['Jane Doe'],
+                ['Johnny Cash']
+              ]
+            }
+          })
+        } else if (range === 'Users!A2:B2') {
+          // Specific row A2:B2
+          return Promise.resolve({
+            data: {
+              values: [['John Doe', 'john@doe.com']]
+            }
+          })
+        } else if (range === 'Users!A5:B5') {
+          // Specific row A5:B5
+          return Promise.resolve({
+            data: {
+              values: [['Johnny Cash', 'johnny@cash.com']]
+            }
+          })
+        } else if (range === 'Users!A:AZ') {
+          // Full data for insert
+          return Promise.resolve({ data: { values: usersMock } })
         }
+        // Default empty response for other ranges
+        return Promise.resolve({ data: { values: [] } })
       }),
       batchUpdate: vi.fn().mockResolvedValue({}),
+      batchGet: vi.fn().mockResolvedValue(batchResponse),
+      clear: vi.fn().mockResolvedValue({}),
       batchClear: vi.fn().mockResolvedValue({})
-    }
+    },
+    get: vi.fn().mockResolvedValue({
+      data: {
+        sheets: [{ properties: { title: 'Users', sheetId: 12345 } }]
+      }
+    }),
+    batchUpdate: vi.fn().mockResolvedValue({}),
+    batchClear: vi.fn().mockResolvedValue({})
   }
+}
 
+// Mock the googleapis module
+vi.mock('googleapis', () => {
   return {
     google: {
       auth: {
@@ -103,7 +104,7 @@ vi.mock('googleapis', () => {
           }
         }
       },
-      sheets: vi.fn().mockImplementation(() => sheetsMock)
+      sheets: vi.fn().mockImplementation(options => sheetsMock)
     }
   }
 })
@@ -111,7 +112,7 @@ vi.mock('googleapis', () => {
 describe('HolySheets', () => {
   const credentials = {
     spreadsheetId: 'spreadsheet-id',
-    auth: new (require('googleapis').google.auth.GoogleAuth)({
+    auth: new google.auth.GoogleAuth({
       credentials: {
         client_email: 'test@example.com',
         private_key: `-----BEGIN PRIVATE KEY-----\nYOUR_PRIVATE_KEY\n-----END PRIVATE KEY-----\n`
@@ -141,7 +142,7 @@ describe('HolySheets', () => {
     expect(baseInstance2.sheet).toBe(table2)
   })
 
-  it.skip('should fetch multiple records that match the where condition', async () => {
+  it('should fetch multiple records that match the where condition', async () => {
     const holySheets = new HolySheets(credentials)
 
     interface User {
@@ -175,37 +176,35 @@ describe('HolySheets', () => {
     expect(result).toEqual(expected)
   })
 
-  it.skip('should insert data into the sheet', async () => {
+  it('should insert data into the sheet', async () => {
     const holySheets = new HolySheets(credentials)
+    const users = holySheets.base<{ name: string; email: string }>('Users')
 
     const dataToInsert = [
       { name: 'Alice Wonderland', email: 'alice@wonderland.com' }
     ]
 
-    await holySheets.insert({
+    await users.insert({
       data: dataToInsert
     })
 
     expect(
-      require('googleapis').google.sheets().spreadsheets.values.batchUpdate
+      google.sheets({ version: 'v4' }).spreadsheets.values.batchUpdate
     ).toHaveBeenCalledTimes(1)
   })
 
-  it.skip('should handle errors when fetching headers', async () => {
-    const { google } = require('googleapis')
+  it('should handle errors when fetching headers', async () => {
+    const sheetsInstance = google.sheets({ version: 'v4' })
+    const getFn = sheetsInstance.spreadsheets.values
+      .get as unknown as ReturnType<typeof vi.fn>
 
-    // Force the get method to reject for headers
-    google
-      .sheets()
-      .spreadsheets.values.get.mockImplementationOnce(
-        ({ range }: { range: string }) => {
-          if (range === 'Users!1:1') {
-            return Promise.reject(new Error('Test error'))
-          }
-          // For other ranges, use the default mock implementation
-          return Promise.resolve({ data: { values: usersMock } })
-        }
-      )
+    getFn.mockImplementationOnce(({ range }: { range: string }) => {
+      if (range === 'Users!1:1') {
+        return Promise.reject(new Error('Test error'))
+      }
+      // For other ranges, use the default mock implementation
+      return Promise.resolve({ data: { values: usersMock } })
+    })
 
     const holySheets = new HolySheets(credentials)
 
