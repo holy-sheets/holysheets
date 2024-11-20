@@ -117,10 +117,7 @@ export default class HolySheets<RecordType extends Record<string, any> = any> {
         range
       })
       const rowIndex = response.data.values?.findIndex(row =>
-        checkWhereFilter(
-          where[columns[0]] as WhereCondition | string,
-          row[0] as string
-        )
+        checkWhereFilter(where[columns[0]] as WhereCondition | string, row[0])
       )
       if (rowIndex === -1 || !rowIndex) {
         return undefined
@@ -138,7 +135,7 @@ export default class HolySheets<RecordType extends Record<string, any> = any> {
         options.select ? options.select[header.name] : true
       )
       const fields = combine<RecordType>(
-        rowResponse.data.values[0] as string[],
+        rowResponse.data.values[0],
         selectedHeaders
       )
       return {
@@ -167,7 +164,7 @@ export default class HolySheets<RecordType extends Record<string, any> = any> {
       sheets: this.sheets,
       spreadsheetId: this.spreadsheetId
     })
-    const columns = Object.keys(where) as (keyof RecordType)[]
+    const columns = Object.keys(where)
     const header = headers.find(header => header.name === columns[0])
     const range = `${sheet}!${header?.column}:${header?.column}`
 
@@ -178,12 +175,7 @@ export default class HolySheets<RecordType extends Record<string, any> = any> {
       })
       const rowIndexes = response.data.values?.reduce(
         (acc: number[], row, index) => {
-          if (
-            checkWhereFilter(
-              where[columns[0]] as WhereCondition | string,
-              row[0] as string
-            )
-          ) {
+          if (checkWhereFilter(where[columns[0]] as WhereCondition, row[0])) {
             acc.push(index)
           }
           return acc
@@ -221,7 +213,7 @@ export default class HolySheets<RecordType extends Record<string, any> = any> {
           select ? select[header.name] : true
         )
         const fields = combine<RecordType>(
-          values ? (values[0] as string[]) : [],
+          values ? values[0] : [],
           selectedHeaders
         )
         return { range, row, fields }
@@ -355,7 +347,10 @@ export default class HolySheets<RecordType extends Record<string, any> = any> {
     if (!sheet) {
       throw new Error(`No sheet found with title: ${title}`)
     }
-    return sheet.properties?.sheetId as number
+    if (!sheet.properties?.sheetId) {
+      throw new Error(`No sheet ID found for sheet with title: ${title}`)
+    }
+    return sheet.properties?.sheetId
   }
 
   /**
@@ -372,14 +367,17 @@ export default class HolySheets<RecordType extends Record<string, any> = any> {
     const { where } = options
     const sheetId = await this.getSheetId(this.sheet)
     const record = await this.findFirst({ where })
+    if (!record) {
+      throw new Error('No record found to delete')
+    }
     const requests = [
       {
         deleteDimension: {
           range: {
             sheetId: sheetId,
             dimension: 'ROWS',
-            startIndex: (record?.row as number) - 1,
-            endIndex: record?.row as number
+            startIndex: record?.row - 1,
+            endIndex: record?.row
           }
         }
       }
