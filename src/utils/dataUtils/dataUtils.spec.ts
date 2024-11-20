@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { decombine, combine } from '@/utils/dataUtils'
-import { SheetHeaders } from '@/types/headers'
+import { decombine, combine } from './dataUtils'
+import { SheetHeaders } from '../../types/headers'
 
 describe('decombine', () => {
   it('should deconstruct a record into an array of values based on the headers', () => {

@@ -1,9 +1,12 @@
 import { sheets_v4 } from 'googleapis'
-import { indexToColumn } from '@/utils/columnUtils'
-import { decombine } from '@/utils/dataUtils'
-import { getHeaders } from '@/utils/headers'
-import { write } from '@/utils/write'
-import { addSheetToRange, createMultipleRowsRange } from '@/utils/rangeUtils'
+import { indexToColumn } from '@/utils/columnUtils/columnUtils'
+import { decombine } from '@/utils/dataUtils/dataUtils'
+import { getHeaders } from '@/utils/headers/headers'
+import { write } from '@/utils/write/write'
+import {
+  addSheetToRange,
+  createMultipleRowsRange
+} from '@/utils/rangeUtils/rangeUtils'
 
 export interface InsertParams {
   spreadsheetId: string

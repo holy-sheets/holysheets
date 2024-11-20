@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { checkWhereFilter } from '@/utils/where'
-import { WhereCondition } from '@/types/where'
+import { checkWhereFilter } from './where'
+import { WhereCondition } from '../../types/where'
 
 describe('checkWhereFilter', () => {
   it('should return true when the data equals the string filter', () => {

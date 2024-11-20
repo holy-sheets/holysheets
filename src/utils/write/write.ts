@@ -1,5 +1,5 @@
 import { sheets_v4 } from 'googleapis'
-import { addSheetToRange } from './rangeUtils'
+import { addSheetToRange } from '../rangeUtils/rangeUtils'
 
 /**
  * Represents the options for writing data into a sheet.

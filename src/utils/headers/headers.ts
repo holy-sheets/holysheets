@@ -1,6 +1,6 @@
 import { sheets_v4 } from 'googleapis'
 import { SheetHeaders } from '@/types/headers'
-import { indexToColumn } from '@/utils/columnUtils'
+import { indexToColumn } from '@/utils/columnUtils/columnUtils'
 
 /**
  * Retrieves the headers of a specified table from a Google Sheets document.

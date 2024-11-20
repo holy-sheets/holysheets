@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { write } from '@/utils/write'
+import { write } from './write'
 import { sheets_v4 } from 'googleapis'
 
 describe('write', () => {

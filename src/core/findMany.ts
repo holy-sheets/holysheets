@@ -1,15 +1,15 @@
 import { sheets_v4 } from 'googleapis'
 import { WhereClause } from '@/types/where'
 import { SelectClause } from '@/types/select'
-import { getHeaders } from '@/utils/headers'
-import { checkWhereFilter } from '@/utils/where'
-import { combine } from '@/utils/dataUtils'
-import { indexToColumn } from '@/utils/columnUtils'
+import { getHeaders } from '@/utils/headers/headers'
+import { checkWhereFilter } from '@/utils/where/where'
+import { combine } from '@/utils/dataUtils/dataUtils'
+import { indexToColumn } from '@/utils/columnUtils/columnUtils'
 import { SheetRecord } from '@/types/sheetRecord'
 import {
   createSingleColumnRange,
   createSingleRowRange
-} from '@/utils/rangeUtils'
+} from '@/utils/rangeUtils/rangeUtils'
 /**
  * Finds multiple records that match the given where clause.
  *

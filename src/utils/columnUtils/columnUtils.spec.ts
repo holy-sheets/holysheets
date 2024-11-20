@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { alphabet, indexToColumn } from '@/utils/columnUtils'
+import { alphabet, indexToColumn } from './columnUtils'
 
 describe('alphabet', () => {
   it('should contain 52 elements', () => {

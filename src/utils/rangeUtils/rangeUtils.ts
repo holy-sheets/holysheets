@@ -1,6 +1,6 @@
 // src/utils/rangeUtils.ts
 
-import { indexToColumn } from '@/utils/columnUtils'
+import { indexToColumn } from '@/utils/columnUtils/columnUtils'
 
 /**
  * Parameters for creating a single column range.

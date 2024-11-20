@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { whereFilters } from '@/utils/whereFilters'
+import { whereFilters } from './whereFilters'
 
 describe('whereFilters', () => {
   it('should match using equals filter', () => {
