@@ -6,6 +6,7 @@ import { checkWhereFilter } from '@/utils/where'
 import { combine } from '@/utils/dataUtils'
 import { indexToColumn } from '@/utils/columnUtils'
 import { SheetRecord } from '@/types/sheetRecord'
+import { createSingleColumnRange } from '@/utils/rangeUtils'
 
 /**
  * Encontra o primeiro registro que corresponde à cláusula where fornecida.
@@ -53,7 +54,13 @@ export async function findFirst<RecordType extends Record<string, any>>(
   })
   const columns = Object.keys(where) as (keyof RecordType)[]
   const header = headers.find(header => header.name === columns[0])
-  const range = `${sheet}!${header?.column}:${header?.column}`
+  if (!header) {
+    throw new Error(`Header not found for column ${String(columns[0])}`)
+  }
+  const range = createSingleColumnRange({
+    sheet,
+    column: header.column
+  })
 
   try {
     const response = await sheets.spreadsheets.values.get({

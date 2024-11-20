@@ -3,6 +3,7 @@ import { indexToColumn } from '@/utils/columnUtils'
 import { decombine } from '@/utils/dataUtils'
 import { getHeaders } from '@/utils/headers'
 import { write } from '@/utils/write'
+import { addSheetToRange, createMultipleRowsRange } from '@/utils/rangeUtils'
 
 export interface InsertParams {
   spreadsheetId: string
@@ -20,7 +21,7 @@ export async function insert<RecordType extends Record<string, any>>(
   // Fetch the current data to find the last line
   const response = await sheets.spreadsheets.values.get({
     spreadsheetId,
-    range: `${sheet}!A:Z` // Adjust range as necessary
+    range: addSheetToRange({ sheet, range: 'A:Z' })
   })
 
   if (!response.data.values) {
@@ -40,9 +41,12 @@ export async function insert<RecordType extends Record<string, any>>(
   const valuesFromRecords = data.map(record => decombine(record, headers))
 
   // Define the range for the new data
-  const range = `A${lastLine + 1}:${indexToColumn(headers.length - 1)}${
-    lastLine + valuesFromRecords.length
-  }`
+  const range = createMultipleRowsRange({
+    sheet: sheet,
+    startRow: lastLine + 1,
+    endRow: lastLine + valuesFromRecords.length,
+    lastColumnIndex: headers.length - 1
+  })
 
   // Write to the sheet
   await write({

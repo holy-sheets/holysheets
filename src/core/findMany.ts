@@ -6,6 +6,10 @@ import { checkWhereFilter } from '@/utils/where'
 import { combine } from '@/utils/dataUtils'
 import { indexToColumn } from '@/utils/columnUtils'
 import { SheetRecord } from '@/types/sheetRecord'
+import {
+  createSingleColumnRange,
+  createSingleRowRange
+} from '@/utils/rangeUtils'
 /**
  * Finds multiple records that match the given where clause.
  *
@@ -52,7 +56,13 @@ export async function findMany<RecordType extends Record<string, any>>(
   })
   const columns = Object.keys(where)
   const header = headers.find(header => header.name === columns[0])
-  const range = `${sheet}!${header?.column}:${header?.column}`
+  if (!header) {
+    throw new Error(`Header not found for column ${String(columns[0])}`)
+  }
+  const range = createSingleColumnRange({
+    sheet,
+    column: header.column
+  })
 
   try {
     const response = await sheets.spreadsheets.values.get({
@@ -75,11 +85,12 @@ export async function findMany<RecordType extends Record<string, any>>(
       return []
     }
 
-    const ranges = rowIndexes.map(
-      index =>
-        `${sheet}!A${index + 1}:${indexToColumn(headers.length - 1)}${
-          index + 1
-        }`
+    const ranges = rowIndexes.map(index =>
+      createSingleRowRange({
+        sheet,
+        row: index + 1,
+        lastColumnIndex: headers.length - 1
+      })
     )
     const batchGetResponse = await sheets.spreadsheets.values.batchGet({
       spreadsheetId,

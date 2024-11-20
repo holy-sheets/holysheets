@@ -1,4 +1,5 @@
 import { sheets_v4 } from 'googleapis'
+import { addSheetToRange } from './rangeUtils'
 
 /**
  * Represents the options for writing data into a sheet.
@@ -17,8 +18,9 @@ interface WriteOptions {
  */
 export async function write(options: WriteOptions): Promise<void> {
   const { range, values, tableName, sheets, spreadsheetId } = options
-  const rangeWithSheet = `${tableName}!${range}`
-  const completeRange = tableName ? rangeWithSheet : range
+  const completeRange = tableName
+    ? addSheetToRange({ sheet: tableName, range })
+    : range
   try {
     const request = {
       spreadsheetId,
