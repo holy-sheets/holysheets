@@ -1,12 +1,12 @@
 import { sheets_v4, Auth, google } from 'googleapis'
-import { HolySheetsCredentials } from './types/credentials'
-import { alphabet, indexToColumn } from './utils/columnUtils'
-import { combine, decombine } from './utils/dataUtils'
-import { getHeaders } from './utils/headers'
-import { write } from './utils/write'
-import { checkWhereFilter } from './utils/where'
-import { WhereClause, WhereCondition } from './types/where'
-import { SelectClause } from './types/select'
+import { HolySheetsCredentials } from '@/types/credentials'
+import { alphabet, indexToColumn } from '@/utils/columnUtils'
+import { combine, decombine } from '@/utils/dataUtils'
+import { getHeaders } from '@/utils/headers'
+import { write } from '@/utils/write'
+import { checkWhereFilter } from '@/utils/where'
+import { WhereClause, WhereCondition } from '@/types/where'
+import { SelectClause } from '@/types/select'
 
 interface SheetRecord<RecordType extends Record<string, string>> {
   range: string

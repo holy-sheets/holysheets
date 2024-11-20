@@ -1,4 +1,4 @@
-import { whereFilters } from '../utils/whereFilters'
+import { whereFilters } from '@/utils/whereFilters'
 
 export type WhereFilter = (value: string) => boolean
 export type WhereConditionAcceptedValues = string | string[] | number

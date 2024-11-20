@@ -1,4 +1,4 @@
-import { SheetColumn } from '../types/headers'
+import { SheetColumn } from '@/types/headers'
 
 export const alphabet: SheetColumn[] = [
   'A',

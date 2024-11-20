@@ -1,4 +1,4 @@
-import { SheetHeaders } from '../types/headers'
+import { SheetHeaders } from '@/types/headers'
 
 /**
  * Deconstructs a record object into an array of values based on the provided headers.

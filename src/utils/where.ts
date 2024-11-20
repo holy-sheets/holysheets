@@ -1,5 +1,5 @@
-import { WhereCondition, WhereFilterKey } from '../types/where'
-import { whereFilters } from './whereFilters'
+import { WhereCondition, WhereFilterKey } from '@/types/where'
+import { whereFilters } from '@/utils/whereFilters'
 
 export const checkWhereFilter = (
   filters: WhereCondition | string,

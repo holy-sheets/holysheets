@@ -1,4 +1,4 @@
-import { WhereConditionAcceptedValues, WhereFilter } from '../types/where'
+import { WhereConditionAcceptedValues, WhereFilter } from '@/types/where'
 
 /**
  * Object containing various filter functions for querying data.
