@@ -1,5 +1,5 @@
 import { vi, describe, it, beforeEach, expect } from 'vitest'
-import HolySheets from '@/index'
+import HolySheets from './index'
 import { google } from 'googleapis'
 
 // Mocking the response from Google Sheets API

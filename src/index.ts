@@ -84,8 +84,8 @@ export default class HolySheets<RecordType extends Record<string, any> = any> {
   public async updateFirst(options: {
     where: WhereClause<RecordType>
     data: Partial<RecordType>
-  }) {
-    await updateFirst<RecordType>(
+  }): Promise<RecordType> {
+    return await updateFirst<RecordType>(
       {
         spreadsheetId: this.spreadsheetId,
         sheets: this.sheets,
@@ -98,8 +98,8 @@ export default class HolySheets<RecordType extends Record<string, any> = any> {
   public async updateMany(options: {
     where: WhereClause<RecordType>
     data: Partial<RecordType>
-  }) {
-    await updateMany<RecordType>(
+  }): Promise<RecordType[]> {
+    return await updateMany<RecordType>(
       {
         spreadsheetId: this.spreadsheetId,
         sheets: this.sheets,

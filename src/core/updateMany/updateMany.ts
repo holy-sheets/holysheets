@@ -38,7 +38,7 @@ export async function updateMany<RecordType extends Record<string, any>>(
     where: WhereClause<RecordType>
     data: Partial<RecordType>
   }
-): Promise<void> {
+): Promise<RecordType[]> {
   const { spreadsheetId, sheets, sheet } = params
   const { where, data } = options
 
@@ -60,4 +60,5 @@ export async function updateMany<RecordType extends Record<string, any>>(
     { spreadsheetId, sheets, sheet },
     { data: updatedRecords }
   )
+  return updatedRecords
 }

@@ -20,11 +20,11 @@ describe('updateMany', () => {
   const mockSheets = {} as sheets_v4.Sheets // Mock Sheets client
 
   beforeEach(() => {
-    // Reset all mocks before each test
+    // Reset all mocks before each test to ensure test isolation
     vi.resetAllMocks()
   })
 
-  it('should update multiple matching records successfully', async () => {
+  it('should update multiple matching records successfully and return the updated records', async () => {
     // Define the where clause and data to update
     const where: WhereClause<{ id: string; status: string }> = {
       status: 'active'
@@ -50,12 +50,12 @@ describe('updateMany', () => {
     mockedInsert.mockResolvedValue()
 
     // Call the function under test
-    await updateMany(
+    const result = await updateMany(
       { spreadsheetId, sheets: mockSheets, sheet: sheetName },
       { where, data }
     )
 
-    // Assertions
+    // Assertions to ensure dependencies were called correctly
     expect(mockedFindMany).toHaveBeenCalledWith(
       { spreadsheetId, sheets: mockSheets, sheet: sheetName },
       { where }
@@ -70,6 +70,12 @@ describe('updateMany', () => {
         ]
       }
     )
+
+    // Assertion to verify the returned updated records
+    expect(result).toEqual([
+      { id: '123', status: 'inactive' },
+      { id: '124', status: 'inactive' }
+    ])
   })
 
   it('should throw an error when no matching records are found', async () => {
@@ -89,12 +95,13 @@ describe('updateMany', () => {
       )
     ).rejects.toThrow('No records found to update')
 
-    // Assertions
+    // Assertions to ensure findMany was called correctly
     expect(mockedFindMany).toHaveBeenCalledWith(
       { spreadsheetId, sheets: mockSheets, sheet: sheetName },
       { where }
     )
 
+    // Assertion to ensure insert was not called
     expect(mockedInsert).not.toHaveBeenCalled()
   })
 
@@ -117,12 +124,13 @@ describe('updateMany', () => {
       )
     ).rejects.toThrow('findMany encountered an error')
 
-    // Assertions
+    // Assertions to ensure findMany was called correctly
     expect(mockedFindMany).toHaveBeenCalledWith(
       { spreadsheetId, sheets: mockSheets, sheet: sheetName },
       { where }
     )
 
+    // Assertion to ensure insert was not called
     expect(mockedInsert).not.toHaveBeenCalled()
   })
 
@@ -144,7 +152,6 @@ describe('updateMany', () => {
         fields: { id: '124', status: 'active' }
       }
     ]
-
     const error = new Error('insert encountered an error')
 
     // Mock findMany to return found records
@@ -161,12 +168,13 @@ describe('updateMany', () => {
       )
     ).rejects.toThrow('insert encountered an error')
 
-    // Assertions
+    // Assertions to ensure findMany was called correctly
     expect(mockedFindMany).toHaveBeenCalledWith(
       { spreadsheetId, sheets: mockSheets, sheet: sheetName },
       { where }
     )
 
+    // Assertion to ensure insert was called correctly
     expect(mockedInsert).toHaveBeenCalledWith(
       { spreadsheetId, sheets: mockSheets, sheet: sheetName },
       {

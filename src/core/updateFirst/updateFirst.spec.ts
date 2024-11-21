@@ -4,12 +4,13 @@ import { findFirst } from '../findFirst'
 import { insert } from '../insert'
 import { sheets_v4 } from 'googleapis'
 import { WhereClause } from '../../types/where'
+import { SheetRecord } from '../../types/sheetRecord'
 
-// Mock the dependent modules
+// Mock dependencies
 vi.mock('../findFirst')
 vi.mock('../insert')
 
-// Create mocked versions of the imported functions
+// Create mocked versions of imported functions
 const mockedFindFirst = vi.mocked(findFirst)
 const mockedInsert = vi.mocked(insert)
 
@@ -19,17 +20,17 @@ describe('updateFirst', () => {
   const mockSheets = {} as sheets_v4.Sheets // Mock Sheets client
 
   beforeEach(() => {
-    // Reset all mocks before each test
+    // Reset all mocks before each test to ensure isolation
     vi.resetAllMocks()
   })
 
-  it('should update the first matching record successfully', async () => {
-    // Define the where clause and data to update
+  it('should successfully update the first matching record and return the updated record', async () => {
+    // Define the where clause and data for update
     const where: WhereClause<{ id: string; status: string }> = { id: '123' }
     const data: Partial<{ id: string; status: string }> = { status: 'inactive' }
 
     // Mock findFirst to return a found record
-    const foundRecord = {
+    const foundRecord: SheetRecord<{ id: string; status: string }> = {
       range: 'TestSheet!A2:Z2',
       row: 2,
       fields: { id: '123', status: 'active' }
@@ -40,12 +41,12 @@ describe('updateFirst', () => {
     mockedInsert.mockResolvedValue()
 
     // Call the function under test
-    await updateFirst(
+    const result = await updateFirst(
       { spreadsheetId, sheets: mockSheets, sheet: sheetName },
       { where, data }
     )
 
-    // Assertions
+    // Assertions to ensure dependencies were called correctly
     expect(mockedFindFirst).toHaveBeenCalledWith(
       { spreadsheetId, sheets: mockSheets, sheet: sheetName },
       { where }
@@ -55,6 +56,9 @@ describe('updateFirst', () => {
       { spreadsheetId, sheets: mockSheets, sheet: sheetName },
       { data: [{ id: '123', status: 'inactive' }] }
     )
+
+    // Assertion to check the function's return value
+    expect(result).toEqual({ id: '123', status: 'inactive' })
   })
 
   it('should throw an error when no matching record is found', async () => {
@@ -64,7 +68,7 @@ describe('updateFirst', () => {
     // Mock findFirst to return undefined (no record found)
     mockedFindFirst.mockResolvedValue(undefined)
 
-    // Expect the function to throw an error
+    // Expectation that the function throws an error
     await expect(
       updateFirst(
         { spreadsheetId, sheets: mockSheets, sheet: sheetName },
@@ -72,12 +76,13 @@ describe('updateFirst', () => {
       )
     ).rejects.toThrow('No record found to update')
 
-    // Assertions
+    // Assertions to ensure findFirst was called correctly
     expect(mockedFindFirst).toHaveBeenCalledWith(
       { spreadsheetId, sheets: mockSheets, sheet: sheetName },
       { where }
     )
 
+    // Assertion to ensure insert was NOT called
     expect(mockedInsert).not.toHaveBeenCalled()
   })
 
@@ -90,7 +95,7 @@ describe('updateFirst', () => {
     // Mock findFirst to throw an error
     mockedFindFirst.mockRejectedValue(error)
 
-    // Expect the function to propagate the error
+    // Expectation that the function propagates the error
     await expect(
       updateFirst(
         { spreadsheetId, sheets: mockSheets, sheet: sheetName },
@@ -98,12 +103,13 @@ describe('updateFirst', () => {
       )
     ).rejects.toThrow('findFirst encountered an error')
 
-    // Assertions
+    // Assertions to ensure findFirst was called correctly
     expect(mockedFindFirst).toHaveBeenCalledWith(
       { spreadsheetId, sheets: mockSheets, sheet: sheetName },
       { where }
     )
 
+    // Assertion to ensure insert was NOT called
     expect(mockedInsert).not.toHaveBeenCalled()
   })
 
@@ -111,7 +117,7 @@ describe('updateFirst', () => {
     const where: WhereClause<{ id: string; status: string }> = { id: '123' }
     const data: Partial<{ id: string; status: string }> = { status: 'inactive' }
 
-    const foundRecord = {
+    const foundRecord: SheetRecord<{ id: string; status: string }> = {
       range: 'TestSheet!A2:Z2',
       row: 2,
       fields: { id: '123', status: 'active' }
@@ -124,7 +130,7 @@ describe('updateFirst', () => {
     // Mock insert to throw an error
     mockedInsert.mockRejectedValue(error)
 
-    // Expect the function to propagate the error
+    // Expectation that the function propagates the error
     await expect(
       updateFirst(
         { spreadsheetId, sheets: mockSheets, sheet: sheetName },
@@ -132,12 +138,13 @@ describe('updateFirst', () => {
       )
     ).rejects.toThrow('insert encountered an error')
 
-    // Assertions
+    // Assertions to ensure findFirst was called correctly
     expect(mockedFindFirst).toHaveBeenCalledWith(
       { spreadsheetId, sheets: mockSheets, sheet: sheetName },
       { where }
     )
 
+    // Assertion to ensure insert was called correctly
     expect(mockedInsert).toHaveBeenCalledWith(
       { spreadsheetId, sheets: mockSheets, sheet: sheetName },
       { data: [{ id: '123', status: 'inactive' }] }
