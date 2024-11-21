@@ -9,22 +9,22 @@ import { SheetRecord } from '@/types/sheetRecord'
 import { createSingleColumnRange } from '@/utils/rangeUtils/rangeUtils'
 
 /**
- * Encontra o primeiro registro que corresponde à cláusula where fornecida.
+ * Finds the first record that matches the provided where clause.
  *
- * @typeparam RecordType - O tipo dos registros na tabela.
- * @param params - Os parâmetros para a operação findFirst.
- * @param params.spreadsheetId - O ID da planilha.
- * @param params.sheets - O cliente da API do Google Sheets.
- * @param params.sheet - O nome da aba.
- * @param options - As opções para a operação findFirst.
- * @param options.where - A cláusula where para filtrar registros.
- * @param options.select - A cláusula select para especificar campos a serem retornados.
- * @returns O primeiro registro correspondente ou undefined se nenhum for encontrado.
+ * @typeparam RecordType - The type of the records in the table.
+ * @param params - The parameters for the findFirst operation.
+ * @param params.spreadsheetId - The ID of the spreadsheet.
+ * @param params.sheets - The Google Sheets API client.
+ * @param params.sheet - The name of the sheet.
+ * @param options - The options for the findFirst operation.
+ * @param options.where - The where clause to filter records.
+ * @param options.select - The select clause to specify fields to be returned.
+ * @returns The first matching record or undefined if none is found.
  *
  * @example
  * ```typescript
  * const record = await findFirst<RecordType>({
- *   spreadsheetId: 'seu_spreadsheet_id',
+ *   spreadsheetId: 'your_spreadsheet_id',
  *   sheets: googleSheetsClient,
  *   sheet: 'Sheet1'
  * }, {
