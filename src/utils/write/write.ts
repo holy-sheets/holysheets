@@ -1,11 +1,9 @@
 import { sheets_v4 } from 'googleapis'
-import { addSheetToRange } from '../rangeUtils/rangeUtils'
 
 /**
  * Represents the options for writing data into a sheet.
  */
 interface WriteOptions {
-  tableName?: string
   range: string
   spreadsheetId: string
   values: (string | number)[][]
@@ -17,17 +15,14 @@ interface WriteOptions {
  * @throws Error if the SPREADSHEET_ID environment variable is missing.
  */
 export async function write(options: WriteOptions): Promise<void> {
-  const { range, values, tableName, sheets, spreadsheetId } = options
-  const completeRange = tableName
-    ? addSheetToRange({ sheet: tableName, range })
-    : range
+  const { range, values, sheets, spreadsheetId } = options
   try {
     const request = {
       spreadsheetId,
       resource: {
         data: [
           {
-            range: completeRange,
+            range,
             values
           }
         ],

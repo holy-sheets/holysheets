@@ -1,7 +1,7 @@
 import { sheets_v4, Auth, google } from 'googleapis'
 import { HolySheetsCredentials } from '@/types/credentials'
 import { insert } from '@/core/insert'
-import { findFirst } from '@/core/findFirst'
+import { findFirst } from '@/core/findFirst/findFirst'
 import { findMany } from '@/core/findMany'
 import { updateFirst } from '@/core/updateFirst/updateFirst'
 import { updateMany } from '@/core/updateMany/updateMany'

@@ -11,7 +11,8 @@
     "coverage": "vitest --coverage",
     "sample": "npm run build && node dist/sample.js",
     "commit": "cz",
-    "run:jwt": "tsc --project tsconfig.json && node dist/.examples/jwt.js",
+    "example:jwt": "npx ts-node -r tsconfig-paths/register src/.examples/jwt.ts",
+    "example:oauth": "npx ts-node -r tsconfig-paths/register src/.examples/oauth.ts",
     "prepublishOnly": "npm run build"
   },
   "repository": {
@@ -70,6 +71,7 @@
     "prettier": "^3.3.3",
     "semantic-release": "^24.2.0",
     "ts-jest": "^29.1.2",
+    "tsconfig-paths": "^4.2.0",
     "typescript": "^5.4.5",
     "vitest": "^2.1.5"
   },

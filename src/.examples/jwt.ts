@@ -1,5 +1,5 @@
 import { google } from 'googleapis'
-import HolySheets from '../src/index'
+import HolySheets from '@/index'
 import dotenv from 'dotenv'
 
 dotenv.config()

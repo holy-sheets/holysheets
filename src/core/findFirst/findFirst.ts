@@ -79,6 +79,7 @@ export async function findFirst<RecordType extends Record<string, any>>(
     const rowRange = `${sheet}!A${rowIndex + 1}:${indexToColumn(
       headers.length - 1
     )}${rowIndex + 1}`
+
     const rowResponse = await sheets.spreadsheets.values.get({
       spreadsheetId,
       range: rowRange

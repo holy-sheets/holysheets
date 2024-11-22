@@ -1,7 +1,7 @@
 import { sheets_v4 } from 'googleapis'
 import { WhereClause } from '@/types/where'
 import { getSheetId } from '@/core/getSheetId'
-import { findFirst } from '@/core/findFirst'
+import { findFirst } from '@/core/findFirst/findFirst'
 import { SheetRecord } from '@/types/sheetRecord'
 
 /**

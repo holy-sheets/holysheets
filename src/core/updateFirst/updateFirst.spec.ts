@@ -1,13 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { updateFirst } from './updateFirst'
-import { findFirst } from '../findFirst'
+import { findFirst } from '../findFirst/findFirst'
 import { insert } from '../insert'
 import { sheets_v4 } from 'googleapis'
 import { WhereClause } from '../../types/where'
 import { SheetRecord } from '../../types/sheetRecord'
 
 // Mock dependencies
-vi.mock('../findFirst')
+vi.mock('../findFirst/findFirst')
 vi.mock('../insert')
 
 // Create mocked versions of imported functions

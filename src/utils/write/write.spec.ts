@@ -23,8 +23,7 @@ describe('write', () => {
 
   it('should call batchUpdate with the correct parameters when tableName is provided', async () => {
     const options = {
-      tableName: 'Sheet1',
-      range: 'A1:B2',
+      range: 'Sheet1!A1:B2',
       spreadsheetId,
       values: [
         ['value1', 'value2'],

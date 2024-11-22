@@ -53,7 +53,6 @@ export async function insert<RecordType extends Record<string, any>>(
 
   // Write to the sheet
   await write({
-    tableName: sheet,
     range,
     values: valuesFromRecords,
     spreadsheetId,
