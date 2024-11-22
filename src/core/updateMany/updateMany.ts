@@ -1,9 +1,10 @@
 import { sheets_v4 } from 'googleapis'
 import { WhereClause } from '@/types/where'
 import { findMany } from '@/core/findMany'
+import { SheetRecord } from '@/types/sheetRecord'
 
 /**
- * Updates multiple records that match the given where clause.
+ * Updates multiple records that match the given where clause using batchUpdate.
  *
  * @typeparam RecordType - The type of the records in the table.
  * @param params - The parameters for the updateMany operation.
@@ -51,26 +52,26 @@ export async function updateMany<RecordType extends Record<string, any>>(
     throw new Error('No records found to update')
   }
 
-  // Prepare updates for each record
-  const updatePromises = records.map(async record => {
-    const { fields, range } = record
+  // Prepare the data for batchUpdate
+  const batchUpdateData: sheets_v4.Schema$ValueRange[] = records.map(record => {
+    const { range, fields } = record
     const updatedFields = { ...fields, ...data } as RecordType
 
-    // Update the specific range with new values
-    await sheets.spreadsheets.values.update({
-      spreadsheetId,
-      range,
-      valueInputOption: 'RAW', // or 'USER_ENTERED' based on your needs
-      requestBody: {
-        values: [Object.values(updatedFields)]
-      }
-    })
-
-    return updatedFields
+    return {
+      range, // e.g., 'Sheet1!A2:B2'
+      values: [Object.values(updatedFields)]
+    }
   })
 
-  // Execute all update operations
-  const updatedRecords = await Promise.all(updatePromises)
+  // Execute batchUpdate to update all records in a single API call
+  await sheets.spreadsheets.values.batchUpdate({
+    spreadsheetId,
+    requestBody: {
+      valueInputOption: 'RAW', // Use 'USER_ENTERED' if you want Google Sheets to parse the values
+      data: batchUpdateData
+    }
+  })
 
-  return updatedRecords
+  // Return the updated records
+  return records.map(record => ({ ...record.fields, ...data }) as RecordType)
 }
