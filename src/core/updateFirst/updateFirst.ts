@@ -1,7 +1,6 @@
 import { sheets_v4 } from 'googleapis'
 import { WhereClause } from '@/types/where'
 import { findFirst } from '@/core/findFirst/findFirst'
-import { insert } from '@/core/insert'
 
 /**
  * Updates the first record that matches the given where clause.
@@ -14,7 +13,7 @@ import { insert } from '@/core/insert'
  * @param options - The options for the updateFirst operation.
  * @param options.where - The where clause to filter records.
  * @param options.data - The data to update.
- * @returns A promise that resolves when the update is complete.
+ * @returns A promise that resolves with the updated record.
  *
  * @example
  * ```typescript
@@ -51,11 +50,18 @@ export async function updateFirst<RecordType extends Record<string, any>>(
     throw new Error('No record found to update')
   }
 
-  const { fields } = record
+  const { fields, range } = record
+
   const updatedFields = { ...fields, ...data } as RecordType
-  await insert<RecordType>(
-    { spreadsheetId, sheets, sheet },
-    { data: [updatedFields] }
-  )
+
+  await sheets.spreadsheets.values.update({
+    spreadsheetId,
+    range,
+    valueInputOption: 'RAW',
+    requestBody: {
+      values: [Object.values(updatedFields)]
+    }
+  })
+
   return updatedFields
 }

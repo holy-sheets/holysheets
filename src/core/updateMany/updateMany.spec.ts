@@ -1,58 +1,72 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { updateMany } from './updateMany'
-import { findMany } from '../findMany'
-import { insert } from '../insert'
+import { updateMany } from '@/core/updateMany/updateMany'
+import { findMany } from '@/core/findMany'
 import { sheets_v4 } from 'googleapis'
-import { WhereClause } from '../../types/where'
-import { SheetRecord } from '../../types/sheetRecord'
+import { WhereClause } from '@/types/where'
+import { SheetRecord } from '@/types/sheetRecord'
 
-// Mock the dependent modules
-vi.mock('../findMany')
-vi.mock('../insert')
+// Mock dependencies
+vi.mock('@/core/findMany')
 
-// Create mocked versions of the imported functions
+// Import the mocked function
 const mockedFindMany = vi.mocked(findMany)
-const mockedInsert = vi.mocked(insert)
+
+// Mock the Sheets client
+const mockSheets = {
+  spreadsheets: {
+    values: {
+      update: vi.fn()
+    }
+  }
+} as unknown as sheets_v4.Sheets
 
 describe('updateMany', () => {
-  const spreadsheetId = 'test-spreadsheet-id'
-  const sheetName = 'TestSheet'
-  const mockSheets = {} as sheets_v4.Sheets // Mock Sheets client
-
   beforeEach(() => {
-    // Reset all mocks before each test to ensure test isolation
+    // Reset all mocks before each test to ensure isolation
     vi.resetAllMocks()
   })
 
-  it('should update multiple matching records successfully and return the updated records', async () => {
-    // Define the where clause and data to update
-    const where: WhereClause<{ id: string; status: string }> = {
-      status: 'active'
-    }
-    const data: Partial<{ id: string; status: string }> = { status: 'inactive' }
-
-    // Mock findMany to return found records
-    const foundRecords: SheetRecord<{ id: string; status: string }>[] = [
+  it('should successfully update multiple matching records and return the updated data', async () => {
+    // Define the input parameters
+    const spreadsheetId = 'test-spreadsheet-id'
+    const sheetName = 'TestSheet'
+    const where: WhereClause<{ Name: string; Age: string; Status: 'active' }> =
       {
-        range: 'TestSheet!A2:Z2',
+        Status: 'active'
+      }
+    const dataToUpdate: Partial<{ Name: string; Age: string; Status: string }> =
+      { Status: 'inactive' }
+
+    // Mock the findMany function to return multiple records
+    const foundRecords: SheetRecord<{
+      Name: string
+      Age: string
+      Status: string
+    }>[] = [
+      {
+        range: 'TestSheet!A2:C2',
         row: 2,
-        fields: { id: '123', status: 'active' }
+        fields: { Name: 'Alice', Age: '30', Status: 'active' }
       },
       {
-        range: 'TestSheet!A3:Z3',
+        range: 'TestSheet!A3:C3',
         row: 3,
-        fields: { id: '124', status: 'active' }
+        fields: { Name: 'Bob', Age: '25', Status: 'active' }
       }
     ]
     mockedFindMany.mockResolvedValue(foundRecords)
 
-    // Mock insert to resolve successfully
-    mockedInsert.mockResolvedValue()
+    // Mock the update operation to resolve successfully for each record
+    ;(
+      mockSheets.spreadsheets.values.update as ReturnType<typeof vi.fn>
+    ).mockResolvedValue({
+      data: {}
+    })
 
     // Call the function under test
     const result = await updateMany(
       { spreadsheetId, sheets: mockSheets, sheet: sheetName },
-      { where, data }
+      { where, data: dataToUpdate }
     )
 
     // Assertions to ensure dependencies were called correctly
@@ -61,37 +75,50 @@ describe('updateMany', () => {
       { where }
     )
 
-    expect(mockedInsert).toHaveBeenCalledWith(
-      { spreadsheetId, sheets: mockSheets, sheet: sheetName },
-      {
-        data: [
-          { id: '123', status: 'inactive' },
-          { id: '124', status: 'inactive' }
-        ]
+    // Expect update to be called for each found record
+    expect(mockSheets.spreadsheets.values.update).toHaveBeenCalledTimes(2)
+    expect(mockSheets.spreadsheets.values.update).toHaveBeenNthCalledWith(1, {
+      spreadsheetId: 'test-spreadsheet-id',
+      range: 'TestSheet!A2:C2',
+      valueInputOption: 'RAW',
+      requestBody: {
+        values: [['Alice', '30', 'inactive']]
       }
-    )
+    })
+    expect(mockSheets.spreadsheets.values.update).toHaveBeenNthCalledWith(2, {
+      spreadsheetId: 'test-spreadsheet-id',
+      range: 'TestSheet!A3:C3',
+      valueInputOption: 'RAW',
+      requestBody: {
+        values: [['Bob', '25', 'inactive']]
+      }
+    })
 
-    // Assertion to verify the returned updated records
+    // Assertion to check the function's return value
     expect(result).toEqual([
-      { id: '123', status: 'inactive' },
-      { id: '124', status: 'inactive' }
+      { Name: 'Alice', Age: '30', Status: 'inactive' },
+      { Name: 'Bob', Age: '25', Status: 'inactive' }
     ])
   })
 
   it('should throw an error when no matching records are found', async () => {
-    const where: WhereClause<{ id: string; status: string }> = {
-      status: 'active'
+    // Define the input parameters
+    const spreadsheetId = 'test-spreadsheet-id'
+    const sheetName = 'TestSheet'
+    const where: WhereClause<{ Name: string; Age: string; Status: string }> = {
+      Status: 'active'
     }
-    const data: Partial<{ id: string; status: string }> = { status: 'inactive' }
+    const dataToUpdate: Partial<{ Name: string; Age: string; Status: string }> =
+      { Status: 'inactive' }
 
-    // Mock findMany to return an empty array (no records found)
+    // Mock the findMany function to return an empty array (no records found)
     mockedFindMany.mockResolvedValue([])
 
-    // Expect the function to throw an error
+    // Call the function under test and expect an error
     await expect(
       updateMany(
         { spreadsheetId, sheets: mockSheets, sheet: sheetName },
-        { where, data }
+        { where, data: dataToUpdate }
       )
     ).rejects.toThrow('No records found to update')
 
@@ -101,26 +128,29 @@ describe('updateMany', () => {
       { where }
     )
 
-    // Assertion to ensure insert was not called
-    expect(mockedInsert).not.toHaveBeenCalled()
+    // Assertion to ensure update was NOT called
+    expect(mockSheets.spreadsheets.values.update).not.toHaveBeenCalled()
   })
 
-  it('should propagate errors thrown by findMany', async () => {
-    const where: WhereClause<{ id: string; status: string }> = {
-      status: 'active'
+  it('should propagate errors thrown by the findMany function', async () => {
+    // Define the input parameters
+    const spreadsheetId = 'test-spreadsheet-id'
+    const sheetName = 'TestSheet'
+    const where: WhereClause<{ Name: string; Age: string; Status: string }> = {
+      Status: 'active'
     }
-    const data: Partial<{ id: string; status: string }> = { status: 'inactive' }
+    const dataToUpdate: Partial<{ Name: string; Age: string; Status: string }> =
+      { Status: 'inactive' }
 
-    const error = new Error('findMany encountered an error')
+    // Mock the findMany function to throw an error
+    const findManyError = new Error('findMany encountered an error')
+    mockedFindMany.mockRejectedValue(findManyError)
 
-    // Mock findMany to throw an error
-    mockedFindMany.mockRejectedValue(error)
-
-    // Expect the function to propagate the error
+    // Call the function under test and expect the error to be propagated
     await expect(
       updateMany(
         { spreadsheetId, sheets: mockSheets, sheet: sheetName },
-        { where, data }
+        { where, data: dataToUpdate }
       )
     ).rejects.toThrow('findMany encountered an error')
 
@@ -130,43 +160,52 @@ describe('updateMany', () => {
       { where }
     )
 
-    // Assertion to ensure insert was not called
-    expect(mockedInsert).not.toHaveBeenCalled()
+    // Assertion to ensure update was NOT called
+    expect(mockSheets.spreadsheets.values.update).not.toHaveBeenCalled()
   })
 
-  it('should propagate errors thrown by insert', async () => {
-    const where: WhereClause<{ id: string; status: string }> = {
-      status: 'active'
+  it('should propagate errors thrown by the Google Sheets API during the update', async () => {
+    // Define the input parameters
+    const spreadsheetId = 'test-spreadsheet-id'
+    const sheetName = 'TestSheet'
+    const where: WhereClause<{ Name: string; Age: string; Status: string }> = {
+      Status: 'active'
     }
-    const data: Partial<{ id: string; status: string }> = { status: 'inactive' }
+    const dataToUpdate: Partial<{ Name: string; Age: string; Status: string }> =
+      { Status: 'inactive' }
 
-    const foundRecords: SheetRecord<{ id: string; status: string }>[] = [
+    // Mock the findMany function to return multiple records
+    const foundRecords: SheetRecord<{
+      Name: string
+      Age: string
+      Status: string
+    }>[] = [
       {
-        range: 'TestSheet!A2:Z2',
+        range: 'TestSheet!A2:C2',
         row: 2,
-        fields: { id: '123', status: 'active' }
+        fields: { Name: 'Alice', Age: '30', Status: 'active' }
       },
       {
-        range: 'TestSheet!A3:Z3',
+        range: 'TestSheet!A3:C3',
         row: 3,
-        fields: { id: '124', status: 'active' }
+        fields: { Name: 'Bob', Age: '25', Status: 'active' }
       }
     ]
-    const error = new Error('insert encountered an error')
-
-    // Mock findMany to return found records
     mockedFindMany.mockResolvedValue(foundRecords)
 
-    // Mock insert to throw an error
-    mockedInsert.mockRejectedValue(error)
+    // Mock the update operation to throw an error on the second update
+    const updateError = new Error('Google Sheets API Error')
+    ;(mockSheets.spreadsheets.values.update as ReturnType<typeof vi.fn>)
+      .mockResolvedValueOnce({ data: {} }) // First update succeeds
+      .mockRejectedValueOnce(updateError) // Second update fails
 
-    // Expect the function to propagate the error
+    // Call the function under test and expect the error to be propagated
     await expect(
       updateMany(
         { spreadsheetId, sheets: mockSheets, sheet: sheetName },
-        { where, data }
+        { where, data: dataToUpdate }
       )
-    ).rejects.toThrow('insert encountered an error')
+    ).rejects.toThrow('Google Sheets API Error')
 
     // Assertions to ensure findMany was called correctly
     expect(mockedFindMany).toHaveBeenCalledWith(
@@ -174,15 +213,23 @@ describe('updateMany', () => {
       { where }
     )
 
-    // Assertion to ensure insert was called correctly
-    expect(mockedInsert).toHaveBeenCalledWith(
-      { spreadsheetId, sheets: mockSheets, sheet: sheetName },
-      {
-        data: [
-          { id: '123', status: 'inactive' },
-          { id: '124', status: 'inactive' }
-        ]
+    // Assertions to ensure update was called correctly
+    expect(mockSheets.spreadsheets.values.update).toHaveBeenCalledTimes(2)
+    expect(mockSheets.spreadsheets.values.update).toHaveBeenNthCalledWith(1, {
+      spreadsheetId: 'test-spreadsheet-id',
+      range: 'TestSheet!A2:C2',
+      valueInputOption: 'RAW',
+      requestBody: {
+        values: [['Alice', '30', 'inactive']]
       }
-    )
+    })
+    expect(mockSheets.spreadsheets.values.update).toHaveBeenNthCalledWith(2, {
+      spreadsheetId: 'test-spreadsheet-id',
+      range: 'TestSheet!A3:C3',
+      valueInputOption: 'RAW',
+      requestBody: {
+        values: [['Bob', '25', 'inactive']]
+      }
+    })
   })
 })

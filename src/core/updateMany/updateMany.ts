@@ -1,7 +1,6 @@
 import { sheets_v4 } from 'googleapis'
 import { WhereClause } from '@/types/where'
 import { findMany } from '@/core/findMany'
-import { insert } from '@/core/insert'
 
 /**
  * Updates multiple records that match the given where clause.
@@ -14,7 +13,7 @@ import { insert } from '@/core/insert'
  * @param options - The options for the updateMany operation.
  * @param options.where - The where clause to filter records.
  * @param options.data - The data to update.
- * @returns A promise that resolves when the update is complete.
+ * @returns A promise that resolves with an array of updated records.
  *
  * @example
  * ```typescript
@@ -42,6 +41,7 @@ export async function updateMany<RecordType extends Record<string, any>>(
   const { spreadsheetId, sheets, sheet } = params
   const { where, data } = options
 
+  // Find all matching records
   const records = await findMany<RecordType>(
     { spreadsheetId, sheets, sheet },
     { where }
@@ -51,14 +51,26 @@ export async function updateMany<RecordType extends Record<string, any>>(
     throw new Error('No records found to update')
   }
 
-  const updatedRecords = records.map(record => {
-    const { fields } = record
-    return { ...fields, ...data } as RecordType
+  // Prepare updates for each record
+  const updatePromises = records.map(async record => {
+    const { fields, range } = record
+    const updatedFields = { ...fields, ...data } as RecordType
+
+    // Update the specific range with new values
+    await sheets.spreadsheets.values.update({
+      spreadsheetId,
+      range,
+      valueInputOption: 'RAW', // or 'USER_ENTERED' based on your needs
+      requestBody: {
+        values: [Object.values(updatedFields)]
+      }
+    })
+
+    return updatedFields
   })
 
-  await insert<RecordType>(
-    { spreadsheetId, sheets, sheet },
-    { data: updatedRecords }
-  )
+  // Execute all update operations
+  const updatedRecords = await Promise.all(updatePromises)
+
   return updatedRecords
 }

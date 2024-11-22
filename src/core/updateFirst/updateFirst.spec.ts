@@ -1,49 +1,57 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { updateFirst } from './updateFirst'
-import { findFirst } from '../findFirst/findFirst'
-import { insert } from '../insert'
+import { updateFirst } from '@/core/updateFirst/updateFirst'
+import { findFirst } from '@/core/findFirst/findFirst'
 import { sheets_v4 } from 'googleapis'
-import { WhereClause } from '../../types/where'
-import { SheetRecord } from '../../types/sheetRecord'
+import { WhereClause } from '@/types/where'
+import { SheetRecord } from '@/types/sheetRecord'
 
 // Mock dependencies
-vi.mock('../findFirst/findFirst')
-vi.mock('../insert')
+vi.mock('@/core/findFirst/findFirst')
 
-// Create mocked versions of imported functions
+// Import the mocked function
 const mockedFindFirst = vi.mocked(findFirst)
-const mockedInsert = vi.mocked(insert)
+
+// Mock the Sheets client
+const mockSheets = {
+  spreadsheets: {
+    values: {
+      update: vi.fn()
+    }
+  }
+} as unknown as sheets_v4.Sheets
 
 describe('updateFirst', () => {
-  const spreadsheetId = 'test-spreadsheet-id'
-  const sheetName = 'TestSheet'
-  const mockSheets = {} as sheets_v4.Sheets // Mock Sheets client
-
   beforeEach(() => {
     // Reset all mocks before each test to ensure isolation
     vi.resetAllMocks()
   })
 
-  it('should successfully update the first matching record and return the updated record', async () => {
-    // Define the where clause and data for update
-    const where: WhereClause<{ id: string; status: string }> = { id: '123' }
-    const data: Partial<{ id: string; status: string }> = { status: 'inactive' }
+  it('should successfully update the first matching record and return the updated data', async () => {
+    // Define the input parameters
+    const spreadsheetId = 'test-spreadsheet-id'
+    const sheetName = 'TestSheet'
+    const where: WhereClause<{ Name: string; Age: string }> = { Name: 'Alice' }
+    const dataToUpdate: Partial<{ Name: string; Age: string }> = { Age: '31' }
 
-    // Mock findFirst to return a found record
-    const foundRecord: SheetRecord<{ id: string; status: string }> = {
-      range: 'TestSheet!A2:Z2',
+    // Mock the findFirst function to return an existing record
+    const foundRecord: SheetRecord<{ Name: string; Age: string }> = {
+      range: 'TestSheet!A2:B2',
       row: 2,
-      fields: { id: '123', status: 'active' }
+      fields: { Name: 'Alice', Age: '30' }
     }
     mockedFindFirst.mockResolvedValue(foundRecord)
 
-    // Mock insert to resolve successfully
-    mockedInsert.mockResolvedValue()
+    // Mock the update operation to resolve successfully
+    ;(
+      mockSheets.spreadsheets.values.update as ReturnType<typeof vi.fn>
+    ).mockResolvedValueOnce({
+      data: {}
+    })
 
     // Call the function under test
     const result = await updateFirst(
       { spreadsheetId, sheets: mockSheets, sheet: sheetName },
-      { where, data }
+      { where, data: dataToUpdate }
     )
 
     // Assertions to ensure dependencies were called correctly
@@ -52,27 +60,34 @@ describe('updateFirst', () => {
       { where }
     )
 
-    expect(mockedInsert).toHaveBeenCalledWith(
-      { spreadsheetId, sheets: mockSheets, sheet: sheetName },
-      { data: [{ id: '123', status: 'inactive' }] }
-    )
+    expect(mockSheets.spreadsheets.values.update).toHaveBeenCalledWith({
+      spreadsheetId: 'test-spreadsheet-id',
+      range: 'TestSheet!A2:B2',
+      valueInputOption: 'RAW',
+      requestBody: {
+        values: [['Alice', '31']]
+      }
+    })
 
     // Assertion to check the function's return value
-    expect(result).toEqual({ id: '123', status: 'inactive' })
+    expect(result).toEqual({ Name: 'Alice', Age: '31' })
   })
 
   it('should throw an error when no matching record is found', async () => {
-    const where: WhereClause<{ id: string; status: string }> = { id: '123' }
-    const data: Partial<{ id: string; status: string }> = { status: 'inactive' }
+    // Define the input parameters
+    const spreadsheetId = 'test-spreadsheet-id'
+    const sheetName = 'TestSheet'
+    const where: WhereClause<{ Name: string; Age: string }> = { Name: 'Bob' }
+    const dataToUpdate: Partial<{ Name: string; Age: string }> = { Age: '40' }
 
-    // Mock findFirst to return undefined (no record found)
+    // Mock the findFirst function to return undefined (no record found)
     mockedFindFirst.mockResolvedValue(undefined)
 
-    // Expectation that the function throws an error
+    // Call the function under test and expect an error
     await expect(
       updateFirst(
         { spreadsheetId, sheets: mockSheets, sheet: sheetName },
-        { where, data }
+        { where, data: dataToUpdate }
       )
     ).rejects.toThrow('No record found to update')
 
@@ -82,24 +97,26 @@ describe('updateFirst', () => {
       { where }
     )
 
-    // Assertion to ensure insert was NOT called
-    expect(mockedInsert).not.toHaveBeenCalled()
+    // Assertion to ensure update was NOT called
+    expect(mockSheets.spreadsheets.values.update).not.toHaveBeenCalled()
   })
 
-  it('should propagate errors thrown by findFirst', async () => {
-    const where: WhereClause<{ id: string; status: string }> = { id: '123' }
-    const data: Partial<{ id: string; status: string }> = { status: 'inactive' }
+  it('should propagate errors thrown by the findFirst function', async () => {
+    // Define the input parameters
+    const spreadsheetId = 'test-spreadsheet-id'
+    const sheetName = 'TestSheet'
+    const where: WhereClause<{ Name: string; Age: string }> = { Name: 'Eve' }
+    const dataToUpdate: Partial<{ Name: string; Age: string }> = { Age: '31' }
 
-    const error = new Error('findFirst encountered an error')
+    // Mock the findFirst function to throw an error
+    const findFirstError = new Error('findFirst encountered an error')
+    mockedFindFirst.mockRejectedValue(findFirstError)
 
-    // Mock findFirst to throw an error
-    mockedFindFirst.mockRejectedValue(error)
-
-    // Expectation that the function propagates the error
+    // Call the function under test and expect the error to be propagated
     await expect(
       updateFirst(
         { spreadsheetId, sheets: mockSheets, sheet: sheetName },
-        { where, data }
+        { where, data: dataToUpdate }
       )
     ).rejects.toThrow('findFirst encountered an error')
 
@@ -109,34 +126,40 @@ describe('updateFirst', () => {
       { where }
     )
 
-    // Assertion to ensure insert was NOT called
-    expect(mockedInsert).not.toHaveBeenCalled()
+    // Assertion to ensure update was NOT called
+    expect(mockSheets.spreadsheets.values.update).not.toHaveBeenCalled()
   })
 
-  it('should propagate errors thrown by insert', async () => {
-    const where: WhereClause<{ id: string; status: string }> = { id: '123' }
-    const data: Partial<{ id: string; status: string }> = { status: 'inactive' }
-
-    const foundRecord: SheetRecord<{ id: string; status: string }> = {
-      range: 'TestSheet!A2:Z2',
-      row: 2,
-      fields: { id: '123', status: 'active' }
+  it('should propagate errors thrown by the Google Sheets API during the update', async () => {
+    // Define the input parameters
+    const spreadsheetId = 'test-spreadsheet-id'
+    const sheetName = 'TestSheet'
+    const where: WhereClause<{ Name: string; Age: string }> = {
+      Name: 'Charlie'
     }
-    const error = new Error('insert encountered an error')
+    const dataToUpdate: Partial<{ Name: string; Age: string }> = { Age: '35' }
 
-    // Mock findFirst to return a found record
+    // Mock the findFirst function to return an existing record
+    const foundRecord: SheetRecord<{ Name: string; Age: string }> = {
+      range: 'TestSheet!A3:B3',
+      row: 3,
+      fields: { Name: 'Charlie', Age: '34' }
+    }
     mockedFindFirst.mockResolvedValue(foundRecord)
 
-    // Mock insert to throw an error
-    mockedInsert.mockRejectedValue(error)
+    // Mock the update operation to throw an error
+    const updateError = new Error('Google Sheets API Error')
+    ;(
+      mockSheets.spreadsheets.values.update as ReturnType<typeof vi.fn>
+    ).mockRejectedValueOnce(updateError)
 
-    // Expectation that the function propagates the error
+    // Call the function under test and expect the error to be propagated
     await expect(
       updateFirst(
         { spreadsheetId, sheets: mockSheets, sheet: sheetName },
-        { where, data }
+        { where, data: dataToUpdate }
       )
-    ).rejects.toThrow('insert encountered an error')
+    ).rejects.toThrow('Google Sheets API Error')
 
     // Assertions to ensure findFirst was called correctly
     expect(mockedFindFirst).toHaveBeenCalledWith(
@@ -144,10 +167,14 @@ describe('updateFirst', () => {
       { where }
     )
 
-    // Assertion to ensure insert was called correctly
-    expect(mockedInsert).toHaveBeenCalledWith(
-      { spreadsheetId, sheets: mockSheets, sheet: sheetName },
-      { data: [{ id: '123', status: 'inactive' }] }
-    )
+    // Assertion to ensure update was called correctly
+    expect(mockSheets.spreadsheets.values.update).toHaveBeenCalledWith({
+      spreadsheetId: 'test-spreadsheet-id',
+      range: 'TestSheet!A3:B3',
+      valueInputOption: 'RAW',
+      requestBody: {
+        values: [['Charlie', '35']]
+      }
+    })
   })
 })
