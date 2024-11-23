@@ -1,6 +1,6 @@
 import type { IGoogleSheetsService } from '@/services/google-sheets/IGoogleSheetsService' // Type-only import
 import { WhereClause } from '@/types/where'
-import { getSheetId } from '@/core/getSheetId'
+import { getSheetId } from '@/core/getSheetId/getSheetId'
 import { findFirst } from '@/core/findFirst/findFirst'
 import { SheetRecord } from '@/types/sheetRecord'
 

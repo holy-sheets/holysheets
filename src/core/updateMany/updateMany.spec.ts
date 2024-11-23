@@ -1,12 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { updateMany } from '@/core/updateMany/updateMany'
-import { findMany } from '@/core/findMany'
+import { findMany } from '@/core/findMany/findMany'
 import type { IGoogleSheetsService } from '@/services/google-sheets/IGoogleSheetsService'
 import { WhereClause } from '@/types/where'
 import { SheetRecord } from '@/types/sheetRecord'
 
 // Mockar a função findMany
-vi.mock('@/core/findMany')
+vi.mock('@/core/findMany/findMany')
 
 // Importar a função mockada
 const mockedFindMany = vi.mocked(findMany)

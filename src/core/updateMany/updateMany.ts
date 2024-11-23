@@ -1,6 +1,6 @@
 import { IGoogleSheetsService } from '@/services/google-sheets/IGoogleSheetsService'
 import { WhereClause } from '@/types/where'
-import { findMany } from '@/core/findMany'
+import { findMany } from '@/core/findMany/findMany'
 import { CellValue } from '@/types/cellValue'
 
 /**
