@@ -204,10 +204,10 @@ export function addSheetToRange(params: AddSheetToRangeParams): string {
  *
  * @example
  * ```typescript
- * const range = getFirstRowRange("Sheet1");
+ * const range = createFirstRowRange("Sheet1");
  * console.log(range); // Output: "Sheet1!1:1"
  * ```
  */
-export function getFirstRowRange(sheet: string): string {
+export function createFirstRowRange(sheet: string): string {
   return addSheetToRange({ sheet, range: '1:1' })
 }

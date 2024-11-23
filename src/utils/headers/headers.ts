@@ -2,7 +2,7 @@ import { IGoogleSheetsService } from '@/services/google-sheets/IGoogleSheetsServ
 import { SheetHeaders } from '@/types/headers'
 import { indexToColumn } from '@/utils/columnUtils/columnUtils'
 import { CellValue } from '@/types/cellValue'
-import { getFirstRowRange } from '@/utils/rangeUtils/rangeUtils'
+import { createFirstRowRange } from '@/utils/rangeUtils/rangeUtils'
 
 /**
  * Retrieves the headers of a specified sheet from a Google Sheets document.
@@ -19,7 +19,7 @@ export async function getHeaders<SheetName extends string>(options: {
 }): Promise<SheetHeaders[]> {
   const { sheet, sheets } = options
   try {
-    const range = getFirstRowRange(sheet)
+    const range = createFirstRowRange(sheet)
     const values: CellValue[][] = await sheets.getValues(range)
 
     if (values && values.length > 0) {

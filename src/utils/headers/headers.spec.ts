@@ -1,12 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { getHeaders } from './headers'
 import { IGoogleSheetsService } from '@/services/google-sheets/IGoogleSheetsService'
-import { getFirstRowRange } from '@/utils/rangeUtils/rangeUtils'
+import { createFirstRowRange } from '@/utils/rangeUtils/rangeUtils'
 import { indexToColumn } from '@/utils/columnUtils/columnUtils'
 import { CellValue } from '@/types/cellValue'
 
 vi.mock('@/utils/rangeUtils/rangeUtils', () => ({
-  getFirstRowRange: vi.fn()
+  createFirstRowRange: vi.fn()
 }))
 
 vi.mock('@/utils/columnUtils/columnUtils', () => ({
@@ -28,7 +28,7 @@ describe('getHeaders', () => {
   it('should retrieve headers from the sheet', async () => {
     const range = 'Sheet1!1:1'
     const values: CellValue[][] = [['Header1', 'Header2']]
-    ;(getFirstRowRange as ReturnType<typeof vi.fn>).mockReturnValue(range)
+    ;(createFirstRowRange as ReturnType<typeof vi.fn>).mockReturnValue(range)
     ;(mockSheets.getValues as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
       values
     )
@@ -42,7 +42,7 @@ describe('getHeaders', () => {
       spreadsheetId
     })
 
-    expect(getFirstRowRange).toHaveBeenCalledWith(sheet)
+    expect(createFirstRowRange).toHaveBeenCalledWith(sheet)
     expect(mockSheets.getValues).toHaveBeenCalledWith(range)
     expect(indexToColumn).toHaveBeenCalledTimes(values[0].length)
     expect(result).toEqual([
@@ -53,7 +53,7 @@ describe('getHeaders', () => {
 
   it('should return an empty array if there are no headers', async () => {
     const range = 'Sheet1!1:1'
-    ;(getFirstRowRange as ReturnType<typeof vi.fn>).mockReturnValue(range)
+    ;(createFirstRowRange as ReturnType<typeof vi.fn>).mockReturnValue(range)
     ;(mockSheets.getValues as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
       []
     )
@@ -64,7 +64,7 @@ describe('getHeaders', () => {
       spreadsheetId
     })
 
-    expect(getFirstRowRange).toHaveBeenCalledWith(sheet)
+    expect(createFirstRowRange).toHaveBeenCalledWith(sheet)
     expect(mockSheets.getValues).toHaveBeenCalledWith(range)
     expect(result).toEqual([])
   })
@@ -72,7 +72,7 @@ describe('getHeaders', () => {
   it('should throw an error if getting values fails', async () => {
     const range = 'Sheet1!1:1'
     const errorMessage = 'Test error'
-    ;(getFirstRowRange as ReturnType<typeof vi.fn>).mockReturnValue(range)
+    ;(createFirstRowRange as ReturnType<typeof vi.fn>).mockReturnValue(range)
     ;(mockSheets.getValues as ReturnType<typeof vi.fn>).mockRejectedValueOnce(
       new Error(errorMessage)
     )
@@ -81,13 +81,13 @@ describe('getHeaders', () => {
       getHeaders({ sheet, sheets: mockSheets, spreadsheetId })
     ).rejects.toThrow(`Error getting headers: ${errorMessage}`)
 
-    expect(getFirstRowRange).toHaveBeenCalledWith(sheet)
+    expect(createFirstRowRange).toHaveBeenCalledWith(sheet)
     expect(mockSheets.getValues).toHaveBeenCalledWith(range)
   })
 
   it('should throw an unknown error if an unknown error occurs', async () => {
     const range = 'Sheet1!1:1'
-    ;(getFirstRowRange as ReturnType<typeof vi.fn>).mockReturnValue(range)
+    ;(createFirstRowRange as ReturnType<typeof vi.fn>).mockReturnValue(range)
     ;(mockSheets.getValues as ReturnType<typeof vi.fn>).mockRejectedValueOnce(
       'Unknown error'
     )
@@ -96,7 +96,7 @@ describe('getHeaders', () => {
       getHeaders({ sheet, sheets: mockSheets, spreadsheetId })
     ).rejects.toThrow('An unknown error occurred while getting headers.')
 
-    expect(getFirstRowRange).toHaveBeenCalledWith(sheet)
+    expect(createFirstRowRange).toHaveBeenCalledWith(sheet)
     expect(mockSheets.getValues).toHaveBeenCalledWith(range)
   })
 })
