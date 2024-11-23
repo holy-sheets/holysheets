@@ -1,4 +1,4 @@
-import { sheets_v4 } from 'googleapis'
+import type { IGoogleSheetsService } from '@/services/google-sheets/IGoogleSheetsService' // Type-only import
 import { WhereClause } from '@/types/where'
 import { getSheetId } from '@/core/getSheetId'
 import { findFirst } from '@/core/findFirst/findFirst'
@@ -10,7 +10,7 @@ import { SheetRecord } from '@/types/sheetRecord'
  * @typeparam RecordType - The type of the records in the table.
  * @param params - The parameters for the deleteFirst operation.
  * @param params.spreadsheetId - The ID of the spreadsheet.
- * @param params.sheets - The Google Sheets API client.
+ * @param params.sheets - The Google Sheets service interface.
  * @param params.sheet - The name of the sheet.
  * @param options - The options for the deleteFirst operation.
  * @param options.where - The where clause to filter records.
@@ -20,7 +20,7 @@ import { SheetRecord } from '@/types/sheetRecord'
  * ```typescript
  * const deletedRecord = await deleteFirst<RecordType>({
  *   spreadsheetId: 'your_spreadsheet_id',
- *   sheets: googleSheetsClient,
+ *   sheets: googleSheetsServiceInstance,
  *   sheet: 'Sheet1'
  * }, {
  *   where: { id: '123' }
@@ -30,7 +30,7 @@ import { SheetRecord } from '@/types/sheetRecord'
 export async function deleteFirst<RecordType extends Record<string, any>>(
   params: {
     spreadsheetId: string
-    sheets: sheets_v4.Sheets
+    sheets: IGoogleSheetsService
     sheet: string
   },
   options: {
@@ -40,7 +40,10 @@ export async function deleteFirst<RecordType extends Record<string, any>>(
   const { spreadsheetId, sheets, sheet } = params
   const { where } = options
 
+  // Retrieve the sheet ID using the refactored getSheetId function
   const sheetId = await getSheetId({ spreadsheetId, sheets, title: sheet })
+
+  // Find the first record that matches the where clause
   const record = await findFirst<RecordType>(
     { spreadsheetId, sheets, sheet },
     { where }
@@ -50,25 +53,8 @@ export async function deleteFirst<RecordType extends Record<string, any>>(
     throw new Error('No record found to delete')
   }
 
-  const requests = [
-    {
-      deleteDimension: {
-        range: {
-          sheetId: sheetId,
-          dimension: 'ROWS',
-          startIndex: record.row - 1,
-          endIndex: record.row
-        }
-      }
-    }
-  ]
-
-  await sheets.spreadsheets.batchUpdate({
-    spreadsheetId,
-    requestBody: {
-      requests
-    }
-  })
+  // Delete the row using the deleteRows method from the interface
+  await sheets.deleteRows(sheet, record.row - 1, record.row)
 
   return record
 }

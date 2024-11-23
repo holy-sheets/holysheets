@@ -1,4 +1,3 @@
-import { sheets_v4, Auth, google } from 'googleapis'
 import { HolySheetsCredentials } from '@/types/credentials'
 import { insert } from '@/core/insert'
 import { findFirst } from '@/core/findFirst/findFirst'
@@ -12,27 +11,23 @@ import { deleteFirst } from '@/core/deleteFirst'
 import { deleteMany } from '@/core/deleteMany'
 import { WhereClause } from '@/types/where'
 import { SelectClause } from '@/types/select'
+import { IGoogleSheetsService } from '@/services/google-sheets/IGoogleSheetsService'
+import { GoogleSheetsService } from '@/services/google-sheets/GoogleSheetsService'
 
 export default class HolySheets<RecordType extends Record<string, any> = any> {
-  public sheets: sheets_v4.Sheets
+  public sheets: IGoogleSheetsService
   public sheet: string = ''
   public spreadsheetId: string = ''
-  private readonly auth:
-    | Auth.GoogleAuth
-    | Auth.OAuth2Client
-    | Auth.JWT
-    | Auth.Compute
 
   constructor(credentials: HolySheetsCredentials) {
     this.spreadsheetId = credentials.spreadsheetId
-    this.auth = credentials.auth
-    this.sheets = google.sheets({ version: 'v4', auth: credentials.auth })
+    this.sheets = new GoogleSheetsService(credentials)
   }
 
   public base<T extends Record<string, any>>(table: string): HolySheets<T> {
     const instance = new HolySheets<T>({
       spreadsheetId: this.spreadsheetId,
-      auth: this.auth
+      auth: (this.sheets as GoogleSheetsService).getAuth()
     })
     instance.setTable(table)
     return instance

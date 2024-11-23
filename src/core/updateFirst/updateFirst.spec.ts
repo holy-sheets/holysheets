@@ -1,24 +1,30 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { updateFirst } from '@/core/updateFirst/updateFirst'
 import { findFirst } from '@/core/findFirst/findFirst'
-import { sheets_v4 } from 'googleapis'
+import type { IGoogleSheetsService } from '@/services/google-sheets/IGoogleSheetsService'
 import { WhereClause } from '@/types/where'
 import { SheetRecord } from '@/types/sheetRecord'
 
-// Mock dependencies
+// Mock the findFirst function
 vi.mock('@/core/findFirst/findFirst')
 
-// Import the mocked function
-const mockedFindFirst = vi.mocked(findFirst)
+// Import the mocked function with correct typing
+const mockedFindFirst = vi.mocked(findFirst, true)
 
-// Mock the Sheets client
-const mockSheets = {
-  spreadsheets: {
-    values: {
-      update: vi.fn()
-    }
-  }
-} as unknown as sheets_v4.Sheets
+// Define a mock implementation of IGoogleSheetsService
+const mockSheets: IGoogleSheetsService = {
+  getValues: vi.fn(),
+  batchGetValues: vi.fn(),
+  updateValues: vi.fn(),
+  batchUpdateValues: vi.fn(),
+  clearValues: vi.fn(),
+  batchClearValues: vi.fn(),
+  deleteRows: vi.fn(),
+  batchDeleteRows: vi.fn(),
+  getSpreadsheet: vi.fn(),
+  getAuth: vi.fn()
+  // Add other methods if necessary
+}
 
 describe('updateFirst', () => {
   beforeEach(() => {
@@ -27,7 +33,7 @@ describe('updateFirst', () => {
   })
 
   it('should successfully update the first matching record and return the updated data', async () => {
-    // Define the input parameters
+    // Define input parameters
     const spreadsheetId = 'test-spreadsheet-id'
     const sheetName = 'TestSheet'
     const where: WhereClause<{ Name: string; Age: string }> = { Name: 'Alice' }
@@ -37,16 +43,14 @@ describe('updateFirst', () => {
     const foundRecord: SheetRecord<{ Name: string; Age: string }> = {
       range: 'TestSheet!A2:B2',
       row: 2,
-      fields: { Name: 'Alice', Age: '30' }
+      fields: { Name: 'Alice', Age: '30' } // Use 'fields' instead of 'data'
     }
-    mockedFindFirst.mockResolvedValue(foundRecord)
+    mockedFindFirst.mockResolvedValueOnce(foundRecord)
 
     // Mock the update operation to resolve successfully
     ;(
-      mockSheets.spreadsheets.values.update as ReturnType<typeof vi.fn>
-    ).mockResolvedValueOnce({
-      data: {}
-    })
+      mockSheets.updateValues as ReturnType<typeof vi.fn>
+    ).mockResolvedValueOnce(undefined)
 
     // Call the function under test
     const result = await updateFirst(
@@ -60,28 +64,25 @@ describe('updateFirst', () => {
       { where }
     )
 
-    expect(mockSheets.spreadsheets.values.update).toHaveBeenCalledWith({
-      spreadsheetId: 'test-spreadsheet-id',
-      range: 'TestSheet!A2:B2',
-      valueInputOption: 'RAW',
-      requestBody: {
-        values: [['Alice', '31']]
-      }
-    })
+    expect(mockSheets.updateValues).toHaveBeenCalledWith(
+      'TestSheet!A2:B2',
+      [['Alice', '31']],
+      'RAW'
+    )
 
-    // Assertion to check the function's return value
+    // Assertion to check the return value of the function
     expect(result).toEqual({ Name: 'Alice', Age: '31' })
   })
 
   it('should throw an error when no matching record is found', async () => {
-    // Define the input parameters
+    // Define input parameters
     const spreadsheetId = 'test-spreadsheet-id'
     const sheetName = 'TestSheet'
     const where: WhereClause<{ Name: string; Age: string }> = { Name: 'Bob' }
     const dataToUpdate: Partial<{ Name: string; Age: string }> = { Age: '40' }
 
     // Mock the findFirst function to return undefined (no record found)
-    mockedFindFirst.mockResolvedValue(undefined)
+    mockedFindFirst.mockResolvedValueOnce(undefined)
 
     // Call the function under test and expect an error
     await expect(
@@ -97,12 +98,12 @@ describe('updateFirst', () => {
       { where }
     )
 
-    // Assertion to ensure update was NOT called
-    expect(mockSheets.spreadsheets.values.update).not.toHaveBeenCalled()
+    // Assertion to ensure updateValues was NOT called
+    expect(mockSheets.updateValues).not.toHaveBeenCalled()
   })
 
   it('should propagate errors thrown by the findFirst function', async () => {
-    // Define the input parameters
+    // Define input parameters
     const spreadsheetId = 'test-spreadsheet-id'
     const sheetName = 'TestSheet'
     const where: WhereClause<{ Name: string; Age: string }> = { Name: 'Eve' }
@@ -110,7 +111,7 @@ describe('updateFirst', () => {
 
     // Mock the findFirst function to throw an error
     const findFirstError = new Error('findFirst encountered an error')
-    mockedFindFirst.mockRejectedValue(findFirstError)
+    mockedFindFirst.mockRejectedValueOnce(findFirstError)
 
     // Call the function under test and expect the error to be propagated
     await expect(
@@ -126,12 +127,12 @@ describe('updateFirst', () => {
       { where }
     )
 
-    // Assertion to ensure update was NOT called
-    expect(mockSheets.spreadsheets.values.update).not.toHaveBeenCalled()
+    // Assertion to ensure updateValues was NOT called
+    expect(mockSheets.updateValues).not.toHaveBeenCalled()
   })
 
   it('should propagate errors thrown by the Google Sheets API during the update', async () => {
-    // Define the input parameters
+    // Define input parameters
     const spreadsheetId = 'test-spreadsheet-id'
     const sheetName = 'TestSheet'
     const where: WhereClause<{ Name: string; Age: string }> = {
@@ -145,12 +146,12 @@ describe('updateFirst', () => {
       row: 3,
       fields: { Name: 'Charlie', Age: '34' }
     }
-    mockedFindFirst.mockResolvedValue(foundRecord)
+    mockedFindFirst.mockResolvedValueOnce(foundRecord)
 
     // Mock the update operation to throw an error
     const updateError = new Error('Google Sheets API Error')
     ;(
-      mockSheets.spreadsheets.values.update as ReturnType<typeof vi.fn>
+      mockSheets.updateValues as ReturnType<typeof vi.fn>
     ).mockRejectedValueOnce(updateError)
 
     // Call the function under test and expect the error to be propagated
@@ -167,14 +168,11 @@ describe('updateFirst', () => {
       { where }
     )
 
-    // Assertion to ensure update was called correctly
-    expect(mockSheets.spreadsheets.values.update).toHaveBeenCalledWith({
-      spreadsheetId: 'test-spreadsheet-id',
-      range: 'TestSheet!A3:B3',
-      valueInputOption: 'RAW',
-      requestBody: {
-        values: [['Charlie', '35']]
-      }
-    })
+    // Adjust the expectation to reflect the actual call with multiple arguments
+    expect(mockSheets.updateValues).toHaveBeenCalledWith(
+      'TestSheet!A3:B3',
+      [['Charlie', '35']],
+      'RAW'
+    )
   })
 })

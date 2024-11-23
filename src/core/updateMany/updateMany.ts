@@ -1,7 +1,7 @@
-import { sheets_v4 } from 'googleapis'
+import { IGoogleSheetsService } from '@/services/google-sheets/IGoogleSheetsService'
 import { WhereClause } from '@/types/where'
 import { findMany } from '@/core/findMany'
-import { SheetRecord } from '@/types/sheetRecord'
+import { CellValue } from '@/types/cellValue'
 
 /**
  * Updates multiple records that match the given where clause using batchUpdate.
@@ -9,7 +9,7 @@ import { SheetRecord } from '@/types/sheetRecord'
  * @typeparam RecordType - The type of the records in the table.
  * @param params - The parameters for the updateMany operation.
  * @param params.spreadsheetId - The ID of the spreadsheet.
- * @param params.sheets - The Google Sheets API client.
+ * @param params.sheets - The Google Sheets service interface.
  * @param params.sheet - The name of the sheet.
  * @param options - The options for the updateMany operation.
  * @param options.where - The where clause to filter records.
@@ -20,7 +20,7 @@ import { SheetRecord } from '@/types/sheetRecord'
  * ```typescript
  * await updateMany<RecordType>({
  *   spreadsheetId: 'your_spreadsheet_id',
- *   sheets: googleSheetsClient,
+ *   sheets: googleSheetsServiceInstance,
  *   sheet: 'Sheet1'
  * }, {
  *   where: { status: 'active' },
@@ -31,7 +31,7 @@ import { SheetRecord } from '@/types/sheetRecord'
 export async function updateMany<RecordType extends Record<string, any>>(
   params: {
     spreadsheetId: string
-    sheets: sheets_v4.Sheets
+    sheets: IGoogleSheetsService
     sheet: string
   },
   options: {
@@ -42,7 +42,7 @@ export async function updateMany<RecordType extends Record<string, any>>(
   const { spreadsheetId, sheets, sheet } = params
   const { where, data } = options
 
-  // Find all matching records
+  // Find all records that match the 'where' clause
   const records = await findMany<RecordType>(
     { spreadsheetId, sheets, sheet },
     { where }
@@ -53,24 +53,27 @@ export async function updateMany<RecordType extends Record<string, any>>(
   }
 
   // Prepare the data for batchUpdate
-  const batchUpdateData: sheets_v4.Schema$ValueRange[] = records.map(record => {
-    const { range, fields } = record
-    const updatedFields = { ...fields, ...data } as RecordType
+  const batchUpdateData: { range: string; values: CellValue[][] }[] =
+    records.map(record => {
+      const { range, fields } = record
+      const updatedFields = { ...fields, ...data } as RecordType
 
-    return {
-      range, // e.g., 'Sheet1!A2:B2'
-      values: [Object.values(updatedFields)]
-    }
-  })
+      return {
+        range,
+        values: [Object.values(updatedFields)]
+      }
+    })
 
-  // Execute batchUpdate to update all records in a single API call
-  await sheets.spreadsheets.values.batchUpdate({
-    spreadsheetId,
-    requestBody: {
-      valueInputOption: 'RAW', // Use 'USER_ENTERED' if you want Google Sheets to parse the values
-      data: batchUpdateData
+  try {
+    await sheets.batchUpdateValues(batchUpdateData, 'RAW')
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      console.error('Error updating records:', error.message)
+      throw new Error(`Error updating records: ${error.message}`)
     }
-  })
+    console.error('Error updating records:', error)
+    throw new Error('An unknown error occurred while updating records.')
+  }
 
   // Return the updated records
   return records.map(record => ({ ...record.fields, ...data }) as RecordType)

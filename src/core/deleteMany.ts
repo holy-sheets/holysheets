@@ -1,16 +1,15 @@
-import { sheets_v4 } from 'googleapis'
+import type { IGoogleSheetsService } from '@/services/google-sheets/IGoogleSheetsService' // Type import only
 import { WhereClause } from '@/types/where'
-import { getSheetId } from '@/core/getSheetId'
 import { findMany } from '@/core/findMany'
 import { SheetRecord } from '@/types/sheetRecord'
 
 /**
- * Deletes multiple records that match the given where clause.
+ * Deletes multiple records that match the provided where clause.
  *
  * @typeparam RecordType - The type of the records in the table.
  * @param params - The parameters for the deleteMany operation.
  * @param params.spreadsheetId - The ID of the spreadsheet.
- * @param params.sheets - The Google Sheets API client.
+ * @param params.sheets - The Google Sheets service interface.
  * @param params.sheet - The name of the sheet.
  * @param options - The options for the deleteMany operation.
  * @param options.where - The where clause to filter records.
@@ -20,7 +19,7 @@ import { SheetRecord } from '@/types/sheetRecord'
  * ```typescript
  * const deletedRecords = await deleteMany<RecordType>({
  *   spreadsheetId: 'your_spreadsheet_id',
- *   sheets: googleSheetsClient,
+ *   sheets: googleSheetsServiceInstance,
  *   sheet: 'Sheet1'
  * }, {
  *   where: { status: 'inactive' }
@@ -30,7 +29,7 @@ import { SheetRecord } from '@/types/sheetRecord'
 export async function deleteMany<RecordType extends Record<string, any>>(
   params: {
     spreadsheetId: string
-    sheets: sheets_v4.Sheets
+    sheets: IGoogleSheetsService
     sheet: string
   },
   options: {
@@ -40,36 +39,30 @@ export async function deleteMany<RecordType extends Record<string, any>>(
   const { spreadsheetId, sheets, sheet } = params
   const { where } = options
 
-  const records = await findMany<RecordType>(
-    { spreadsheetId, sheets, sheet },
-    { where }
-  )
+  try {
+    // Find all records that match the where clause
+    const records = await findMany<RecordType>(
+      { spreadsheetId, sheets, sheet },
+      { where }
+    )
 
-  if (records.length === 0) {
-    throw new Error('No records found to delete')
-  }
-
-  const sheetId = await getSheetId({ spreadsheetId, sheets, title: sheet })
-
-  const requests = records
-    .sort((a, b) => b.row - a.row)
-    .map(record => ({
-      deleteDimension: {
-        range: {
-          sheetId: sheetId,
-          dimension: 'ROWS',
-          startIndex: record.row - 1,
-          endIndex: record.row
-        }
-      }
-    }))
-
-  await sheets.spreadsheets.batchUpdate({
-    spreadsheetId,
-    requestBody: {
-      requests
+    if (records.length === 0) {
+      throw new Error('No records found to delete.')
     }
-  })
 
-  return records
+    // Extract the row indices (0-based)
+    const rowIndices = records.map(record => record.row - 1)
+
+    // Delete all rows in a single batch operation
+    await sheets.batchDeleteRows(sheet, rowIndices)
+
+    return records
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      console.error('Error deleting records:', error.message)
+      throw new Error(`Error deleting records: ${error.message}`)
+    }
+    console.error('Error deleting records:', error)
+    throw new Error('An unknown error occurred while deleting records.')
+  }
 }

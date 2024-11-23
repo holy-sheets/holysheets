@@ -1,4 +1,4 @@
-import { sheets_v4 } from 'googleapis'
+import { IGoogleSheetsService } from '@/services/google-sheets/IGoogleSheetsService'
 import { WhereClause } from '@/types/where'
 import { findFirst } from '@/core/findFirst/findFirst'
 
@@ -8,7 +8,7 @@ import { findFirst } from '@/core/findFirst/findFirst'
  * @typeparam RecordType - The type of the records in the table.
  * @param params - The parameters for the updateFirst operation.
  * @param params.spreadsheetId - The ID of the spreadsheet.
- * @param params.sheets - The Google Sheets API client.
+ * @param params.sheets - The Google Sheets service interface.
  * @param params.sheet - The name of the sheet.
  * @param options - The options for the updateFirst operation.
  * @param options.where - The where clause to filter records.
@@ -19,7 +19,7 @@ import { findFirst } from '@/core/findFirst/findFirst'
  * ```typescript
  * await updateFirst<RecordType>({
  *   spreadsheetId: 'your_spreadsheet_id',
- *   sheets: googleSheetsClient,
+ *   sheets: googleSheetsServiceInstance,
  *   sheet: 'Sheet1'
  * }, {
  *   where: { id: '123' },
@@ -30,7 +30,7 @@ import { findFirst } from '@/core/findFirst/findFirst'
 export async function updateFirst<RecordType extends Record<string, any>>(
   params: {
     spreadsheetId: string
-    sheets: sheets_v4.Sheets
+    sheets: IGoogleSheetsService
     sheet: string
   },
   options: {
@@ -41,6 +41,7 @@ export async function updateFirst<RecordType extends Record<string, any>>(
   const { spreadsheetId, sheets, sheet } = params
   const { where, data } = options
 
+  // Find the first record that matches the 'where' clause
   const record = await findFirst<RecordType>(
     { spreadsheetId, sheets, sheet },
     { where }
@@ -52,16 +53,15 @@ export async function updateFirst<RecordType extends Record<string, any>>(
 
   const { fields, range } = record
 
+  // Combine the existing fields with the data to be updated
   const updatedFields = { ...fields, ...data } as RecordType
 
-  await sheets.spreadsheets.values.update({
-    spreadsheetId,
+  // Update the values in Google Sheets
+  await sheets.updateValues(
     range,
-    valueInputOption: 'RAW',
-    requestBody: {
-      values: [Object.values(updatedFields)]
-    }
-  })
+    [Object.values(updatedFields)],
+    'RAW' // or 'USER_ENTERED' as needed
+  )
 
   return updatedFields
 }

@@ -1,39 +1,43 @@
-import { sheets_v4 } from 'googleapis'
+import { IGoogleSheetsService } from '@/services/google-sheets/IGoogleSheetsService'
 import { SheetHeaders } from '@/types/headers'
 import { indexToColumn } from '@/utils/columnUtils/columnUtils'
+import { CellValue } from '@/types/cellValue'
+import { getFirstRowRange } from '@/utils/rangeUtils/rangeUtils'
 
 /**
- * Retrieves the headers of a specified table from a Google Sheets document.
+ * Retrieves the headers of a specified sheet from a Google Sheets document.
  * @param options - The options for retrieving the headers.
- * @param options.table - The name of the table.
- * @returns A promise that resolves to an array of SheetHeaders representing the headers of the table.
+ * @param options.sheet - The name of the sheet.
+ * @param options.sheets - The Google Sheets service interface.
+ * @param options.spreadsheetId - The ID of the spreadsheet.
+ * @returns A promise that resolves to an array of SheetHeaders representing the headers of the sheet.
  */
 export async function getHeaders<SheetName extends string>(options: {
   sheet: SheetName
-  sheets: sheets_v4.Sheets
+  sheets: IGoogleSheetsService
   spreadsheetId: string
 }): Promise<SheetHeaders[]> {
-  const { sheet, sheets, spreadsheetId } = options
+  const { sheet, sheets } = options
   try {
-    const response = await sheets.spreadsheets.values.get({
-      spreadsheetId,
-      range: `${sheet}!1:1`
-    })
+    const range = getFirstRowRange(sheet)
+    const values: CellValue[][] = await sheets.getValues(range)
 
-    const values = response.data.values
-
-    if (values) {
-      return values[0].map((name: string, index: number) => ({
+    if (values && values.length > 0) {
+      return values[0].map((name, index) => ({
         column: indexToColumn(index),
-        name,
+        name: String(name),
         index
       }))
     } else {
       console.log('There are no headers in the sheet.') // eslint-disable-line
       return []
     }
-  } catch (error) {
-    console.error(`Error getting headers: ${error}`) // eslint-disable-line
-    throw error
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      console.error(`Error getting headers: ${error.message}`) // eslint-disable-line
+      throw new Error(`Error getting headers: ${error.message}`)
+    }
+    console.error('An unknown error occurred while getting headers.') // eslint-disable-line
+    throw new Error('An unknown error occurred while getting headers.')
   }
 }

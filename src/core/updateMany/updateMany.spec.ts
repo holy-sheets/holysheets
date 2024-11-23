@@ -1,44 +1,48 @@
-// src/__tests__/updateMany.test.ts
-
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { updateMany } from '@/core/updateMany/updateMany'
 import { findMany } from '@/core/findMany'
-import { sheets_v4 } from 'googleapis'
+import type { IGoogleSheetsService } from '@/services/google-sheets/IGoogleSheetsService'
 import { WhereClause } from '@/types/where'
 import { SheetRecord } from '@/types/sheetRecord'
 
-// Mock dependencies
+// Mockar a função findMany
 vi.mock('@/core/findMany')
 
-// Import the mocked function
+// Importar a função mockada
 const mockedFindMany = vi.mocked(findMany)
 
-// Mock the Sheets client
-const mockSheets = {
-  spreadsheets: {
-    values: {
-      batchUpdate: vi.fn()
-    }
-  }
-} as unknown as sheets_v4.Sheets
+// Definir uma implementação mock de IGoogleSheetsService
+const mockSheets: IGoogleSheetsService = {
+  getValues: vi.fn(),
+  batchGetValues: vi.fn(),
+  updateValues: vi.fn(),
+  batchUpdateValues: vi.fn(),
+  clearValues: vi.fn(),
+  batchClearValues: vi.fn(),
+  deleteRows: vi.fn(),
+  batchDeleteRows: vi.fn(),
+  getSpreadsheet: vi.fn(),
+  getAuth: vi.fn()
+}
 
 describe('updateMany', () => {
   beforeEach(() => {
-    // Reset all mocks before each test to ensure isolation
     vi.resetAllMocks()
   })
 
   it('should successfully update multiple matching records and return the updated data', async () => {
-    // Define the input parameters
+    // Definir parâmetros de entrada
     const spreadsheetId = 'test-spreadsheet-id'
     const sheetName = 'TestSheet'
     const where: WhereClause<{ Name: string; Age: string; Status: string }> = {
       Status: 'active'
     }
     const dataToUpdate: Partial<{ Name: string; Age: string; Status: string }> =
-      { Status: 'inactive' }
+      {
+        Status: 'inactive'
+      }
 
-    // Mock the findMany function to return multiple records
+    // Mockar a função findMany para retornar múltiplos registros
     const foundRecords: SheetRecord<{
       Name: string
       Age: string
@@ -60,49 +64,44 @@ describe('updateMany', () => {
         fields: { Name: 'Charlie', Age: '35', Status: 'active' }
       }
     ]
-    mockedFindMany.mockResolvedValue(foundRecords)
+    mockedFindMany.mockResolvedValueOnce(foundRecords)
 
-    // Mock the batchUpdate operation to resolve successfully
+    // Mockar batchUpdateValues para resolver
     ;(
-      mockSheets.spreadsheets.values.batchUpdate as ReturnType<typeof vi.fn>
-    ).mockResolvedValueOnce({
-      data: {}
-    })
+      mockSheets.batchUpdateValues as ReturnType<typeof vi.fn>
+    ).mockResolvedValueOnce(undefined)
 
-    // Call the function under test
+    // Chamar a função sob teste
     const result = await updateMany(
       { spreadsheetId, sheets: mockSheets, sheet: sheetName },
       { where, data: dataToUpdate }
     )
 
-    // Assertions to ensure dependencies were called correctly
+    // Asserções para garantir que as dependências foram chamadas corretamente
     expect(mockedFindMany).toHaveBeenCalledWith(
       { spreadsheetId, sheets: mockSheets, sheet: sheetName },
       { where }
     )
 
-    expect(mockSheets.spreadsheets.values.batchUpdate).toHaveBeenCalledWith({
-      spreadsheetId: 'test-spreadsheet-id',
-      requestBody: {
-        valueInputOption: 'RAW',
-        data: [
-          {
-            range: 'TestSheet!A2:C2',
-            values: [['Alice', '30', 'inactive']]
-          },
-          {
-            range: 'TestSheet!A4:C4',
-            values: [['Bob', '25', 'inactive']]
-          },
-          {
-            range: 'TestSheet!A6:C6',
-            values: [['Charlie', '35', 'inactive']]
-          }
-        ]
-      }
-    })
+    expect(mockSheets.batchUpdateValues).toHaveBeenCalledWith(
+      [
+        {
+          range: 'TestSheet!A2:C2',
+          values: [['Alice', '30', 'inactive']]
+        },
+        {
+          range: 'TestSheet!A4:C4',
+          values: [['Bob', '25', 'inactive']]
+        },
+        {
+          range: 'TestSheet!A6:C6',
+          values: [['Charlie', '35', 'inactive']]
+        }
+      ],
+      'RAW'
+    )
 
-    // Assertion to check the function's return value
+    // Asserção para verificar o valor de retorno da função
     expect(result).toEqual([
       { Name: 'Alice', Age: '30', Status: 'inactive' },
       { Name: 'Bob', Age: '25', Status: 'inactive' },
@@ -111,19 +110,21 @@ describe('updateMany', () => {
   })
 
   it('should throw an error when no matching records are found', async () => {
-    // Define the input parameters
+    // Definir parâmetros de entrada
     const spreadsheetId = 'test-spreadsheet-id'
     const sheetName = 'TestSheet'
     const where: WhereClause<{ Name: string; Age: string; Status: string }> = {
       Status: 'active'
     }
     const dataToUpdate: Partial<{ Name: string; Age: string; Status: string }> =
-      { Status: 'inactive' }
+      {
+        Status: 'inactive'
+      }
 
-    // Mock the findMany function to return an empty array (no records found)
-    mockedFindMany.mockResolvedValue([])
+    // Mockar a função findMany para retornar um array vazio (nenhum registro encontrado)
+    mockedFindMany.mockResolvedValueOnce([])
 
-    // Call the function under test and expect an error
+    // Chamar a função sob teste e esperar um erro
     await expect(
       updateMany(
         { spreadsheetId, sheets: mockSheets, sheet: sheetName },
@@ -131,31 +132,33 @@ describe('updateMany', () => {
       )
     ).rejects.toThrow('No records found to update')
 
-    // Assertions to ensure findMany was called correctly
+    // Asserções para garantir que findMany foi chamado corretamente
     expect(mockedFindMany).toHaveBeenCalledWith(
       { spreadsheetId, sheets: mockSheets, sheet: sheetName },
       { where }
     )
 
-    // Assertion to ensure batchUpdate was NOT called
-    expect(mockSheets.spreadsheets.values.batchUpdate).not.toHaveBeenCalled()
+    // Asserção para garantir que batchUpdateValues NÃO foi chamado
+    expect(mockSheets.batchUpdateValues).not.toHaveBeenCalled()
   })
 
   it('should propagate errors thrown by the findMany function', async () => {
-    // Define the input parameters
+    // Definir parâmetros de entrada
     const spreadsheetId = 'test-spreadsheet-id'
     const sheetName = 'TestSheet'
     const where: WhereClause<{ Name: string; Age: string; Status: string }> = {
       Status: 'active'
     }
     const dataToUpdate: Partial<{ Name: string; Age: string; Status: string }> =
-      { Status: 'inactive' }
+      {
+        Status: 'inactive'
+      }
 
-    // Mock the findMany function to throw an error
+    // Mockar a função findMany para lançar um erro
     const findManyError = new Error('findMany encountered an error')
-    mockedFindMany.mockRejectedValue(findManyError)
+    mockedFindMany.mockRejectedValueOnce(findManyError)
 
-    // Call the function under test and expect the error to be propagated
+    // Chamar a função sob teste e esperar que o erro seja propagado
     await expect(
       updateMany(
         { spreadsheetId, sheets: mockSheets, sheet: sheetName },
@@ -163,27 +166,29 @@ describe('updateMany', () => {
       )
     ).rejects.toThrow('findMany encountered an error')
 
-    // Assertions to ensure findMany was called correctly
+    // Asserções para garantir que findMany foi chamado corretamente
     expect(mockedFindMany).toHaveBeenCalledWith(
       { spreadsheetId, sheets: mockSheets, sheet: sheetName },
       { where }
     )
 
-    // Assertion to ensure batchUpdate was NOT called
-    expect(mockSheets.spreadsheets.values.batchUpdate).not.toHaveBeenCalled()
+    // Asserção para garantir que batchUpdateValues NÃO foi chamado
+    expect(mockSheets.batchUpdateValues).not.toHaveBeenCalled()
   })
 
   it('should propagate errors thrown by the Google Sheets API during the batch update', async () => {
-    // Define the input parameters
+    // Definir parâmetros de entrada
     const spreadsheetId = 'test-spreadsheet-id'
     const sheetName = 'TestSheet'
     const where: WhereClause<{ Name: string; Age: string; Status: string }> = {
       Status: 'active'
     }
     const dataToUpdate: Partial<{ Name: string; Age: string; Status: string }> =
-      { Status: 'inactive' }
+      {
+        Status: 'inactive'
+      }
 
-    // Mock the findMany function to return multiple records
+    // Mockar a função findMany para retornar múltiplos registros
     const foundRecords: SheetRecord<{
       Name: string
       Age: string
@@ -205,59 +210,56 @@ describe('updateMany', () => {
         fields: { Name: 'Charlie', Age: '35', Status: 'active' }
       }
     ]
-    mockedFindMany.mockResolvedValue(foundRecords)
+    mockedFindMany.mockResolvedValueOnce(foundRecords)
 
-    // Mock the batchUpdate operation to throw an error
-    const batchUpdateError = new Error('Google Sheets API Error')
+    // Mockar batchUpdateValues para lançar um erro
+    const apiError = new Error('Google Sheets API Error')
     ;(
-      mockSheets.spreadsheets.values.batchUpdate as ReturnType<typeof vi.fn>
-    ).mockRejectedValueOnce(batchUpdateError)
+      mockSheets.batchUpdateValues as ReturnType<typeof vi.fn>
+    ).mockRejectedValueOnce(apiError)
 
-    // Call the function under test and expect the error to be propagated
+    // Chamar a função sob teste e esperar que o erro seja propagado
     await expect(
       updateMany(
         { spreadsheetId, sheets: mockSheets, sheet: sheetName },
         { where, data: dataToUpdate }
       )
-    ).rejects.toThrow('Google Sheets API Error')
+    ).rejects.toThrow('Error updating records: Google Sheets API Error')
 
-    // Assertions to ensure findMany was called correctly
+    // Asserções para garantir que findMany foi chamado corretamente
     expect(mockedFindMany).toHaveBeenCalledWith(
       { spreadsheetId, sheets: mockSheets, sheet: sheetName },
       { where }
     )
 
-    // Assertions to ensure batchUpdate was called correctly
-    expect(mockSheets.spreadsheets.values.batchUpdate).toHaveBeenCalledWith({
-      spreadsheetId: 'test-spreadsheet-id',
-      requestBody: {
-        valueInputOption: 'RAW',
-        data: [
-          {
-            range: 'TestSheet!A2:C2',
-            values: [['Alice', '30', 'inactive']]
-          },
-          {
-            range: 'TestSheet!A4:C4',
-            values: [['Bob', '25', 'inactive']]
-          },
-          {
-            range: 'TestSheet!A6:C6',
-            values: [['Charlie', '35', 'inactive']]
-          }
-        ]
-      }
-    })
+    // Asserções para garantir que batchUpdateValues foi chamado corretamente
+    expect(mockSheets.batchUpdateValues).toHaveBeenCalledWith(
+      [
+        {
+          range: 'TestSheet!A2:C2',
+          values: [['Alice', '30', 'inactive']]
+        },
+        {
+          range: 'TestSheet!A4:C4',
+          values: [['Bob', '25', 'inactive']]
+        },
+        {
+          range: 'TestSheet!A6:C6',
+          values: [['Charlie', '35', 'inactive']]
+        }
+      ],
+      'RAW'
+    )
   })
 
   it('should update only matching records without affecting others', async () => {
-    // Define the input parameters
+    // Definir parâmetros de entrada
     const spreadsheetId = 'test-spreadsheet-id'
     const sheetName = 'TestSheet'
     const where: WhereClause<{ Name: string; Age: string }> = { Name: 'Alice' }
     const dataToUpdate: Partial<{ Name: string; Age: string }> = { Age: '25' }
 
-    // Mock the findMany function to return only Alice's records
+    // Mockar a função findMany para retornar apenas os registros de Alice
     const foundRecords: SheetRecord<{ Name: string; Age: string }>[] = [
       {
         range: 'TestSheet!A2:B2',
@@ -270,45 +272,40 @@ describe('updateMany', () => {
         fields: { Name: 'Alice', Age: '23' }
       }
     ]
-    mockedFindMany.mockResolvedValue(foundRecords)
+    mockedFindMany.mockResolvedValueOnce(foundRecords)
 
-    // Mock the batchUpdate operation to resolve successfully
+    // Mockar batchUpdateValues para resolver
     ;(
-      mockSheets.spreadsheets.values.batchUpdate as ReturnType<typeof vi.fn>
-    ).mockResolvedValueOnce({
-      data: {}
-    })
+      mockSheets.batchUpdateValues as ReturnType<typeof vi.fn>
+    ).mockResolvedValueOnce(undefined)
 
-    // Call the function under test
+    // Chamar a função sob teste
     const result = await updateMany(
       { spreadsheetId, sheets: mockSheets, sheet: sheetName },
       { where, data: dataToUpdate }
     )
 
-    // Assertions to ensure dependencies were called correctly
+    // Asserções para garantir que as dependências foram chamadas corretamente
     expect(mockedFindMany).toHaveBeenCalledWith(
       { spreadsheetId, sheets: mockSheets, sheet: sheetName },
       { where }
     )
 
-    expect(mockSheets.spreadsheets.values.batchUpdate).toHaveBeenCalledWith({
-      spreadsheetId: 'test-spreadsheet-id',
-      requestBody: {
-        valueInputOption: 'RAW',
-        data: [
-          {
-            range: 'TestSheet!A2:B2',
-            values: [['Alice', '25']]
-          },
-          {
-            range: 'TestSheet!A4:B4',
-            values: [['Alice', '25']]
-          }
-        ]
-      }
-    })
+    expect(mockSheets.batchUpdateValues).toHaveBeenCalledWith(
+      [
+        {
+          range: 'TestSheet!A2:B2',
+          values: [['Alice', '25']]
+        },
+        {
+          range: 'TestSheet!A4:B4',
+          values: [['Alice', '25']]
+        }
+      ],
+      'RAW'
+    )
 
-    // Assertion to check the function's return value
+    // Asserção para verificar o valor de retorno da função
     expect(result).toEqual([
       { Name: 'Alice', Age: '25' },
       { Name: 'Alice', Age: '25' }

@@ -1,3 +1,4 @@
+import { CellValue } from '@/types/cellValue'
 import { SheetHeaders } from '@/types/headers'
 
 /**
@@ -8,11 +9,11 @@ import { SheetHeaders } from '@/types/headers'
  * @param {SheetHeaders[]} headers - The headers to use for deconstruction.
  * @returns {(string | number)[]} - An array of deconstructed values.
  */
-export const decombine = <RecordType extends Record<string, string>>(
+export const decombine = <RecordType extends Record<string, CellValue>>(
   record: RecordType,
   headers: SheetHeaders[]
-): string[] => {
-  const valuesForRow: string[] = []
+): CellValue[] => {
+  const valuesForRow: CellValue[] = []
   headers.forEach(header => {
     const isValidType =
       typeof record[header.name] === 'string' ||
@@ -23,7 +24,7 @@ export const decombine = <RecordType extends Record<string, string>>(
   return valuesForRow
 }
 
-export const combine = <RecordType extends Record<string, string>>(
+export const combine = <RecordType extends Record<string, CellValue>>(
   data: string[],
   headers: SheetHeaders[]
 ): RecordType => {

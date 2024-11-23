@@ -195,3 +195,19 @@ export function addSheetToRange(params: AddSheetToRangeParams): string {
 
   return `${sheet}!${range}`
 }
+
+/**
+ * Returns the range string for the first row of the specified sheet.
+ *
+ * @param sheet - The name of the sheet.
+ * @returns The range string for the first row in the format `${sheet}!1:1`.
+ *
+ * @example
+ * ```typescript
+ * const range = getFirstRowRange("Sheet1");
+ * console.log(range); // Output: "Sheet1!1:1"
+ * ```
+ */
+export function getFirstRowRange(sheet: string): string {
+  return addSheetToRange({ sheet, range: '1:1' })
+}
