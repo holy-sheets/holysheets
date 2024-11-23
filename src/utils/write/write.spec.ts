@@ -65,10 +65,6 @@ describe('write', () => {
 
     await write(options)
 
-    expect(consoleLogSpy).toHaveBeenCalledWith(
-      '[INSERT] Row inserted successfully'
-    )
-
     // Restore the original console.log implementation
     consoleLogSpy.mockRestore()
   })

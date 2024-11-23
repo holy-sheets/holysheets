@@ -28,7 +28,6 @@ export async function write(options: WriteOptions): Promise<void> {
     ]
     const valueInputOption: 'RAW' = 'RAW'
     await sheets.batchUpdateValues(data, valueInputOption)
-    console.log(`[INSERT] Row inserted successfully`)
   } catch (error: unknown) {
     if (error instanceof Error) {
       console.error(`[INSERT] Error: ${error.message}`)
