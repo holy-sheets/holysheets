@@ -1,7 +1,8 @@
-import type { IGoogleSheetsService } from '@/services/google-sheets/IGoogleSheetsService' // Type-only import
+import type { IGoogleSheetsService } from '@/services/google-sheets/IGoogleSheetsService'
 import { WhereClause } from '@/types/where'
 import { findFirst } from '@/core/findFirst/findFirst'
 import { SheetRecord } from '@/types/sheetRecord'
+import { CellValue } from '@/types/cellValue'
 
 /**
  * Deletes the first record that matches the given where clause.
@@ -26,7 +27,7 @@ import { SheetRecord } from '@/types/sheetRecord'
  * });
  * ```
  */
-export async function deleteFirst<RecordType extends Record<string, any>>(
+export async function deleteFirst<RecordType extends Record<string, CellValue>>(
   params: {
     spreadsheetId: string
     sheets: IGoogleSheetsService

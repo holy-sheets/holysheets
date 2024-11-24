@@ -28,7 +28,7 @@ import { CellValue } from '@/types/cellValue'
  * });
  * ```
  */
-export async function updateFirst<RecordType extends Record<string, any>>(
+export async function updateFirst<RecordType extends Record<string, CellValue>>(
   params: {
     spreadsheetId: string
     sheets: IGoogleSheetsService
@@ -58,11 +58,7 @@ export async function updateFirst<RecordType extends Record<string, any>>(
   const updatedFields = { ...fields, ...data } as RecordType
 
   // Update the values in Google Sheets
-  await sheets.updateValues(
-    range,
-    [Object.values(updatedFields) as CellValue[]],
-    'RAW'
-  )
+  await sheets.updateValues(range, [Object.values(updatedFields)], 'RAW')
 
   return updatedFields
 }

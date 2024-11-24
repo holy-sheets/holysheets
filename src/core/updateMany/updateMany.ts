@@ -28,7 +28,7 @@ import { CellValue } from '@/types/cellValue'
  * });
  * ```
  */
-export async function updateMany<RecordType extends Record<string, any>>(
+export async function updateMany<RecordType extends Record<string, CellValue>>(
   params: {
     spreadsheetId: string
     sheets: IGoogleSheetsService

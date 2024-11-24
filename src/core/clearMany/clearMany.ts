@@ -2,6 +2,7 @@ import { IGoogleSheetsService } from '@/services/google-sheets/IGoogleSheetsServ
 import { WhereClause } from '@/types/where'
 import { findMany } from '@/core/findMany/findMany'
 import { SheetRecord } from '@/types/sheetRecord'
+import { CellValue } from '@/types/cellValue'
 
 /**
  * Clears multiple records that match the given where clause.
@@ -26,7 +27,7 @@ import { SheetRecord } from '@/types/sheetRecord'
  * });
  * ```
  */
-export async function clearMany<RecordType extends Record<string, any>>(
+export async function clearMany<RecordType extends Record<string, CellValue>>(
   params: {
     spreadsheetId: string
     sheets: IGoogleSheetsService

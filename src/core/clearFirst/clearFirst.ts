@@ -2,6 +2,7 @@ import { IGoogleSheetsService } from '@/services/google-sheets/IGoogleSheetsServ
 import { WhereClause } from '@/types/where'
 import { findFirst } from '@/core/findFirst/findFirst'
 import { SheetRecord } from '@/types/sheetRecord'
+import { CellValue } from '@/types/cellValue'
 
 /**
  * Clears the first record that matches the given where clause.
@@ -26,7 +27,7 @@ import { SheetRecord } from '@/types/sheetRecord'
  * });
  * ```
  */
-export async function clearFirst<RecordType extends Record<string, any>>(
+export async function clearFirst<RecordType extends Record<string, CellValue>>(
   params: {
     spreadsheetId: string
     sheets: IGoogleSheetsService
