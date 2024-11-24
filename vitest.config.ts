@@ -8,10 +8,10 @@ export default defineConfig({
     }
   },
   test: {
-    globals: true, // Habilita variáveis globais, como 'describe' e 'it'
-    environment: 'node', // Define o ambiente de teste, pode ser 'node' ou 'jsdom'
+    globals: true, // Enables global variables like 'describe' and 'it'
+    environment: 'node', // Sets the test environment, can be 'node' or 'jsdom'
     coverage: {
-      provider: 'v8' // Para relatórios de cobertura de código, opcional
+      provider: 'v8' // For code coverage reports, optional
     }
   }
 })

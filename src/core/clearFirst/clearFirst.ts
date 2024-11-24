@@ -54,10 +54,10 @@ export async function clearFirst<RecordType extends Record<string, any>>(
     await sheets.clearValues(record.range)
   } catch (error: unknown) {
     if (error instanceof Error) {
-      console.error('Error clearing record:', error.message)
+      console.error('Error clearing record:', error.message) // eslint-disable-line no-console
       throw new Error(`Error clearing record: ${error.message}`)
     }
-    console.error('Error clearing record:', error)
+    console.error('Error clearing record:', error) // eslint-disable-line no-console
     throw new Error('An unknown error occurred while clearing the record.')
   }
 

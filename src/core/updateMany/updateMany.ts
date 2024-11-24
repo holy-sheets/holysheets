@@ -68,10 +68,10 @@ export async function updateMany<RecordType extends Record<string, any>>(
     await sheets.batchUpdateValues(batchUpdateData, 'RAW')
   } catch (error: unknown) {
     if (error instanceof Error) {
-      console.error('Error updating records:', error.message)
+      console.error('Error updating records:', error.message) // eslint-disable-line no-console
       throw new Error(`Error updating records: ${error.message}`)
     }
-    console.error('Error updating records:', error)
+    console.error('Error updating records:', error) // eslint-disable-line no-console
     throw new Error('An unknown error occurred while updating records.')
   }
 

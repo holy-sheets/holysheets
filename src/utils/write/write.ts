@@ -18,7 +18,7 @@ interface WriteOptions {
  * @throws Error if the write operation fails.
  */
 export async function write(options: WriteOptions): Promise<void> {
-  const { range, values, sheets, spreadsheetId } = options
+  const { range, values, sheets } = options
   try {
     const data = [
       {
@@ -26,13 +26,13 @@ export async function write(options: WriteOptions): Promise<void> {
         values
       }
     ]
-    const valueInputOption: 'RAW' = 'RAW'
+    const valueInputOption = 'RAW' as const
     await sheets.batchUpdateValues(data, valueInputOption)
   } catch (error: unknown) {
     if (error instanceof Error) {
-      console.error(`[INSERT] Error: ${error.message}`)
+      console.error(`[INSERT] Error: ${error.message}`) // eslint-disable-line no-console
     } else {
-      console.error(`[INSERT] An unknown error occurred.`)
+      console.error(`[INSERT] An unknown error occurred.`) // eslint-disable-line no-console
     }
     throw error
   }

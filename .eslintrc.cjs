@@ -20,13 +20,13 @@ module.exports = {
   parserOptions: {
     project: './tsconfig.json',
     tsconfigRootDir: __dirname
-  ],
+  },
   plugins: ['@typescript-eslint', 'prettier'],
   rules: {
     'no-console': 'error',
     // Desabilitamos regras de formatação que conflitam com o Prettier
     // 'indent': ['error', 2, { SwitchCase: 1 }],
-    'indent': 'off',
+    indent: 'off',
     '@typescript-eslint/no-unused-vars': [
       'error',
       {
@@ -43,12 +43,12 @@ module.exports = {
     'prettier/prettier': 'error',
     // Outras regras...
     // Desabilitamos as seguintes regras de formatação para evitar conflitos
-    'semi': 'off',
+    semi: 'off',
     'comma-dangle': 'off',
-    'quotes': 'off',
+    quotes: 'off',
     'no-multiple-empty-lines': 'off',
-    'eqeqeq': 'off',
-    'strict': 'error',
+    eqeqeq: 'off',
+    strict: 'error',
     '@typescript-eslint/no-misused-promises': [
       'error',
       { checksVoidReturn: false }

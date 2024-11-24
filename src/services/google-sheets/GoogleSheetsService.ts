@@ -4,8 +4,8 @@ import { CellValue } from '@/types/cellValue'
 import { HolySheetsCredentials, AuthClient } from '@/types/credentials'
 
 export class GoogleSheetsService implements IGoogleSheetsService {
-  private sheets: sheets_v4.Sheets
-  private spreadsheetId: string
+  private readonly sheets: sheets_v4.Sheets
+  private readonly spreadsheetId: string
   private readonly auth: AuthClient
 
   constructor(credentials: HolySheetsCredentials) {

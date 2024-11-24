@@ -117,10 +117,10 @@ export async function findFirst<RecordType extends Record<string, any>>(
     }
   } catch (error: unknown) {
     if (error instanceof Error) {
-      console.error('Error finding data', error.message)
+      console.error('Error finding data', error.message) // eslint-disable-line no-console
       throw new Error(`Error finding data: ${error.message}`)
     }
-    console.error('Error finding data', error)
+    console.error('Error finding data', error) // eslint-disable-line no-console
     throw new Error('An unknown error occurred while finding data.')
   }
 }

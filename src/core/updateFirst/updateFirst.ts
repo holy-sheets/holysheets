@@ -1,6 +1,7 @@
 import { IGoogleSheetsService } from '@/services/google-sheets/IGoogleSheetsService'
 import { WhereClause } from '@/types/where'
 import { findFirst } from '@/core/findFirst/findFirst'
+import { CellValue } from '@/types/cellValue'
 
 /**
  * Updates the first record that matches the given where clause.
@@ -59,8 +60,8 @@ export async function updateFirst<RecordType extends Record<string, any>>(
   // Update the values in Google Sheets
   await sheets.updateValues(
     range,
-    [Object.values(updatedFields)],
-    'RAW' // or 'USER_ENTERED' as needed
+    [Object.values(updatedFields) as CellValue[]],
+    'RAW'
   )
 
   return updatedFields

@@ -59,10 +59,10 @@ export async function deleteMany<RecordType extends Record<string, any>>(
     return records
   } catch (error: unknown) {
     if (error instanceof Error) {
-      console.error('Error deleting records:', error.message)
+      console.error('Error deleting records:', error.message) // eslint-disable-line no-console
       throw new Error(`Error deleting records: ${error.message}`)
     }
-    console.error('Error deleting records:', error)
+    console.error('Error deleting records:', error) // eslint-disable-line no-console
     throw new Error('An unknown error occurred while deleting records.')
   }
 }

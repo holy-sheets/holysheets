@@ -23,7 +23,7 @@ export async function getSheetId(params: {
   sheets: IGoogleSheetsService
   title: string
 }): Promise<number> {
-  const { spreadsheetId, sheets, title } = params
+  const { sheets, title } = params
 
   try {
     // Retrieve the entire spreadsheet metadata using the interface method
@@ -41,10 +41,10 @@ export async function getSheetId(params: {
     return sheet.properties.sheetId
   } catch (error: unknown) {
     if (error instanceof Error) {
-      console.error('Error retrieving sheet ID:', error.message)
+      console.error('Error retrieving sheet ID:', error.message) // eslint-disable-line no-console
       throw new Error(`Error retrieving sheet ID: ${error.message}`)
     }
-    console.error('Error retrieving sheet ID:', error)
+    console.error('Error retrieving sheet ID:', error) // eslint-disable-line no-console
     throw new Error('An unknown error occurred while retrieving sheet ID.')
   }
 }

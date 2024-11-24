@@ -1,6 +1,5 @@
 import type { IGoogleSheetsService } from '@/services/google-sheets/IGoogleSheetsService' // Type-only import
 import { WhereClause } from '@/types/where'
-import { getSheetId } from '@/core/getSheetId/getSheetId'
 import { findFirst } from '@/core/findFirst/findFirst'
 import { SheetRecord } from '@/types/sheetRecord'
 
@@ -39,9 +38,6 @@ export async function deleteFirst<RecordType extends Record<string, any>>(
 ): Promise<SheetRecord<RecordType>> {
   const { spreadsheetId, sheets, sheet } = params
   const { where } = options
-
-  // Retrieve the sheet ID using the refactored getSheetId function
-  const sheetId = await getSheetId({ spreadsheetId, sheets, title: sheet })
 
   // Find the first record that matches the where clause
   const record = await findFirst<RecordType>(

@@ -57,10 +57,10 @@ export async function clearMany<RecordType extends Record<string, any>>(
     await sheets.batchClearValues(ranges)
   } catch (error: unknown) {
     if (error instanceof Error) {
-      console.error('Error clearing records:', error.message)
+      console.error('Error clearing records:', error.message) // eslint-disable-line no-console
       throw new Error(`Error clearing records: ${error.message}`)
     }
-    console.error('Error clearing records:', error)
+    console.error('Error clearing records:', error) // eslint-disable-line no-console
     throw new Error('An unknown error occurred while clearing records.')
   }
 

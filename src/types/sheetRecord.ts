@@ -1,7 +1,7 @@
 /**
- * Representa um registro de uma planilha do Google Sheets.
+ * Represents a record from a Google Sheets spreadsheet.
  *
- * @typeparam RecordType - O tipo dos campos no registro.
+ * @typeparam RecordType - The type of the fields in the record.
  */
 export interface SheetRecord<RecordType extends Record<string, any>> {
   range: string
