@@ -57,6 +57,7 @@
     "@semantic-release/npm": "^12.0.1",
     "@types/jest": "^29.5.12",
     "@types/node": "^20.12.8",
+    "@types/uuid": "^10.0.0",
     "@typescript-eslint/eslint-plugin": "^6.21.0",
     "@typescript-eslint/parser": "^6.21.0",
     "@vitest/coverage-v8": "2.1.5",
@@ -81,5 +82,8 @@
     "commitizen": {
       "path": "./node_modules/cz-conventional-changelog"
     }
+  },
+  "dependencies": {
+    "uuid": "^11.0.3"
   }
 }
