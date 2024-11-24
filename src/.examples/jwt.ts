@@ -96,9 +96,7 @@ async function fetchMultipleRecords(
     const records = await table.findMany({ where: criteria })
     if (records.length > 0) {
       console.log(`✅ Found ${records.length} matching record(s):`)
-      records.forEach(record =>
-        console.log(`   - Row ${record.row}:`, record.fields)
-      )
+      records.forEach(record => console.log(`   - Row: `, record.fields))
     } else {
       console.log('ℹ️ No matching records found for criteria:', criteria)
     }
