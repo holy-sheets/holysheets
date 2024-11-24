@@ -21,7 +21,7 @@ describe('clearFirst', () => {
     const mockRecord: SheetRecord<{ id: string }> = {
       range: 'Sheet1!A2:B2',
       row: 2,
-      fields: { id: '123' }
+      data: { id: '123' }
     }
 
     // Mock the findFirst function to return a record
@@ -56,7 +56,7 @@ describe('clearFirst', () => {
     const mockRecord: SheetRecord<{ id: string }> = {
       range: 'Sheet1!A2:B2',
       row: 2,
-      fields: { id: '123' }
+      data: { id: '123' }
     }
 
     // Mock the findFirst function to return a record

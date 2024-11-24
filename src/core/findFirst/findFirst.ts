@@ -105,7 +105,7 @@ export async function findFirst<RecordType extends Record<string, CellValue>>(
     )
 
     // Combine the row values with the selected headers
-    const fields = combine<RecordType>(
+    const data = combine<RecordType>(
       rowValues[0].filter(value => value !== null) as string[],
       selectedHeaders
     )
@@ -113,7 +113,7 @@ export async function findFirst<RecordType extends Record<string, CellValue>>(
     return {
       range: rowRange,
       row: rowIndex + 1,
-      fields
+      data
     }
   } catch (error: unknown) {
     if (error instanceof Error) {

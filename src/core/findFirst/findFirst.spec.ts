@@ -100,7 +100,7 @@ describe('findFirst', () => {
     expect(result).toEqual({
       range: `${sheet}!A1:A1`,
       row: 1,
-      fields: { status: 'inactive' }
+      data: { status: 'inactive' }
     })
     expect(getHeaders).toHaveBeenCalledWith({
       sheet,

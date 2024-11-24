@@ -22,8 +22,8 @@ describe('deleteMany', () => {
 
   it('should delete records that match the where clause', async () => {
     const records: SheetRecord<{ status: string }>[] = [
-      { range: 'A2', row: 2, fields: { status: 'inactive' } },
-      { range: 'A4', row: 4, fields: { status: 'inactive' } }
+      { range: 'A2', row: 2, data: { status: 'inactive' } },
+      { range: 'A4', row: 4, data: { status: 'inactive' } }
     ]
     ;(findMany as ReturnType<typeof vi.fn>).mockResolvedValueOnce(records)
 
@@ -73,8 +73,8 @@ describe('deleteMany', () => {
 
   it('should handle errors thrown by batchDeleteRows', async () => {
     const records: SheetRecord<{ status: string }>[] = [
-      { range: 'A2', row: 2, fields: { status: 'inactive' } },
-      { range: 'A4', row: 4, fields: { status: 'inactive' } }
+      { range: 'A2', row: 2, data: { status: 'inactive' } },
+      { range: 'A4', row: 4, data: { status: 'inactive' } }
     ]
     const errorMessage = 'Test error'
     ;(findMany as ReturnType<typeof vi.fn>).mockResolvedValueOnce(records)

@@ -22,8 +22,8 @@ describe('clearMany', () => {
 
   it('should clear multiple records that match the where clause', async () => {
     const mockRecords: SheetRecord<any>[] = [
-      { range: 'Sheet1!A2:B2', row: 2, fields: { name: 'John Doe' } },
-      { range: 'Sheet1!A5:B5', row: 5, fields: { name: 'Johnny Cash' } }
+      { range: 'Sheet1!A2:B2', row: 2, data: { name: 'John Doe' } },
+      { range: 'Sheet1!A5:B5', row: 5, data: { name: 'Johnny Cash' } }
     ]
 
     // Mock the findMany function to return mock records
@@ -60,7 +60,7 @@ describe('clearMany', () => {
 
   it('should handle errors when clearing records', async () => {
     const mockRecords: SheetRecord<any>[] = [
-      { range: 'Sheet1!A2:B2', row: 2, fields: { name: 'John Doe' } }
+      { range: 'Sheet1!A2:B2', row: 2, data: { name: 'John Doe' } }
     ]
 
     // Mock the findMany function to return mock records

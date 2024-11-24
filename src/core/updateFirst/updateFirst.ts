@@ -52,7 +52,7 @@ export async function updateFirst<RecordType extends Record<string, CellValue>>(
     throw new Error('No record found to update')
   }
 
-  const { fields, range } = record
+  const { data: fields, range } = record
 
   // Combine the existing fields with the data to be updated
   const updatedFields = { ...fields, ...data } as RecordType

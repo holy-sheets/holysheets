@@ -73,7 +73,7 @@ async function fetchFirstRecord(
   try {
     const record = await table.findFirst({ where: criteria })
     if (record) {
-      console.log('✅ Found first matching record:', record.fields)
+      console.log('✅ Found first matching record:', record.data)
     } else {
       console.log('ℹ️ No matching record found for criteria:', criteria)
     }
@@ -96,7 +96,7 @@ async function fetchMultipleRecords(
     const records = await table.findMany({ where: criteria })
     if (records.length > 0) {
       console.log(`✅ Found ${records.length} matching record(s):`)
-      records.forEach(record => console.log(`   - Row: `, record.fields))
+      records.forEach(record => console.log(`   - Row: `, record.data))
     } else {
       console.log('ℹ️ No matching records found for criteria:', criteria)
     }

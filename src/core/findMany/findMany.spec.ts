@@ -94,8 +94,8 @@ describe('findMany', () => {
     expect(mockSheetsService.batchGetValues).toHaveBeenCalledWith(ranges)
     expect(combine).toHaveBeenCalledTimes(2)
     expect(result).toEqual([
-      { range: 'Sheet1!A1:B1', row: 1, fields: { Name: 'Alice', Age: 30 } },
-      { range: 'Sheet1!A3:B3', row: 3, fields: { Name: 'Alice', Age: 25 } }
+      { range: 'Sheet1!A1:B1', row: 1, data: { Name: 'Alice', Age: 30 } },
+      { range: 'Sheet1!A3:B3', row: 3, data: { Name: 'Alice', Age: 25 } }
     ])
   })
 

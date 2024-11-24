@@ -8,5 +8,5 @@ import { CellValue } from '@/types/cellValue'
 export interface SheetRecord<RecordType extends Record<string, CellValue>> {
   row: number
   range: string
-  fields: Partial<RecordType>
+  data: Partial<RecordType>
 }

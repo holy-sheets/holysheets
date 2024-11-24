@@ -19,7 +19,7 @@ describe('deleteFirst', () => {
   const mockRecord: SheetRecord<{ id: string }> = {
     range: 'Sheet1!A2:B2',
     row: 2,
-    fields: { id: '123' }
+    data: { id: '123' }
   }
 
   beforeEach(() => {

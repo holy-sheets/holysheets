@@ -233,12 +233,12 @@ describe('HolySheets', () => {
       {
         range: 'Users!A2:B2',
         row: 2,
-        fields: { name: 'John Doe', email: 'john@doe.com' }
+        data: { name: 'John Doe', email: 'john@doe.com' }
       },
       {
         range: 'Users!A5:B5',
         row: 5,
-        fields: { name: 'Johnny Cash', email: 'johnny@cash.com' }
+        data: { name: 'Johnny Cash', email: 'johnny@cash.com' }
       }
     ]
 
@@ -305,7 +305,7 @@ describe('HolySheets', () => {
     const expected = {
       range: 'Users!A2:B2',
       row: 2,
-      fields: { name: 'John Doe', email: 'john@doe.com' }
+      data: { name: 'John Doe', email: 'john@doe.com' }
     }
 
     expect(result).toEqual(expected)
@@ -334,12 +334,12 @@ describe('HolySheets', () => {
       {
         range: 'Users!A2:B2',
         row: 2,
-        fields: { name: 'John Doe', email: 'john@doe.com' }
+        data: { name: 'John Doe', email: 'john@doe.com' }
       },
       {
         range: 'Users!A5:B5',
         row: 5,
-        fields: { name: 'Johnny Cash', email: 'johnny@cash.com' }
+        data: { name: 'Johnny Cash', email: 'johnny@cash.com' }
       }
     ]
 
@@ -368,7 +368,7 @@ describe('HolySheets', () => {
     const expected = {
       range: 'Users!A2:B2',
       row: 2,
-      fields: { name: 'John Doe', email: 'john@doe.com' }
+      data: { name: 'John Doe', email: 'john@doe.com' }
     }
 
     expect(result).toEqual(expected)
@@ -397,12 +397,12 @@ describe('HolySheets', () => {
       {
         range: 'Users!A2:B2',
         row: 2,
-        fields: { name: 'John Doe', email: 'john@doe.com' }
+        data: { name: 'John Doe', email: 'john@doe.com' }
       },
       {
         range: 'Users!A5:B5',
         row: 5,
-        fields: { name: 'Johnny Cash', email: 'johnny@cash.com' }
+        data: { name: 'Johnny Cash', email: 'johnny@cash.com' }
       }
     ]
 

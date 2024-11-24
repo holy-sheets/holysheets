@@ -124,11 +124,11 @@ export async function findMany<RecordType extends Record<string, CellValue>>(
       const selectedHeaders = headers.filter(header =>
         select ? select[header.name] : true
       )
-      const fields = combine<RecordType>(
+      const data = combine<RecordType>(
         values ? (values[0].filter(value => value !== null) as string[]) : [],
         selectedHeaders
       )
-      return { range, row, fields }
+      return { range, row, data }
     })
   } catch (error: unknown) {
     if (error instanceof Error) {

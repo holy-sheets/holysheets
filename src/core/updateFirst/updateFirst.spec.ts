@@ -43,7 +43,7 @@ describe('updateFirst', () => {
     const foundRecord: SheetRecord<{ Name: string; Age: string }> = {
       range: 'TestSheet!A2:B2',
       row: 2,
-      fields: { Name: 'Alice', Age: '30' } // Use 'fields' instead of 'data'
+      data: { Name: 'Alice', Age: '30' }
     }
     mockedFindFirst.mockResolvedValueOnce(foundRecord)
 
@@ -144,7 +144,7 @@ describe('updateFirst', () => {
     const foundRecord: SheetRecord<{ Name: string; Age: string }> = {
       range: 'TestSheet!A3:B3',
       row: 3,
-      fields: { Name: 'Charlie', Age: '34' }
+      data: { Name: 'Charlie', Age: '34' }
     }
     mockedFindFirst.mockResolvedValueOnce(foundRecord)
 

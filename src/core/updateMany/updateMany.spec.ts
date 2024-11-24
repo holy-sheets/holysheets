@@ -51,17 +51,17 @@ describe('updateMany', () => {
       {
         range: 'TestSheet!A2:C2',
         row: 2,
-        fields: { Name: 'Alice', Age: '30', Status: 'active' }
+        data: { Name: 'Alice', Age: '30', Status: 'active' }
       },
       {
         range: 'TestSheet!A4:C4',
         row: 4,
-        fields: { Name: 'Bob', Age: '25', Status: 'active' }
+        data: { Name: 'Bob', Age: '25', Status: 'active' }
       },
       {
         range: 'TestSheet!A6:C6',
         row: 6,
-        fields: { Name: 'Charlie', Age: '35', Status: 'active' }
+        data: { Name: 'Charlie', Age: '35', Status: 'active' }
       }
     ]
     mockedFindMany.mockResolvedValueOnce(foundRecords)
@@ -197,17 +197,17 @@ describe('updateMany', () => {
       {
         range: 'TestSheet!A2:C2',
         row: 2,
-        fields: { Name: 'Alice', Age: '30', Status: 'active' }
+        data: { Name: 'Alice', Age: '30', Status: 'active' }
       },
       {
         range: 'TestSheet!A4:C4',
         row: 4,
-        fields: { Name: 'Bob', Age: '25', Status: 'active' }
+        data: { Name: 'Bob', Age: '25', Status: 'active' }
       },
       {
         range: 'TestSheet!A6:C6',
         row: 6,
-        fields: { Name: 'Charlie', Age: '35', Status: 'active' }
+        data: { Name: 'Charlie', Age: '35', Status: 'active' }
       }
     ]
     mockedFindMany.mockResolvedValueOnce(foundRecords)
@@ -264,12 +264,12 @@ describe('updateMany', () => {
       {
         range: 'TestSheet!A2:B2',
         row: 2,
-        fields: { Name: 'Alice', Age: '20' }
+        data: { Name: 'Alice', Age: '20' }
       },
       {
         range: 'TestSheet!A4:B4',
         row: 4,
-        fields: { Name: 'Alice', Age: '23' }
+        data: { Name: 'Alice', Age: '23' }
       }
     ]
     mockedFindMany.mockResolvedValueOnce(foundRecords)

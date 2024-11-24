@@ -55,7 +55,7 @@ export async function updateMany<RecordType extends Record<string, CellValue>>(
   // Prepare the data for batchUpdate
   const batchUpdateData: { range: string; values: CellValue[][] }[] =
     records.map(record => {
-      const { range, fields } = record
+      const { range, data: fields } = record
       const updatedFields = { ...fields, ...data } as RecordType
 
       return {
@@ -76,5 +76,5 @@ export async function updateMany<RecordType extends Record<string, CellValue>>(
   }
 
   // Return the updated records
-  return records.map(record => ({ ...record.fields, ...data }) as RecordType)
+  return records.map(record => ({ ...record.data, ...data }) as RecordType)
 }
