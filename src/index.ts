@@ -13,6 +13,8 @@ import { WhereClause } from '@/types/where'
 import { SelectClause } from '@/types/select'
 import { IGoogleSheetsService } from '@/services/google-sheets/IGoogleSheetsService'
 import { GoogleSheetsService } from '@/services/google-sheets/GoogleSheetsService'
+import { OperationConfigs } from '@/types/operationConfigs'
+import { OperationResult } from '@/services/metadata/IMetadataService'
 
 export default class HolySheets<RecordType extends Record<string, any> = any> {
   public sheets: IGoogleSheetsService
@@ -48,17 +50,21 @@ export default class HolySheets<RecordType extends Record<string, any> = any> {
     )
   }
 
-  public async findFirst(options: {
-    where: WhereClause<RecordType>
-    select?: SelectClause<RecordType>
-  }) {
+  public async findFirst(
+    options: {
+      where: WhereClause<RecordType>
+      select?: SelectClause<RecordType>
+    },
+    configs?: OperationConfigs
+  ) {
     return await findFirst<RecordType>(
       {
         spreadsheetId: this.spreadsheetId,
         sheets: this.sheets,
         sheet: this.sheet
       },
-      options
+      options,
+      configs
     )
   }
 
@@ -76,17 +82,21 @@ export default class HolySheets<RecordType extends Record<string, any> = any> {
     )
   }
 
-  public async updateFirst(options: {
-    where: WhereClause<RecordType>
-    data: Partial<RecordType>
-  }): Promise<RecordType> {
+  public async updateFirst(
+    options: {
+      where: WhereClause<RecordType>
+      data: Partial<RecordType>
+    },
+    configs?: OperationConfigs
+  ): Promise<OperationResult<RecordType>> {
     return await updateFirst<RecordType>(
       {
         spreadsheetId: this.spreadsheetId,
         sheets: this.sheets,
         sheet: this.sheet
       },
-      options
+      options,
+      configs
     )
   }
 

@@ -71,9 +71,13 @@ async function fetchFirstRecord(
   const criteria = { Name: 'Alice' }
 
   try {
-    const record = await table.findFirst({ where: criteria })
+    const record = await table.findFirst(
+      { where: criteria },
+      { includeMetadata: true }
+    )
     if (record) {
       console.log('✅ Found first matching record:', record.data)
+      console.log('   - Metadata:', record.metadata)
     } else {
       console.log('ℹ️ No matching record found for criteria:', criteria)
     }
@@ -117,11 +121,15 @@ async function updateFirstRecord(
   const updatedData = { Age: '31' }
 
   try {
-    await table.updateFirst({ where: criteria, data: updatedData })
+    const recordUpdated = await table.updateFirst(
+      { where: criteria, data: updatedData },
+      { includeMetadata: true }
+    )
     console.log(
       '✅ Successfully updated the first matching record:',
-      updatedData
+      recordUpdated.data
     )
+    console.log('   - Metadata:', recordUpdated.metadata)
   } catch (error) {
     console.error('❌ Error updating first record:', error)
   }
@@ -194,25 +202,25 @@ async function executeAllOperations() {
   console.log('📄 Starting HolySheets operations...\n')
 
   // 1. Insert Records
-  await insertRecords(table)
+  // await insertRecords(table)
 
   // 2. Fetch First Matching Record
-  await fetchFirstRecord(table)
+  // await fetchFirstRecord(table)
 
-  // 3. Fetch Multiple Matching Records
-  await fetchMultipleRecords(table)
+  // // 3. Fetch Multiple Matching Records
+  // await fetchMultipleRecords(table)
 
-  // 4. Update First Matching Record
+  // // 4. Update First Matching Record
   await updateFirstRecord(table)
 
-  // 5. Update Multiple Matching Records
-  await updateMultipleRecords(table)
+  // // 5. Update Multiple Matching Records
+  // await updateMultipleRecords(table)
 
-  // 6. Delete First Matching Record
-  await deleteFirstRecord(table)
+  // // 6. Delete First Matching Record
+  // await deleteFirstRecord(table)
 
-  // 7. Delete Multiple Matching Records
-  await deleteMultipleRecords(table)
+  // // 7. Delete Multiple Matching Records
+  // await deleteMultipleRecords(table)
 
   console.log('🎉 All operations completed.')
 }
