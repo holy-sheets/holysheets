@@ -43,16 +43,26 @@ export class MetadataService implements IMetadataService {
    * @param userId - The ID of the user who performed the operation.
    * @returns An object containing the operation metadata.
    */
-  createMetadata(
-    operationType: OperationType,
-    spreadsheetId: string,
-    sheetId: string,
-    ranges: string[],
-    recordsAffected: number,
-    status: 'success' | 'failure',
-    error?: string,
+  createMetadata(options: {
+    operationType: OperationType
+    spreadsheetId: string
+    sheetId: string
+    ranges: string[]
+    recordsAffected: number
+    status: 'success' | 'failure'
+    error?: string
     userId?: string
-  ): OperationMetadata {
+  }): OperationMetadata {
+    const {
+      operationType,
+      spreadsheetId,
+      sheetId,
+      ranges,
+      recordsAffected,
+      status,
+      error,
+      userId
+    } = options
     const operationId = this.generateOperationId()
     const timestamp = new Date().toISOString()
 

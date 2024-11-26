@@ -28,16 +28,17 @@ export interface IMetadataService {
    * @param userId - The ID of the user who performed the operation.
    * @returns An object containing the operation metadata.
    */
-  createMetadata: (
-    operationType: OperationType,
-    spreadsheetId: string,
-    sheetId: string,
-    ranges: string[],
-    recordsAffected: number,
-    status: 'success' | 'failure',
-    error?: string,
+  createMetadata: (options: {
+    operationType: OperationType
+    spreadsheetId: string
+    sheetId: string
+    ranges: string[]
+    recordsAffected: number
+    status: 'success' | 'failure'
+    error?: string
+    duration?: string
     userId?: string
-  ) => OperationMetadata
+  }) => OperationMetadata
 
   /**
    * Generates a unique operation ID.
