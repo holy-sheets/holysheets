@@ -1,5 +1,24 @@
 import { indexToColumn } from '@/utils/columnUtils/columnUtils'
 
+interface A1Notation {
+  sheet: string
+  startColumn?: string
+  endColumn?: string
+  startRow: number
+  endRow?: number
+}
+
+function createA1Notation(params: A1Notation): string {
+  const {
+    sheet,
+    startColumn = '',
+    endColumn = '',
+    startRow,
+    endRow = ''
+  } = params
+  return `${sheet}!${startColumn}${startRow}:${endColumn}${endRow}`
+}
+
 /**
  * Parameters for creating a single column range.
  */
@@ -73,7 +92,13 @@ export function createSingleRowRange(params: SingleRowRangeParams): string {
   }
 
   const lastColumn = indexToColumn(lastColumnIndex)
-  return `${sheet}!A${row}:${lastColumn}${row}`
+  return createA1Notation({
+    sheet,
+    startColumn: indexToColumn(0),
+    endColumn: lastColumn,
+    startRow: row,
+    endRow: row
+  })
 }
 
 /**
@@ -116,7 +141,13 @@ export function createMultipleRowsRange(
   }
 
   const lastColumn = indexToColumn(lastColumnIndex)
-  return `${sheet}!A${startRow}:${lastColumn}${endRow}`
+  return createA1Notation({
+    sheet,
+    startColumn: indexToColumn(0),
+    endColumn: lastColumn,
+    startRow,
+    endRow
+  })
 }
 
 /**
@@ -157,7 +188,13 @@ export function createFullRange(params: FullRangeParams): string {
     throw new Error('Invalid row range.')
   }
 
-  return `${sheet}!${startColumn}${startRow}:${endColumn}${endRow}`
+  return createA1Notation({
+    sheet,
+    startColumn,
+    endColumn,
+    startRow,
+    endRow
+  })
 }
 
 /**
@@ -208,4 +245,36 @@ export function addSheetToRange(params: AddSheetToRangeParams): string {
  */
 export function createFirstRowRange(sheet: string): string {
   return addSheetToRange({ sheet, range: '1:1' })
+}
+
+/**
+ * Cria um range para uma linha específica na folha.
+ *
+ * @param params - Os parâmetros para criar o range.
+ * @returns O range no formato "Sheet!A2:E2".
+ */
+export function createFullRowRange(params: SingleRowRangeParams): string {
+  const { sheet, row, lastColumnIndex } = params
+
+  if (!sheet) {
+    throw new Error('Nome da folha é obrigatório.')
+  }
+
+  if (row <= 0) {
+    throw new Error('Número da linha deve ser positivo.')
+  }
+
+  if (lastColumnIndex < 0) {
+    throw new Error('Índice da última coluna deve ser não negativo.')
+  }
+
+  const lastColumn = indexToColumn(lastColumnIndex)
+
+  return createA1Notation({
+    sheet,
+    startColumn: indexToColumn(0),
+    endColumn: lastColumn,
+    startRow: row,
+    endRow: row
+  })
 }

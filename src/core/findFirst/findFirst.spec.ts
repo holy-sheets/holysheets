@@ -7,9 +7,11 @@ import { getHeaders } from '@/utils/headers/headers'
 import { checkWhereFilter } from '@/utils/where/where'
 import { combine } from '@/utils/dataUtils/dataUtils'
 import { indexToColumn } from '@/utils/columnUtils/columnUtils'
-import { createSingleColumnRange } from '@/utils/rangeUtils/rangeUtils'
+import {
+  createFullRange,
+  createSingleColumnRange
+} from '@/utils/rangeUtils/rangeUtils'
 import type { CellValue } from '@/types/cellValue'
-import type { SheetRecord } from '@/types/sheetRecord'
 import { SheetColumn } from '@/types/headers'
 
 // Mock the utility modules
@@ -91,6 +93,9 @@ describe('findFirst', () => {
     ;(combine as ReturnType<typeof vi.fn>).mockReturnValueOnce({
       status: 'inactive'
     })
+    ;(createFullRange as ReturnType<typeof vi.fn>).mockReturnValueOnce(
+      `${sheet}!A1:A1`
+    )
 
     const result = await findFirst(
       { spreadsheetId, sheets: mockSheets, sheet },

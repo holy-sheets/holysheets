@@ -6,7 +6,10 @@ import { checkWhereFilter } from '@/utils/where/where'
 import { combine } from '@/utils/dataUtils/dataUtils'
 import { indexToColumn } from '@/utils/columnUtils/columnUtils'
 import { SheetRecord } from '@/types/sheetRecord'
-import { createSingleColumnRange } from '@/utils/rangeUtils/rangeUtils'
+import {
+  createFullRange,
+  createSingleColumnRange
+} from '@/utils/rangeUtils/rangeUtils'
 import { CellValue } from '@/types/cellValue'
 
 /**
@@ -90,7 +93,13 @@ export async function findFirst<RecordType extends Record<string, CellValue>>(
     }
 
     // Create the range for the found row
-    const rowRange = `${sheet}!A${rowIndex + 1}:${indexToColumn(headers.length - 1)}${rowIndex + 1}`
+    const rowRange = createFullRange({
+      sheet,
+      startColumn: indexToColumn(0),
+      endColumn: indexToColumn(headers.length - 1),
+      startRow: rowIndex + 1,
+      endRow: rowIndex + 1
+    })
 
     // Get the values from the specific row
     const rowValues: CellValue[][] = await sheets.getValues(rowRange)
