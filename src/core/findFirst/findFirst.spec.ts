@@ -13,6 +13,8 @@ import {
 } from '@/utils/rangeUtils/rangeUtils'
 import type { CellValue } from '@/types/cellValue'
 import { SheetColumn } from '@/types/headers'
+import { MetadataService } from '@/services/metadata/MetadataService'
+import { ErrorCode, ErrorMessages } from '@/services/errors/errorMessages'
 
 // Mock the utility modules
 vi.mock('@/utils/headers/headers')
@@ -20,10 +22,19 @@ vi.mock('@/utils/where/where')
 vi.mock('@/utils/dataUtils/dataUtils')
 vi.mock('@/utils/columnUtils/columnUtils')
 vi.mock('@/utils/rangeUtils/rangeUtils')
+vi.mock('@/services/metadata/MetadataService')
 
 const mockSheets: IGoogleSheetsService = {
   getValues: vi.fn()
 } as unknown as IGoogleSheetsService
+
+const mockedGetHeaders = vi.mocked(getHeaders, true)
+const mockedCheckWhereFilter = vi.mocked(checkWhereFilter, true)
+const mockedCombine = vi.mocked(combine, true)
+const mockedIndexToColumn = vi.mocked(indexToColumn, true)
+const mockedCreateSingleColumnRange = vi.mocked(createSingleColumnRange, true)
+const mockedCreateFullRange = vi.mocked(createFullRange, true)
+const mockedMetadataService = vi.mocked(MetadataService, true)
 
 describe('findFirst', () => {
   const spreadsheetId = 'test-spreadsheet-id'
@@ -31,149 +42,286 @@ describe('findFirst', () => {
   const where: WhereClause<{ status: string }> = { status: 'inactive' }
   const select: SelectClause<{ status: string }> = { status: true }
 
+  let metadataInstance: {
+    calculateDuration: ReturnType<typeof vi.fn>
+    createMetadata: ReturnType<typeof vi.fn>
+  }
+
   beforeEach(() => {
     vi.clearAllMocks()
 
-    // Mock implementations for indexToColumn and createSingleColumnRange
-    const mockedIndexToColumn = vi.mocked(indexToColumn)
-    const mockedCreateSingleColumnRange = vi.mocked(createSingleColumnRange)
-
-    // Mock indexToColumn to return 'A' when called with 0
-    mockedIndexToColumn.mockImplementation((index: number): SheetColumn => {
-      const columns: SheetColumn[] = [
-        'A',
-        'B',
-        'C',
-        'D',
-        'E',
-        'F',
-        'G',
-        'H',
-        'I',
-        'J',
-        'K',
-        'L',
-        'M',
-        'N',
-        'O',
-        'P',
-        'Q',
-        'R',
-        'S',
-        'T',
-        'U',
-        'V',
-        'W',
-        'X',
-        'Y',
-        'Z'
-      ]
-      return columns[index] || 'A'
+    // Mock implementations
+    mockedIndexToColumn.mockImplementation(index => {
+      const columns = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+      return columns[index] as SheetColumn
     })
 
-    // Mock createSingleColumnRange to return 'Sheet1!A:A' when called with sheet and column 'A'
     mockedCreateSingleColumnRange.mockImplementation(({ sheet, column }) => {
       return `${sheet}!${column}:${column}`
     })
+
+    mockedCreateFullRange.mockImplementation(
+      ({ sheet, startColumn, endColumn, startRow, endRow }) => {
+        return `${sheet}!${startColumn}${startRow}:${endColumn}${endRow}`
+      }
+    )
+
+    // Mocking MetadataService instance
+    metadataInstance = {
+      calculateDuration: vi.fn().mockReturnValue('50ms'),
+      createMetadata: vi.fn().mockImplementation(options => ({
+        operationId: 'test-operation-id',
+        timestamp: '2023-01-01T00:00:00.000Z',
+        duration: options.duration || '50ms',
+        recordsAffected: options.recordsAffected,
+        status: options.status,
+        operationType: options.operationType,
+        spreadsheetId: options.spreadsheetId,
+        sheetId: options.sheetId,
+        ranges: options.ranges,
+        error: options.error,
+        userId: options.userId
+      }))
+    }
+
+    mockedMetadataService.mockReturnValue(
+      metadataInstance as unknown as MetadataService
+    )
   })
 
-  it('should return the first matching record', async () => {
-    const headers = [{ name: 'status', column: 'A' }]
+  it('should return the first matching record with metadata when includeMetadata is true', async () => {
+    const headers = [{ name: 'status', column: 'A' as SheetColumn, index: 0 }]
     const values: CellValue[][] = [['inactive'], ['active']]
     const rowValues: CellValue[][] = [['inactive']]
 
-    ;(getHeaders as ReturnType<typeof vi.fn>).mockResolvedValueOnce(headers)
+    mockedGetHeaders.mockResolvedValueOnce(headers)
     ;(mockSheets.getValues as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
       values
     )
     ;(mockSheets.getValues as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
       rowValues
     )
-    ;(checkWhereFilter as ReturnType<typeof vi.fn>).mockReturnValueOnce(true)
-    ;(combine as ReturnType<typeof vi.fn>).mockReturnValueOnce({
-      status: 'inactive'
-    })
-    ;(createFullRange as ReturnType<typeof vi.fn>).mockReturnValueOnce(
-      `${sheet}!A1:A1`
-    )
+    mockedCheckWhereFilter.mockReturnValueOnce(true)
+    mockedCombine.mockReturnValueOnce({ status: 'inactive' })
+    mockedCreateFullRange.mockReturnValueOnce(`${sheet}!A1:A1`)
 
-    const result = await findFirst(
+    const result = await findFirst<{ status: string }>(
       { spreadsheetId, sheets: mockSheets, sheet },
-      { where, select }
+      { where, select },
+      { includeMetadata: true }
     )
 
     expect(result).toEqual({
-      range: `${sheet}!A1:A1`,
+      data: { status: 'inactive' },
       row: 1,
-      data: { status: 'inactive' }
+      range: `${sheet}!A1:A1`,
+      metadata: {
+        operationId: 'test-operation-id',
+        timestamp: '2023-01-01T00:00:00.000Z',
+        duration: '50ms',
+        recordsAffected: 1,
+        status: 'success',
+        operationType: 'find',
+        spreadsheetId,
+        sheetId: sheet,
+        ranges: [`${sheet}!A:A`, `${sheet}!A1:A1`],
+        error: undefined,
+        userId: undefined
+      }
     })
-    expect(getHeaders).toHaveBeenCalledWith({
+
+    expect(mockedGetHeaders).toHaveBeenCalledWith({
       sheet,
       sheets: mockSheets,
       spreadsheetId
     })
     expect(mockSheets.getValues).toHaveBeenCalledWith(`${sheet}!A:A`)
     expect(mockSheets.getValues).toHaveBeenCalledWith(`${sheet}!A1:A1`)
+    expect(metadataInstance.calculateDuration).toHaveBeenCalledWith(
+      expect.any(Number)
+    )
+    expect(metadataInstance.createMetadata).toHaveBeenCalledWith({
+      operationType: 'find',
+      spreadsheetId,
+      sheetId: sheet,
+      ranges: [`${sheet}!A:A`, `${sheet}!A1:A1`],
+      recordsAffected: 1,
+      status: 'success',
+      duration: '50ms'
+    })
   })
 
-  it('should return undefined if no matching record is found', async () => {
-    const headers = [{ name: 'status', column: 'A' }]
+  it('should return undefined data and metadata when no matching record is found and includeMetadata is true', async () => {
+    const headers = [{ name: 'status', column: 'A' as SheetColumn, index: 0 }]
     const values: CellValue[][] = [['active']]
 
-    ;(getHeaders as ReturnType<typeof vi.fn>).mockResolvedValueOnce(headers)
+    mockedGetHeaders.mockResolvedValueOnce(headers)
     ;(mockSheets.getValues as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
       values
     )
-    ;(checkWhereFilter as ReturnType<typeof vi.fn>).mockReturnValueOnce(false)
+    mockedCheckWhereFilter.mockReturnValueOnce(false)
 
-    const result = await findFirst(
+    const result = await findFirst<{ status: string }>(
       { spreadsheetId, sheets: mockSheets, sheet },
-      { where, select }
+      { where, select },
+      { includeMetadata: true }
     )
+    console.log({ result })
+    expect(result).toEqual({
+      data: undefined,
+      row: undefined,
+      range: undefined,
+      metadata: {
+        operationType: 'find',
+        operationId: 'test-operation-id',
+        spreadsheetId,
+        sheetId: sheet,
+        ranges: [`${sheet}!A:A`],
+        recordsAffected: 0,
+        status: 'failure',
+        duration: '50ms',
+        timestamp: '2023-01-01T00:00:00.000Z',
+        error: ErrorMessages[ErrorCode.NoRecordFound]
+      }
+    })
 
-    expect(result).toBeUndefined()
-    expect(getHeaders).toHaveBeenCalledWith({
+    expect(mockedGetHeaders).toHaveBeenCalledWith({
       sheet,
       sheets: mockSheets,
       spreadsheetId
     })
     expect(mockSheets.getValues).toHaveBeenCalledWith(`${sheet}!A:A`)
+    expect(metadataInstance.calculateDuration).toHaveBeenCalledWith(
+      expect.any(Number)
+    )
   })
 
-  it('should throw an error if header is not found', async () => {
-    const headers: { name: string; column: string }[] = []
+  it('should throw an error if header is not found and includeMetadata is false', async () => {
+    const headers: { name: string; column: SheetColumn; index: number }[] = []
 
-    ;(getHeaders as ReturnType<typeof vi.fn>).mockResolvedValueOnce(headers)
+    mockedGetHeaders.mockResolvedValueOnce(headers)
 
     await expect(
-      findFirst({ spreadsheetId, sheets: mockSheets, sheet }, { where, select })
-    ).rejects.toThrow(`Header not found for column status`)
+      findFirst<{ status: string }>(
+        { spreadsheetId, sheets: mockSheets, sheet },
+        { where, select },
+        { includeMetadata: false }
+      )
+    ).rejects.toThrow('Error finding data: Header not found for column status')
 
-    expect(getHeaders).toHaveBeenCalledWith({
+    expect(mockedGetHeaders).toHaveBeenCalledWith({
       sheet,
       sheets: mockSheets,
       spreadsheetId
     })
   })
 
-  it('should handle errors thrown by getValues', async () => {
-    const headers = [{ name: 'status', column: 'A' }]
+  it('should return failure metadata when header is not found and includeMetadata is true', async () => {
+    const headers: { name: string; column: SheetColumn; index: number }[] = []
+
+    mockedGetHeaders.mockResolvedValueOnce(headers)
+
+    const result = await findFirst<{ status: string }>(
+      { spreadsheetId, sheets: mockSheets, sheet },
+      { where, select },
+      { includeMetadata: true }
+    )
+
+    expect(result).toEqual({
+      data: undefined,
+      row: undefined,
+      range: undefined,
+      metadata: {
+        operationType: 'find',
+        spreadsheetId,
+        operationId: 'test-operation-id',
+        timestamp: '2023-01-01T00:00:00.000Z',
+        sheetId: sheet,
+        ranges: [],
+        recordsAffected: 0,
+        status: 'failure',
+        duration: '50ms',
+        error: expect.stringContaining('not found')
+      }
+    })
+
+    expect(mockedGetHeaders).toHaveBeenCalledWith({
+      sheet,
+      sheets: mockSheets,
+      spreadsheetId
+    })
+    expect(metadataInstance.calculateDuration).toHaveBeenCalledWith(
+      expect.any(Number)
+    )
+  })
+
+  it('should throw an error if getValues throws an error and includeMetadata is false', async () => {
+    const headers = [{ name: 'status', column: 'A' as SheetColumn, index: 0 }]
     const errorMessage = 'Test error'
 
-    ;(getHeaders as ReturnType<typeof vi.fn>).mockResolvedValueOnce(headers)
+    mockedGetHeaders.mockResolvedValueOnce(headers)
     ;(mockSheets.getValues as ReturnType<typeof vi.fn>).mockRejectedValueOnce(
       new Error(errorMessage)
     )
 
     await expect(
-      findFirst({ spreadsheetId, sheets: mockSheets, sheet }, { where, select })
+      findFirst<{ status: string }>(
+        { spreadsheetId, sheets: mockSheets, sheet },
+        { where, select },
+        { includeMetadata: false }
+      )
     ).rejects.toThrow(`Error finding data: ${errorMessage}`)
 
-    expect(getHeaders).toHaveBeenCalledWith({
+    expect(mockedGetHeaders).toHaveBeenCalledWith({
       sheet,
       sheets: mockSheets,
       spreadsheetId
     })
     expect(mockSheets.getValues).toHaveBeenCalledWith(`${sheet}!A:A`)
+  })
+
+  it('should return failure metadata if getValues throws an error and includeMetadata is true', async () => {
+    const headers = [{ name: 'status', column: 'A' as SheetColumn, index: 0 }]
+    const errorMessage = 'Test error'
+
+    mockedGetHeaders.mockResolvedValueOnce(headers)
+    ;(mockSheets.getValues as ReturnType<typeof vi.fn>).mockRejectedValueOnce(
+      new Error(errorMessage)
+    )
+
+    const result = await findFirst<{ status: string }>(
+      { spreadsheetId, sheets: mockSheets, sheet },
+      { where, select },
+      { includeMetadata: true }
+    )
+
+    expect(result).toEqual({
+      data: undefined,
+      row: undefined,
+      range: undefined,
+      metadata: {
+        operationId: 'test-operation-id',
+        timestamp: '2023-01-01T00:00:00.000Z',
+        duration: '50ms',
+        recordsAffected: 0,
+        status: 'failure',
+        operationType: 'find',
+        spreadsheetId: 'test-spreadsheet-id',
+        sheetId: 'Sheet1',
+        ranges: [],
+        error: expect.any(String),
+        userId: undefined
+      }
+    })
+
+    expect(mockedGetHeaders).toHaveBeenCalledWith({
+      sheet,
+      sheets: mockSheets,
+      spreadsheetId
+    })
+    expect(mockSheets.getValues).toHaveBeenCalledWith(`${sheet}!A:A`)
+    expect(metadataInstance.calculateDuration).toHaveBeenCalledWith(
+      expect.any(Number)
+    )
   })
 })
