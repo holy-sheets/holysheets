@@ -1,8 +1,12 @@
 import { IGoogleSheetsService } from '@/services/google-sheets/IGoogleSheetsService'
 import { WhereClause } from '@/types/where'
 import { findFirst } from '@/core/findFirst/findFirst'
-import { SheetRecord } from '@/types/sheetRecord'
 import { CellValue } from '@/types/cellValue'
+import { OperationConfigs } from '@/types/operationConfigs'
+import { OperationResult } from '@/services/metadata/IMetadataService'
+import { MetadataService } from '@/services/metadata/MetadataService'
+import { IMetadataService } from '@/services/metadata/IMetadataService'
+import { ErrorMessages, ErrorCode } from '@/services/errors/errorMessages'
 
 /**
  * Clears the first record that matches the given where clause.
@@ -14,7 +18,8 @@ import { CellValue } from '@/types/cellValue'
  * @param params.sheet - The name of the sheet.
  * @param options - The options for the clearFirst operation.
  * @param options.where - The where clause to filter records.
- * @returns A promise that resolves with the cleared record.
+ * @param configs - Optional configurations for the operation.
+ * @returns A promise that resolves with the cleared record and optional metadata.
  *
  * @example
  * ```typescript
@@ -24,6 +29,8 @@ import { CellValue } from '@/types/cellValue'
  *   sheet: 'Sheet1'
  * }, {
  *   where: { id: '123' }
+ * }, {
+ *   includeMetadata: true
  * });
  * ```
  */
@@ -35,32 +42,98 @@ export async function clearFirst<RecordType extends Record<string, CellValue>>(
   },
   options: {
     where: WhereClause<RecordType>
-  }
-): Promise<SheetRecord<RecordType>> {
+  },
+  configs?: OperationConfigs
+): Promise<OperationResult<RecordType>> {
   const { spreadsheetId, sheets, sheet } = params
   const { where } = options
-
-  // Find the first record that matches the where clause
-  const record = await findFirst<RecordType>(
-    { spreadsheetId, sheets, sheet },
-    { where }
-  )
-
-  if (!record) {
-    throw new Error('No record found to clear')
-  }
+  const { includeMetadata = false } = configs ?? {}
+  const metadataService: IMetadataService = new MetadataService()
+  const startTime = Date.now()
 
   try {
-    // Clear the values in the specified range using the interface method
-    await sheets.clearValues(record.range)
-  } catch (error: unknown) {
-    if (error instanceof Error) {
-      console.error('Error clearing record:', error.message) // eslint-disable-line no-console
-      throw new Error(`Error clearing record: ${error.message}`)
-    }
-    console.error('Error clearing record:', error) // eslint-disable-line no-console
-    throw new Error('An unknown error occurred while clearing the record.')
-  }
+    // Find the first record that matches the where clause
+    const recordResult = await findFirst<RecordType>(
+      { spreadsheetId, sheets, sheet },
+      { where },
+      { includeMetadata }
+    )
 
-  return record
+    if (!recordResult.data || !recordResult.range) {
+      const duration = metadataService.calculateDuration(startTime)
+      if (includeMetadata) {
+        const metadata = metadataService.createMetadata({
+          operationType: 'clear',
+          spreadsheetId,
+          sheetId: sheet,
+          ranges: recordResult.metadata?.ranges ?? [],
+          recordsAffected: 0,
+          status: 'failure',
+          error: ErrorMessages[ErrorCode.NoRecordFound],
+          duration
+        })
+        return {
+          data: undefined,
+          row: undefined,
+          range: undefined,
+          metadata
+        }
+      }
+      throw new Error(ErrorMessages[ErrorCode.NoRecordFound])
+    }
+
+    const { data, range, row } = recordResult
+
+    // Clear the values in the specified range using the interface method
+    await sheets.clearValues(range)
+
+    const duration = metadataService.calculateDuration(startTime)
+    if (includeMetadata) {
+      const metadata = metadataService.createMetadata({
+        operationType: 'clear',
+        spreadsheetId,
+        sheetId: sheet,
+        ranges: [range],
+        recordsAffected: 1,
+        status: 'success',
+        duration
+      })
+      return {
+        data,
+        row,
+        range,
+        metadata
+      }
+    }
+
+    return {
+      data,
+      row,
+      range
+    }
+  } catch (error: unknown) {
+    const duration = metadataService.calculateDuration(startTime)
+    if (includeMetadata) {
+      const metadata = metadataService.createMetadata({
+        operationType: 'clear',
+        spreadsheetId,
+        sheetId: sheet,
+        ranges: [],
+        recordsAffected: 0,
+        status: 'failure',
+        error:
+          error instanceof Error
+            ? error.message
+            : ErrorMessages[ErrorCode.UnknownError],
+        duration
+      })
+      return {
+        data: undefined,
+        row: undefined,
+        range: undefined,
+        metadata
+      }
+    }
+    throw error
+  }
 }
