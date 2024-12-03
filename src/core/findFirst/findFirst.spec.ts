@@ -166,7 +166,7 @@ describe('findFirst', () => {
       { where, select },
       { includeMetadata: true }
     )
-    console.log({ result })
+
     expect(result).toEqual({
       data: undefined,
       row: undefined,
