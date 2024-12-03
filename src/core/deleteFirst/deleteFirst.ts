@@ -1,8 +1,12 @@
 import type { IGoogleSheetsService } from '@/services/google-sheets/IGoogleSheetsService'
 import { WhereClause } from '@/types/where'
 import { findFirst } from '@/core/findFirst/findFirst'
-import { SheetRecord } from '@/types/sheetRecord'
 import { CellValue } from '@/types/cellValue'
+import { OperationConfigs } from '@/types/operationConfigs'
+import { OperationResult } from '@/services/metadata/IMetadataService'
+import { MetadataService } from '@/services/metadata/MetadataService'
+import { IMetadataService } from '@/services/metadata/IMetadataService'
+import { ErrorMessages, ErrorCode } from '@/services/errors/errorMessages'
 
 /**
  * Deletes the first record that matches the given where clause.
@@ -14,7 +18,8 @@ import { CellValue } from '@/types/cellValue'
  * @param params.sheet - The name of the sheet.
  * @param options - The options for the deleteFirst operation.
  * @param options.where - The where clause to filter records.
- * @returns The deleted record.
+ * @param configs - Optional configurations for the operation.
+ * @returns A promise that resolves with the deleted record and optional metadata.
  *
  * @example
  * ```typescript
@@ -24,6 +29,8 @@ import { CellValue } from '@/types/cellValue'
  *   sheet: 'Sheet1'
  * }, {
  *   where: { id: '123' }
+ * }, {
+ *   includeMetadata: true
  * });
  * ```
  */
@@ -35,23 +42,98 @@ export async function deleteFirst<RecordType extends Record<string, CellValue>>(
   },
   options: {
     where: WhereClause<RecordType>
-  }
-): Promise<SheetRecord<RecordType>> {
+  },
+  configs?: OperationConfigs
+): Promise<OperationResult<RecordType>> {
   const { spreadsheetId, sheets, sheet } = params
   const { where } = options
+  const { includeMetadata = false } = configs ?? {}
+  const metadataService: IMetadataService = new MetadataService()
+  const startTime = Date.now()
 
-  // Find the first record that matches the where clause
-  const record = await findFirst<RecordType>(
-    { spreadsheetId, sheets, sheet },
-    { where }
-  )
+  try {
+    // Find the first record that matches the where clause
+    const recordResult = await findFirst<RecordType>(
+      { spreadsheetId, sheets, sheet },
+      { where },
+      { includeMetadata }
+    )
 
-  if (!record) {
-    throw new Error('No record found to delete')
+    if (!recordResult.data || !recordResult.row) {
+      const duration = metadataService.calculateDuration(startTime)
+      if (includeMetadata) {
+        const metadata = metadataService.createMetadata({
+          operationType: 'delete',
+          spreadsheetId,
+          sheetId: sheet,
+          ranges: recordResult.metadata?.ranges ?? [],
+          recordsAffected: 0,
+          status: 'failure',
+          error: ErrorMessages[ErrorCode.NoRecordFound],
+          duration
+        })
+        return {
+          data: undefined,
+          row: undefined,
+          range: undefined,
+          metadata
+        }
+      }
+      throw new Error(ErrorMessages[ErrorCode.NoRecordFound])
+    }
+
+    const { data, row } = recordResult
+
+    // Delete the row using the deleteRows method from the interface
+    await sheets.deleteRows(sheet, row - 1, row)
+
+    const duration = metadataService.calculateDuration(startTime)
+    if (includeMetadata) {
+      const metadata = metadataService.createMetadata({
+        operationType: 'delete',
+        spreadsheetId,
+        sheetId: sheet,
+        ranges: [`${sheet}!${row}:${row}`],
+        recordsAffected: 1,
+        status: 'success',
+        duration
+      })
+      return {
+        data,
+        row,
+        range: `${sheet}!${row}:${row}`,
+        metadata
+      }
+    }
+
+    return {
+      data,
+      row,
+      range: `${sheet}!${row}:${row}`
+    }
+  } catch (error: unknown) {
+    const duration = metadataService.calculateDuration(startTime)
+    if (includeMetadata) {
+      const metadata = metadataService.createMetadata({
+        operationType: 'delete',
+        spreadsheetId,
+        sheetId: sheet,
+        ranges: [],
+        recordsAffected: 0,
+        status: 'failure',
+        error:
+          error instanceof Error
+            ? error.message
+            : ErrorMessages[ErrorCode.UnknownError],
+        duration
+      })
+      return {
+        data: undefined,
+        row: undefined,
+        range: undefined,
+        metadata
+      }
+    }
+    throw error
   }
-
-  // Delete the row using the deleteRows method from the interface
-  await sheets.deleteRows(sheet, record.row - 1, record.row)
-
-  return record
 }
