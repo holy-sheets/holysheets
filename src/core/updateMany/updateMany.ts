@@ -2,6 +2,13 @@ import { IGoogleSheetsService } from '@/services/google-sheets/IGoogleSheetsServ
 import { WhereClause } from '@/types/where'
 import { findMany } from '@/core/findMany/findMany'
 import { CellValue } from '@/types/cellValue'
+import { MetadataService } from '@/services/metadata/MetadataService'
+import {
+  IMetadataService,
+  BatchOperationResult
+} from '@/services/metadata/IMetadataService'
+import { OperationConfigs } from '@/types/operationConfigs'
+import { ErrorMessages, ErrorCode } from '@/services/errors/errorMessages'
 
 /**
  * Updates multiple records that match the given where clause using batchUpdate.
@@ -14,17 +21,20 @@ import { CellValue } from '@/types/cellValue'
  * @param options - The options for the updateMany operation.
  * @param options.where - The where clause to filter records.
  * @param options.data - The data to update.
- * @returns A promise that resolves with an array of updated records.
+ * @param configs - Optional configurations for the operation.
+ * @returns A batch operation result containing updated records and metadata.
  *
  * @example
  * ```typescript
- * await updateMany<RecordType>({
+ * const result = await updateMany<RecordType>({
  *   spreadsheetId: 'your_spreadsheet_id',
  *   sheets: googleSheetsServiceInstance,
  *   sheet: 'Sheet1'
  * }, {
  *   where: { status: 'active' },
  *   data: { status: 'inactive' }
+ * }, {
+ *   includeMetadata: true
  * });
  * ```
  */
@@ -37,44 +47,111 @@ export async function updateMany<RecordType extends Record<string, CellValue>>(
   options: {
     where: WhereClause<RecordType>
     data: Partial<RecordType>
-  }
-): Promise<RecordType[]> {
+  },
+  configs?: OperationConfigs
+): Promise<BatchOperationResult<RecordType>> {
   const { spreadsheetId, sheets, sheet } = params
   const { where, data } = options
+  const { includeMetadata = false } = configs ?? {}
+  const metadataService: IMetadataService = new MetadataService()
+  const startTime = Date.now()
 
-  // Find all records that match the 'where' clause
-  const records = await findMany<RecordType>(
-    { spreadsheetId, sheets, sheet },
-    { where }
-  )
+  try {
+    // Encontrar todos os registros que correspondem à cláusula 'where'
+    const findResult = await findMany<RecordType>(
+      { spreadsheetId, sheets, sheet },
+      { where },
+      { includeMetadata }
+    )
 
-  if (records.length === 0) {
-    throw new Error('No records found to update')
-  }
-
-  // Prepare the data for batchUpdate
-  const batchUpdateData: { range: string; values: CellValue[][] }[] =
-    records.map(record => {
-      const { range, data: fields } = record
-      const updatedFields = { ...fields, ...data } as RecordType
-
+    if (!findResult.data || findResult.data.length === 0) {
+      const duration = metadataService.calculateDuration(startTime)
+      const metadata = includeMetadata
+        ? metadataService.createMetadata({
+            operationType: 'update',
+            spreadsheetId,
+            sheetId: sheet,
+            ranges: findResult.ranges || [],
+            recordsAffected: 0,
+            status: 'failure',
+            error: ErrorMessages[ErrorCode.NoRecordFound],
+            duration
+          })
+        : undefined
       return {
-        range,
+        data: [],
+        rows: [],
+        ranges: [],
+        metadata
+      }
+    }
+
+    const { data: records, rows, ranges } = findResult
+
+    // Preparar os dados para batchUpdate
+    const batchUpdateData = records.map((record, index) => {
+      const updatedFields = { ...record, ...data } as RecordType
+      if (!ranges) {
+        throw new Error('Ranges are undefined or null')
+      }
+      return {
+        range: ranges[index],
         values: [Object.values(updatedFields)]
       }
     })
 
-  try {
+    // Atualizar os registros usando batchUpdateValues
     await sheets.batchUpdateValues(batchUpdateData, 'RAW')
-  } catch (error: unknown) {
-    if (error instanceof Error) {
-      console.error('Error updating records:', error.message) // eslint-disable-line no-console
-      throw new Error(`Error updating records: ${error.message}`)
-    }
-    console.error('Error updating records:', error) // eslint-disable-line no-console
-    throw new Error('An unknown error occurred while updating records.')
-  }
 
-  // Return the updated records
-  return records.map(record => ({ ...record.data, ...data }) as RecordType)
+    const duration = metadataService.calculateDuration(startTime)
+    const metadata = includeMetadata
+      ? metadataService.createMetadata({
+          operationType: 'update',
+          spreadsheetId,
+          sheetId: sheet,
+          ranges: ranges as string[],
+          recordsAffected: records.length,
+          status: 'success',
+          duration
+        })
+      : undefined
+
+    // Retornar os registros atualizados
+    const updatedRecords = records.map(
+      record => ({ ...record, ...data }) as RecordType
+    )
+    return {
+      data: updatedRecords,
+      rows,
+      ranges,
+      metadata
+    }
+  } catch (error: unknown) {
+    const duration = metadataService.calculateDuration(startTime)
+    const errorMessage =
+      error instanceof Error
+        ? error.message
+        : ErrorMessages[ErrorCode.UnknownError]
+    if (includeMetadata) {
+      const metadata = metadataService.createMetadata({
+        operationType: 'update',
+        spreadsheetId,
+        sheetId: sheet,
+        ranges: [],
+        recordsAffected: 0,
+        status: 'failure',
+        error: errorMessage,
+        duration
+      })
+      return {
+        data: undefined,
+        rows: undefined,
+        ranges: undefined,
+        metadata
+      }
+    }
+    throw error instanceof Error
+      ? error
+      : new Error('An unknown error occurred while updating records.')
+  }
 }
