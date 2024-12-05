@@ -4,12 +4,18 @@ import { SelectClause } from '@/types/select'
 import { getHeaders } from '@/utils/headers/headers'
 import { checkWhereFilter } from '@/utils/where/where'
 import { combine } from '@/utils/dataUtils/dataUtils'
-import { SheetRecord } from '@/types/sheetRecord'
 import {
   createSingleColumnRange,
   createSingleRowRange
 } from '@/utils/rangeUtils/rangeUtils'
 import { CellValue } from '@/types/cellValue'
+import { OperationConfigs } from '@/types/operationConfigs'
+import { MetadataService } from '@/services/metadata/MetadataService'
+import {
+  IMetadataService,
+  BatchOperationResult
+} from '@/services/metadata/IMetadataService'
+import { ErrorMessages, ErrorCode } from '@/services/errors/errorMessages'
 
 /**
  * Finds multiple records that match the given where clause.
@@ -22,7 +28,8 @@ import { CellValue } from '@/types/cellValue'
  * @param options - The options for the findMany operation.
  * @param options.where - The where clause to filter records.
  * @param options.select - The select clause to specify fields to return.
- * @returns An array of matching records.
+ * @param configs - Optional configurations for the operation.
+ * @returns A batch operation result containing matching records and metadata.
  *
  * @example
  * ```typescript
@@ -33,6 +40,8 @@ import { CellValue } from '@/types/cellValue'
  * }, {
  *   where: { status: 'active' },
  *   select: { name: true, email: true }
+ * }, {
+ *   includeMetadata: true
  * });
  * ```
  */
@@ -45,41 +54,65 @@ export async function findMany<RecordType extends Record<string, CellValue>>(
   options: {
     where: WhereClause<RecordType>
     select?: SelectClause<RecordType>
-  }
-): Promise<SheetRecord<RecordType>[]> {
+  },
+  configs?: OperationConfigs
+): Promise<BatchOperationResult<RecordType>> {
   const { spreadsheetId, sheets, sheet } = params
   const { where, select } = options
-
-  // Get the headers from the sheet
-  const headers = await getHeaders({
-    sheet,
-    sheets,
-    spreadsheetId
-  })
-
-  // Extract the columns from the 'where' clause
-  const columns = Object.keys(where) as (keyof RecordType)[]
-  const firstColumn = columns[0]
-
-  // Find the header corresponding to the first column of the 'where'
-  const header = headers.find(header => header.name === firstColumn)
-
-  if (!header) {
-    throw new Error(`Header not found for column ${String(firstColumn)}`)
-  }
-
-  // Create the range for the specific column
-  const range = createSingleColumnRange({
-    sheet,
-    column: header.column
-  })
+  const { includeMetadata = false } = configs ?? {}
+  const metadataService: IMetadataService = new MetadataService()
+  const startTime = Date.now()
 
   try {
-    // Get the values of the specific column
+    // Obter os cabeçalhos da planilha
+    const headers = await getHeaders({
+      sheet,
+      sheets,
+      spreadsheetId
+    })
+
+    // Extrair as colunas do 'where' clause
+    const columns = Object.keys(where) as (keyof RecordType)[]
+    const firstColumn = columns[0]
+
+    // Encontrar o cabeçalho correspondente à primeira coluna do 'where'
+    const header = headers.find(header => header.name === firstColumn)
+
+    if (!header) {
+      const errorMessage = `Header not found for column ${String(firstColumn)}`
+      const duration = metadataService.calculateDuration(startTime)
+      if (includeMetadata) {
+        const metadata = metadataService.createMetadata({
+          operationType: 'find',
+          spreadsheetId,
+          sheetId: sheet,
+          ranges: [],
+          recordsAffected: 0,
+          status: 'failure',
+          error: errorMessage,
+          duration
+        })
+        return {
+          data: undefined,
+          rows: undefined,
+          ranges: undefined,
+          metadata
+        }
+      }
+      throw new Error(errorMessage)
+    }
+
+    // Criar o range para a coluna específica
+    const range = createSingleColumnRange({
+      sheet,
+      column: header.column
+    })
+
+    // Obter os valores da coluna específica
     const values: CellValue[][] = await sheets.getValues(range)
 
-    // Find the indexes of the rows that meet the filter
-    const rowIndexes = values?.reduce((acc: number[], row, index) => {
+    // Encontrar os índices das linhas que atendem ao filtro
+    const rowIndexes = values.reduce((acc: number[], row, index) => {
       const filter = where[firstColumn]
       if (
         filter !== undefined &&
@@ -91,10 +124,28 @@ export async function findMany<RecordType extends Record<string, CellValue>>(
     }, [])
 
     if (!rowIndexes || rowIndexes.length === 0) {
-      return []
+      const duration = metadataService.calculateDuration(startTime)
+      const metadata = includeMetadata
+        ? metadataService.createMetadata({
+            operationType: 'find',
+            spreadsheetId,
+            sheetId: sheet,
+            ranges: [range],
+            recordsAffected: 0,
+            status: 'failure',
+            error: ErrorMessages[ErrorCode.NoRecordFound],
+            duration
+          })
+        : undefined
+      return {
+        data: [],
+        rows: [],
+        ranges: [],
+        metadata
+      }
     }
 
-    // Create the ranges for the found rows
+    // Criar os ranges para as linhas encontradas
     const ranges = rowIndexes.map(index =>
       createSingleRowRange({
         sheet,
@@ -103,39 +154,92 @@ export async function findMany<RecordType extends Record<string, CellValue>>(
       })
     )
 
-    // Get the values of the specific rows using batchGetValues
+    // Obter os valores das linhas específicas usando batchGetValues
     const batchGetResponse = await sheets.batchGetValues(ranges)
 
     if (!batchGetResponse.valueRanges) {
-      return []
+      const duration = metadataService.calculateDuration(startTime)
+      const metadata = includeMetadata
+        ? metadataService.createMetadata({
+            operationType: 'find',
+            spreadsheetId,
+            sheetId: sheet,
+            ranges,
+            recordsAffected: 0,
+            status: 'failure',
+            error: ErrorMessages[ErrorCode.NoRecordFound],
+            duration
+          })
+        : undefined
+      return {
+        data: [],
+        rows: [],
+        ranges: [],
+        metadata
+      }
     }
 
-    // Map the results to associate ranges and rows
-    const rowsResponse = batchGetResponse.valueRanges.map(
-      (valueRange, index) => ({
-        range: ranges[index],
-        values: valueRange.values,
-        row: rowIndexes[index] + 1
-      })
+    // Combinar os valores com os cabeçalhos selecionados
+    const resultData: RecordType[] = batchGetResponse.valueRanges.map(
+      valueRange => {
+        const selectedHeaders = headers.filter(header =>
+          select ? select[header.name] : true
+        )
+        const data = combine<RecordType>(
+          valueRange.values
+            ? (valueRange.values[0].filter(value => value !== null) as string[])
+            : [],
+          selectedHeaders
+        )
+        return data
+      }
     )
 
-    // Combine the values with the selected headers
-    return rowsResponse.map(({ range, values, row }) => {
-      const selectedHeaders = headers.filter(header =>
-        select ? select[header.name] : true
-      )
-      const data = combine<RecordType>(
-        values ? (values[0].filter(value => value !== null) as string[]) : [],
-        selectedHeaders
-      )
-      return { range, row, data }
-    })
-  } catch (error: unknown) {
-    if (error instanceof Error) {
-      console.error('Error finding data', error.message) // eslint-disable-line no-console
-      throw new Error(`Error finding data: ${error.message}`)
+    const duration = metadataService.calculateDuration(startTime)
+    const metadata = includeMetadata
+      ? metadataService.createMetadata({
+          operationType: 'find',
+          spreadsheetId,
+          sheetId: sheet,
+          ranges,
+          recordsAffected: resultData.length,
+          status: 'success',
+          duration
+        })
+      : undefined
+
+    return {
+      data: resultData,
+      rows: rowIndexes.map(index => index + 1),
+      ranges: ranges,
+      metadata
     }
-    console.error('Error finding data', error) // eslint-disable-line no-console
-    throw new Error('An unknown error occurred while finding data.')
+  } catch (error: unknown) {
+    const duration = metadataService.calculateDuration(startTime)
+    const errorMessage =
+      error instanceof Error
+        ? error.message
+        : ErrorMessages[ErrorCode.UnknownError]
+    if (includeMetadata) {
+      const metadata = metadataService.createMetadata({
+        operationType: 'find',
+        spreadsheetId,
+        sheetId: sheet,
+        ranges: [],
+        recordsAffected: 0,
+        status: 'failure',
+        error: errorMessage,
+        duration
+      })
+      return {
+        data: undefined,
+        rows: undefined,
+        ranges: undefined,
+        metadata
+      }
+    }
+    throw error instanceof Error
+      ? error
+      : new Error('An unknown error occurred while finding data.')
   }
 }

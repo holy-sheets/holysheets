@@ -57,8 +57,15 @@ export interface IMetadataService {
 }
 
 export interface OperationResult<T> {
-  row: number | undefined
+  row: number | undefined | number[]
   range: string | undefined
   data: T | undefined
+  metadata?: OperationMetadata
+}
+
+export interface BatchOperationResult<T> {
+  rows: number[] | undefined
+  ranges: string[] | undefined
+  data: T[] | undefined
   metadata?: OperationMetadata
 }

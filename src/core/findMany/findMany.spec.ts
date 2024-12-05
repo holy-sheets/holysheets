@@ -8,12 +8,16 @@ import {
   createSingleColumnRange,
   createSingleRowRange
 } from '@/utils/rangeUtils/rangeUtils'
+import { CellValue } from '@/types/cellValue'
+import { MetadataService } from '@/services/metadata/MetadataService'
+import { ErrorMessages, ErrorCode } from '@/services/errors/errorMessages'
 
-// Mock the utility modules
+// Mock the utility modules and services
 vi.mock('@/utils/headers/headers')
 vi.mock('@/utils/where/where')
 vi.mock('@/utils/dataUtils/dataUtils')
 vi.mock('@/utils/rangeUtils/rangeUtils')
+vi.mock('@/services/metadata/MetadataService')
 
 const mockSheetsService = {
   getValues: vi.fn(),
@@ -32,23 +36,57 @@ describe('findMany', () => {
     select: { Name: true, Age: true }
   }
 
+  let metadataInstance: {
+    calculateDuration: ReturnType<typeof vi.fn>
+    createMetadata: ReturnType<typeof vi.fn>
+  }
+
   beforeEach(() => {
     vi.clearAllMocks()
+
+    // Mock the MetadataService instance
+    metadataInstance = {
+      calculateDuration: vi.fn().mockReturnValue('50ms'),
+      createMetadata: vi.fn().mockImplementation(options => ({
+        operationId: 'test-operation-id',
+        timestamp: '2023-01-01T00:00:00.000Z',
+        duration: options.duration || '50ms',
+        recordsAffected: options.recordsAffected,
+        status: options.status,
+        operationType: options.operationType,
+        spreadsheetId: options.spreadsheetId,
+        sheetId: options.sheetId,
+        ranges: options.ranges,
+        error: options.error,
+        userId: options.userId
+      }))
+    }
+
+    ;(MetadataService as unknown as ReturnType<typeof vi.fn>).mockReturnValue(
+      metadataInstance as unknown as MetadataService
+    )
+
+    // Mock ErrorMessages
+    ;(ErrorMessages as any)[ErrorCode.NoRecordFound] =
+      'No records found matching the criteria.'
+    ;(ErrorMessages as any)[ErrorCode.UnknownError] =
+      'An unknown error occurred while finding data.'
   })
 
-  it('should find multiple records that match the where clause', async () => {
+  it('should find multiple records that match the where clause with metadata', async () => {
     const headers = [
       { name: 'Name', column: 'A' },
       { name: 'Age', column: 'B' }
     ]
 
     const values = [['Alice'], ['Bob'], ['Alice']]
-    const rowIndexes = [0, 2]
+    const rowIndexes = [0, 2] // índices baseados em zero
     const ranges = ['Sheet1!A1:B1', 'Sheet1!A3:B3']
     const batchGetResponse = {
       valueRanges: [{ values: [['Alice', 30]] }, { values: [['Alice', 25]] }]
     }
 
+    // Mocks
     ;(getHeaders as ReturnType<typeof vi.fn>).mockResolvedValueOnce(headers)
     ;(createSingleColumnRange as ReturnType<typeof vi.fn>).mockReturnValueOnce(
       'Sheet1!A:A'
@@ -68,16 +106,16 @@ describe('findMany', () => {
     ;(combine as ReturnType<typeof vi.fn>).mockImplementation(
       (values, headers) => {
         const record: Record<string, any> = {}
-        headers.forEach(
-          (header: { name: string; column: string }, index: number) => {
-            record[header.name] = values[index]
-          }
-        )
+        headers.forEach((header: { name: string }, index: number) => {
+          record[header.name] = values[index]
+        })
         return record
       }
     )
 
-    const result = await findMany(params, options)
+    const result = await findMany<Record<string, CellValue>>(params, options, {
+      includeMetadata: true
+    })
 
     expect(getHeaders).toHaveBeenCalledWith({
       sheet: 'Sheet1',
@@ -93,13 +131,31 @@ describe('findMany', () => {
     expect(createSingleRowRange).toHaveBeenCalledTimes(2)
     expect(mockSheetsService.batchGetValues).toHaveBeenCalledWith(ranges)
     expect(combine).toHaveBeenCalledTimes(2)
-    expect(result).toEqual([
-      { range: 'Sheet1!A1:B1', row: 1, data: { Name: 'Alice', Age: 30 } },
-      { range: 'Sheet1!A3:B3', row: 3, data: { Name: 'Alice', Age: 25 } }
-    ])
+
+    expect(result).toEqual({
+      data: [
+        { Name: 'Alice', Age: 30 },
+        { Name: 'Alice', Age: 25 }
+      ],
+      rows: [1, 3],
+      ranges: ['Sheet1!A1:B1', 'Sheet1!A3:B3'],
+      metadata: {
+        operationId: 'test-operation-id',
+        timestamp: '2023-01-01T00:00:00.000Z',
+        duration: '50ms',
+        recordsAffected: 2,
+        status: 'success',
+        operationType: 'find',
+        spreadsheetId: 'test-spreadsheet-id',
+        sheetId: 'Sheet1',
+        ranges: ranges,
+        error: undefined,
+        userId: undefined
+      }
+    })
   })
 
-  it('should return an empty array if no records match the where clause', async () => {
+  it('should return an empty array with metadata if no records match the where clause', async () => {
     const headers = [{ name: 'Name', column: 'A' }]
     const values = [['Bob'], ['Charlie']]
 
@@ -114,7 +170,7 @@ describe('findMany', () => {
       (filter, value) => value === 'Alice'
     )
 
-    const result = await findMany(params, options)
+    const result = await findMany(params, options, { includeMetadata: true })
 
     expect(getHeaders).toHaveBeenCalledWith({
       sheet: 'Sheet1',
@@ -127,7 +183,25 @@ describe('findMany', () => {
     })
     expect(mockSheetsService.getValues).toHaveBeenCalledWith('Sheet1!A:A')
     expect(checkWhereFilter).toHaveBeenCalledTimes(2)
-    expect(result).toEqual([])
+
+    expect(result).toEqual({
+      data: [],
+      rows: [],
+      ranges: [],
+      metadata: {
+        operationId: 'test-operation-id',
+        timestamp: '2023-01-01T00:00:00.000Z',
+        duration: '50ms',
+        recordsAffected: 0,
+        status: 'failure',
+        operationType: 'find',
+        spreadsheetId: 'test-spreadsheet-id',
+        sheetId: 'Sheet1',
+        ranges: ['Sheet1!A:A'],
+        error: 'No records found matching the criteria.',
+        userId: undefined
+      }
+    })
   })
 
   it('should throw an error if header is not found for the where clause column', async () => {
@@ -153,7 +227,26 @@ describe('findMany', () => {
       new Error(errorMessage)
     )
 
-    await expect(findMany(params, options)).rejects.toThrow(errorMessage)
+    await expect(
+      findMany(params, options, { includeMetadata: true })
+    ).resolves.toEqual({
+      data: undefined,
+      rows: undefined,
+      ranges: undefined,
+      metadata: {
+        operationId: 'test-operation-id',
+        timestamp: '2023-01-01T00:00:00.000Z',
+        duration: '50ms',
+        recordsAffected: 0,
+        status: 'failure',
+        operationType: 'find',
+        spreadsheetId: 'test-spreadsheet-id',
+        sheetId: 'Sheet1',
+        ranges: [],
+        error: errorMessage,
+        userId: undefined
+      }
+    })
 
     expect(getHeaders).toHaveBeenCalledWith({
       sheet: 'Sheet1',
@@ -174,9 +267,26 @@ describe('findMany', () => {
       mockSheetsService.getValues as ReturnType<typeof vi.fn>
     ).mockRejectedValueOnce(new Error(errorMessage))
 
-    await expect(findMany(params, options)).rejects.toThrow(
-      `Error finding data: ${errorMessage}`
-    )
+    await expect(
+      findMany(params, options, { includeMetadata: true })
+    ).resolves.toEqual({
+      data: undefined,
+      rows: undefined,
+      ranges: undefined,
+      metadata: {
+        operationId: 'test-operation-id',
+        timestamp: '2023-01-01T00:00:00.000Z',
+        duration: '50ms',
+        recordsAffected: 0,
+        status: 'failure',
+        operationType: 'find',
+        spreadsheetId: 'test-spreadsheet-id',
+        sheetId: 'Sheet1',
+        ranges: [],
+        error: errorMessage,
+        userId: undefined
+      }
+    })
 
     expect(getHeaders).toHaveBeenCalledWith({
       sheet: 'Sheet1',
