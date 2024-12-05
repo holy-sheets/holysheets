@@ -1,4 +1,10 @@
-export type OperationType = 'insert' | 'update' | 'delete' | 'find' | 'clear'
+export type OperationType =
+  | 'insert'
+  | 'update'
+  | 'delete'
+  | 'find'
+  | 'clear'
+  | 'getSheetId'
 
 export interface OperationMetadata {
   operationId: string
