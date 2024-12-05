@@ -69,9 +69,19 @@ export interface OperationResult<T> {
   metadata?: OperationMetadata
 }
 
+export interface SanitizedOperationResult<T> {
+  data: T | undefined
+  metadata?: OperationMetadata
+}
+
 export interface BatchOperationResult<T> {
   rows: number[] | undefined
   ranges: string[] | undefined
+  data: T[] | undefined
+  metadata?: OperationMetadata
+}
+
+export interface SanitizedBatchOperationResult<T> {
   data: T[] | undefined
   metadata?: OperationMetadata
 }

@@ -14,10 +14,14 @@ import { SelectClause } from '@/types/select'
 import { IGoogleSheetsService } from '@/services/google-sheets/IGoogleSheetsService'
 import { GoogleSheetsService } from '@/services/google-sheets/GoogleSheetsService'
 import {
-  BatchOperationResult,
-  OperationResult
+  SanitizedBatchOperationResult,
+  SanitizedOperationResult
 } from '@/services/metadata/IMetadataService'
 import { OperationConfigs } from '@/types/operationConfigs'
+import {
+  sanitizeBatchOperationResult,
+  sanitizeOperationResult
+} from './utils/sanitizeResult/sanitizeResult'
 
 export default class HolySheets<RecordType extends Record<string, any> = any> {
   public sheets: IGoogleSheetsService
@@ -42,127 +46,6 @@ export default class HolySheets<RecordType extends Record<string, any> = any> {
     this.sheet = table
   }
 
-  public async insert(
-    options: {
-      data: RecordType[]
-    },
-    configs?: OperationConfigs
-  ): Promise<OperationResult<RecordType[]>> {
-    return await insert<RecordType>(
-      {
-        spreadsheetId: this.spreadsheetId,
-        sheets: this.sheets,
-        sheet: this.sheet
-      },
-      options,
-      configs
-    )
-  }
-
-  public async findFirst(
-    options: {
-      where: WhereClause<RecordType>
-      select?: SelectClause<RecordType>
-    },
-    configs?: OperationConfigs
-  ): Promise<OperationResult<RecordType>> {
-    return await findFirst<RecordType>(
-      {
-        spreadsheetId: this.spreadsheetId,
-        sheets: this.sheets,
-        sheet: this.sheet
-      },
-      options,
-      configs
-    )
-  }
-
-  public async findMany(
-    options: {
-      where: WhereClause<RecordType>
-      select?: SelectClause<RecordType>
-    },
-    configs?: OperationConfigs
-  ): Promise<BatchOperationResult<RecordType>> {
-    return await findMany<RecordType>(
-      {
-        spreadsheetId: this.spreadsheetId,
-        sheets: this.sheets,
-        sheet: this.sheet
-      },
-      options,
-      configs
-    )
-  }
-
-  public async updateFirst(
-    options: {
-      where: WhereClause<RecordType>
-      data: Partial<RecordType>
-    },
-    configs?: OperationConfigs
-  ): Promise<OperationResult<RecordType>> {
-    return await updateFirst<RecordType>(
-      {
-        spreadsheetId: this.spreadsheetId,
-        sheets: this.sheets,
-        sheet: this.sheet
-      },
-      options,
-      configs
-    )
-  }
-
-  public async updateMany(
-    options: {
-      where: WhereClause<RecordType>
-      data: Partial<RecordType>
-    },
-    configs?: OperationConfigs
-  ): Promise<BatchOperationResult<RecordType>> {
-    return await updateMany<RecordType>(
-      {
-        spreadsheetId: this.spreadsheetId,
-        sheets: this.sheets,
-        sheet: this.sheet
-      },
-      options,
-      configs
-    )
-  }
-
-  public async clearFirst(
-    options: {
-      where: WhereClause<RecordType>
-    },
-    configs?: OperationConfigs
-  ): Promise<OperationResult<RecordType>> {
-    return await clearFirst<RecordType>(
-      {
-        spreadsheetId: this.spreadsheetId,
-        sheets: this.sheets,
-        sheet: this.sheet
-      },
-      options,
-      configs
-    )
-  }
-
-  public async clearMany(
-    options: { where: WhereClause<RecordType> },
-    configs?: OperationConfigs
-  ): Promise<BatchOperationResult<RecordType>> {
-    return await clearMany<RecordType>(
-      {
-        spreadsheetId: this.spreadsheetId,
-        sheets: this.sheets,
-        sheet: this.sheet
-      },
-      options,
-      configs
-    )
-  }
-
   public async getSheetId(title: string, configs?: OperationConfigs) {
     return await getSheetId(
       {
@@ -174,11 +57,13 @@ export default class HolySheets<RecordType extends Record<string, any> = any> {
     )
   }
 
-  public async deleteFirst(
-    options: { where: WhereClause<RecordType> },
+  public async insert(
+    options: {
+      data: RecordType[]
+    },
     configs?: OperationConfigs
-  ) {
-    return await deleteFirst<RecordType>(
+  ): Promise<SanitizedOperationResult<RecordType[]>> {
+    const result = await insert<RecordType>(
       {
         spreadsheetId: this.spreadsheetId,
         sheets: this.sheets,
@@ -187,13 +72,140 @@ export default class HolySheets<RecordType extends Record<string, any> = any> {
       options,
       configs
     )
+    return sanitizeOperationResult(result)
+  }
+
+  public async findFirst(
+    options: {
+      where: WhereClause<RecordType>
+      select?: SelectClause<RecordType>
+    },
+    configs?: OperationConfigs
+  ): Promise<SanitizedOperationResult<RecordType>> {
+    const result = await findFirst<RecordType>(
+      {
+        spreadsheetId: this.spreadsheetId,
+        sheets: this.sheets,
+        sheet: this.sheet
+      },
+      options,
+      configs
+    )
+    return sanitizeOperationResult(result)
+  }
+
+  public async findMany(
+    options: {
+      where: WhereClause<RecordType>
+      select?: SelectClause<RecordType>
+    },
+    configs?: OperationConfigs
+  ): Promise<SanitizedBatchOperationResult<RecordType>> {
+    const result = await findMany<RecordType>(
+      {
+        spreadsheetId: this.spreadsheetId,
+        sheets: this.sheets,
+        sheet: this.sheet
+      },
+      options,
+      configs
+    )
+    return sanitizeBatchOperationResult(result)
+  }
+
+  public async updateFirst(
+    options: {
+      where: WhereClause<RecordType>
+      data: Partial<RecordType>
+    },
+    configs?: OperationConfigs
+  ): Promise<SanitizedOperationResult<RecordType>> {
+    const result = await updateFirst<RecordType>(
+      {
+        spreadsheetId: this.spreadsheetId,
+        sheets: this.sheets,
+        sheet: this.sheet
+      },
+      options,
+      configs
+    )
+    return sanitizeOperationResult(result)
+  }
+
+  public async updateMany(
+    options: {
+      where: WhereClause<RecordType>
+      data: Partial<RecordType>
+    },
+    configs?: OperationConfigs
+  ): Promise<SanitizedBatchOperationResult<RecordType>> {
+    const result = await updateMany<RecordType>(
+      {
+        spreadsheetId: this.spreadsheetId,
+        sheets: this.sheets,
+        sheet: this.sheet
+      },
+      options,
+      configs
+    )
+    return sanitizeBatchOperationResult(result)
+  }
+
+  public async clearFirst(
+    options: {
+      where: WhereClause<RecordType>
+    },
+    configs?: OperationConfigs
+  ): Promise<SanitizedOperationResult<RecordType>> {
+    const result = await clearFirst<RecordType>(
+      {
+        spreadsheetId: this.spreadsheetId,
+        sheets: this.sheets,
+        sheet: this.sheet
+      },
+      options,
+      configs
+    )
+    return sanitizeOperationResult(result)
+  }
+
+  public async clearMany(
+    options: { where: WhereClause<RecordType> },
+    configs?: OperationConfigs
+  ): Promise<SanitizedBatchOperationResult<RecordType>> {
+    const result = await clearMany<RecordType>(
+      {
+        spreadsheetId: this.spreadsheetId,
+        sheets: this.sheets,
+        sheet: this.sheet
+      },
+      options,
+      configs
+    )
+    return sanitizeBatchOperationResult(result)
+  }
+
+  public async deleteFirst(
+    options: { where: WhereClause<RecordType> },
+    configs?: OperationConfigs
+  ): Promise<SanitizedOperationResult<RecordType>> {
+    const result = await deleteFirst<RecordType>(
+      {
+        spreadsheetId: this.spreadsheetId,
+        sheets: this.sheets,
+        sheet: this.sheet
+      },
+      options,
+      configs
+    )
+    return sanitizeOperationResult(result)
   }
 
   public async deleteMany(
     options: { where: WhereClause<RecordType> },
     configs?: OperationConfigs
-  ) {
-    return await deleteMany<RecordType>(
+  ): Promise<SanitizedBatchOperationResult<RecordType>> {
+    const result = await deleteMany<RecordType>(
       {
         spreadsheetId: this.spreadsheetId,
         sheets: this.sheets,
@@ -202,5 +214,6 @@ export default class HolySheets<RecordType extends Record<string, any> = any> {
       options,
       configs
     )
+    return sanitizeBatchOperationResult(result)
   }
 }

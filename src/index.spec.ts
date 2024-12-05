@@ -303,8 +303,6 @@ describe('HolySheets', () => {
     })
 
     const expected = {
-      range: 'Users!A2:B2',
-      row: 2,
       data: { name: 'John Doe', email: 'john@doe.com' }
     }
 
