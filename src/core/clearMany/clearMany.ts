@@ -1,8 +1,14 @@
 import { IGoogleSheetsService } from '@/services/google-sheets/IGoogleSheetsService'
 import { WhereClause } from '@/types/where'
 import { findMany } from '@/core/findMany/findMany'
-import { SheetRecord } from '@/types/sheetRecord'
 import { CellValue } from '@/types/cellValue'
+import { OperationConfigs } from '@/types/operationConfigs'
+import { MetadataService } from '@/services/metadata/MetadataService'
+import {
+  IMetadataService,
+  BatchOperationResult
+} from '@/services/metadata/IMetadataService'
+import { ErrorMessages, ErrorCode } from '@/services/errors/errorMessages'
 
 /**
  * Clears multiple records that match the given where clause.
@@ -14,16 +20,19 @@ import { CellValue } from '@/types/cellValue'
  * @param params.sheet - The name of the sheet.
  * @param options - The options for the clearMany operation.
  * @param options.where - The where clause to filter records.
- * @returns A promise that resolves with an array of cleared records.
+ * @param configs - Optional configurations for the operation.
+ * @returns A batch operation result containing cleared records and metadata.
  *
  * @example
  * ```typescript
  * const clearedRecords = await clearMany<RecordType>({
  *   spreadsheetId: 'your_spreadsheet_id',
  *   sheets: googleSheetsServiceInstance,
- *   sheet: 'Sheet1'
+ *   sheet: 'Sheet1',
  * }, {
- *   where: { status: 'inactive' }
+ *   where: { status: 'inactive' },
+ * }, {
+ *   includeMetadata: true,
  * });
  * ```
  */
@@ -35,35 +44,95 @@ export async function clearMany<RecordType extends Record<string, CellValue>>(
   },
   options: {
     where: WhereClause<RecordType>
-  }
-): Promise<SheetRecord<RecordType>[]> {
+  },
+  configs?: OperationConfigs
+): Promise<BatchOperationResult<RecordType>> {
   const { spreadsheetId, sheets, sheet } = params
   const { where } = options
-
-  // Find all records that match the where clause
-  const records = await findMany<RecordType>(
-    { spreadsheetId, sheets, sheet },
-    { where }
-  )
-
-  if (records.length === 0) {
-    throw new Error('No records found to clear')
-  }
-
-  // Extract the ranges from the records
-  const ranges = records.map(record => record.range)
+  const { includeMetadata = false } = configs ?? {}
+  const metadataService: IMetadataService = new MetadataService()
+  const startTime = Date.now()
 
   try {
-    // Clear the values in the specified ranges using the interface method
-    await sheets.batchClearValues(ranges)
-  } catch (error: unknown) {
-    if (error instanceof Error) {
-      console.error('Error clearing records:', error.message) // eslint-disable-line no-console
-      throw new Error(`Error clearing records: ${error.message}`)
-    }
-    console.error('Error clearing records:', error) // eslint-disable-line no-console
-    throw new Error('An unknown error occurred while clearing records.')
-  }
+    // Find all records that match the where clause
+    const findResult = await findMany<RecordType>(
+      { spreadsheetId, sheets, sheet },
+      { where },
+      { includeMetadata }
+    )
 
-  return records
+    if (!findResult.data || findResult.data.length === 0) {
+      const duration = metadataService.calculateDuration(startTime)
+      const metadata = includeMetadata
+        ? metadataService.createMetadata({
+            operationType: 'clear',
+            spreadsheetId,
+            sheetId: sheet,
+            ranges: findResult.ranges || [],
+            recordsAffected: 0,
+            status: 'failure',
+            error: ErrorMessages[ErrorCode.NoRecordFound],
+            duration
+          })
+        : undefined
+      return {
+        data: [],
+        rows: [],
+        ranges: [],
+        metadata
+      }
+    }
+
+    const { data: records, rows, ranges } = findResult
+
+    // Clear the values in the specified ranges using the interface method
+    await sheets.batchClearValues(ranges as string[])
+
+    const duration = metadataService.calculateDuration(startTime)
+    const metadata = includeMetadata
+      ? metadataService.createMetadata({
+          operationType: 'clear',
+          spreadsheetId,
+          sheetId: sheet,
+          ranges: ranges as string[],
+          recordsAffected: records.length,
+          status: 'success',
+          duration
+        })
+      : undefined
+
+    return {
+      data: records,
+      rows,
+      ranges,
+      metadata
+    }
+  } catch (error: unknown) {
+    const duration = metadataService.calculateDuration(startTime)
+    const errorMessage =
+      error instanceof Error
+        ? error.message
+        : ErrorMessages[ErrorCode.UnknownError]
+    if (includeMetadata) {
+      const metadata = metadataService.createMetadata({
+        operationType: 'clear',
+        spreadsheetId,
+        sheetId: sheet,
+        ranges: [],
+        recordsAffected: 0,
+        status: 'failure',
+        error: errorMessage,
+        duration
+      })
+      return {
+        data: undefined,
+        rows: undefined,
+        ranges: undefined,
+        metadata
+      }
+    }
+    throw error instanceof Error
+      ? error
+      : new Error('An unknown error occurred while clearing records.')
+  }
 }
