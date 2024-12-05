@@ -1,8 +1,5 @@
-// index.spec.ts
-
 import { vi, describe, it, beforeEach, expect } from 'vitest'
 import HolySheets from './index'
-import { IGoogleSheetsService } from '@/services/google-sheets/IGoogleSheetsService'
 import { GoogleSheetsService } from '@/services/google-sheets/GoogleSheetsService'
 import {
   sanitizeOperationResult,
