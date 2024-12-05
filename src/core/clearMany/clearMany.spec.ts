@@ -42,7 +42,6 @@ describe('clearMany', () => {
         userId: options.userId
       }))
     }
-
     ;(MetadataService as unknown as ReturnType<typeof vi.fn>).mockReturnValue(
       metadataInstance as unknown as MetadataService
     )
