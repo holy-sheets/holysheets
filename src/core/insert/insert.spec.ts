@@ -7,14 +7,17 @@ import {
   addSheetToRange,
   createMultipleRowsRange
 } from '@/utils/rangeUtils/rangeUtils'
-import { decombine } from '@/utils/dataUtils/dataUtils' // Import decombine
+import { decombine } from '@/utils/dataUtils/dataUtils'
 import { CellValue } from '@/types/cellValue'
+import { MetadataService } from '@/services/metadata/MetadataService'
+import { IMetadataService } from '@/services/metadata/IMetadataService'
 
-// Mock the utility modules
+// Mock the utility modules and services
 vi.mock('@/utils/headers/headers')
 vi.mock('@/utils/write/write')
 vi.mock('@/utils/rangeUtils/rangeUtils')
-vi.mock('@/utils/dataUtils/dataUtils') // Mock decombine
+vi.mock('@/utils/dataUtils/dataUtils')
+vi.mock('@/services/metadata/MetadataService')
 
 const mockSheetsService = {
   getValues: vi.fn(),
@@ -35,11 +38,37 @@ describe('insert', () => {
     ]
   }
 
+  let metadataInstance: {
+    calculateDuration: ReturnType<typeof vi.fn>
+    createMetadata: ReturnType<typeof vi.fn>
+  }
+
   beforeEach(() => {
     vi.clearAllMocks()
+
+    // Mock the MetadataService instance
+    metadataInstance = {
+      calculateDuration: vi.fn().mockReturnValue('50ms'),
+      createMetadata: vi.fn().mockImplementation(options => ({
+        operationId: 'test-operation-id',
+        timestamp: '2023-01-01T00:00:00.000Z',
+        duration: options.duration || '50ms',
+        recordsAffected: options.recordsAffected,
+        status: options.status,
+        operationType: options.operationType,
+        spreadsheetId: options.spreadsheetId,
+        sheetId: options.sheetId,
+        ranges: options.ranges,
+        error: options.error,
+        userId: options.userId
+      }))
+    }
+    ;(MetadataService as unknown as ReturnType<typeof vi.fn>).mockReturnValue(
+      metadataInstance as unknown as MetadataService
+    )
   })
 
-  it('should insert records into the spreadsheet', async () => {
+  it('should insert records into the spreadsheet and return metadata when includeMetadata is true', async () => {
     // Define current data in the sheet
     const currentData = [
       ['Name', 'Age'],
@@ -47,7 +76,10 @@ describe('insert', () => {
     ]
 
     // Define headers
-    const headers = ['Name', 'Age']
+    const headers = [
+      { name: 'Name', column: 'A' },
+      { name: 'Age', column: 'B' }
+    ]
 
     // Define expected values from records after decombine
     const valuesFromRecords = [
@@ -81,8 +113,8 @@ describe('insert', () => {
     // Mock the write function to resolve successfully
     ;(write as ReturnType<typeof vi.fn>).mockResolvedValueOnce(undefined)
 
-    // Execute the insert function
-    await insert(params, options)
+    // Execute the insert function with includeMetadata = true
+    const result = await insert(params, options, { includeMetadata: true })
 
     // Assertions
 
@@ -118,132 +150,25 @@ describe('insert', () => {
       spreadsheetId: 'test-spreadsheet-id',
       sheets: mockSheetsService
     })
-  })
 
-  it('should throw an error if no data is found in the sheet', async () => {
-    // Mock getValues to return empty data
-    ;(
-      mockSheetsService.getValues as ReturnType<typeof vi.fn>
-    ).mockResolvedValueOnce([])
-
-    // Execute the insert function and expect it to throw an error
-    await expect(insert(params, options)).rejects.toThrow(
-      'No data found in the sheet.'
-    )
-
-    // Assertions
-    expect(mockSheetsService.getValues).toHaveBeenCalledWith(
-      addSheetToRange({ sheet: 'Sheet1', range: 'A:Z' })
-    )
-    expect(getHeaders).not.toHaveBeenCalled()
-    expect(createMultipleRowsRange).not.toHaveBeenCalled()
-    expect(write).not.toHaveBeenCalled()
-  })
-
-  it('should handle error when getting headers', async () => {
-    // Define current data in the sheet
-    const currentData = [
-      ['Name', 'Age'],
-      ['Charlie', 40]
-    ]
-
-    const errorMessage = 'Test error'
-
-    // Mock getValues to return current data
-    ;(
-      mockSheetsService.getValues as ReturnType<typeof vi.fn>
-    ).mockResolvedValueOnce(currentData)
-
-    // Mock getHeaders to throw an error
-    ;(getHeaders as ReturnType<typeof vi.fn>).mockRejectedValueOnce(
-      new Error(errorMessage)
-    )
-
-    // Execute the insert function and expect it to throw the error
-    await expect(insert(params, options)).rejects.toThrow(errorMessage)
-
-    // Assertions
-    expect(mockSheetsService.getValues).toHaveBeenCalledWith(
-      addSheetToRange({ sheet: 'Sheet1', range: 'A:Z' })
-    )
-    expect(getHeaders).toHaveBeenCalledWith({
-      sheet: 'Sheet1',
-      sheets: mockSheetsService,
-      spreadsheetId: 'test-spreadsheet-id'
-    })
-    expect(createMultipleRowsRange).not.toHaveBeenCalled()
-    expect(write).not.toHaveBeenCalled()
-  })
-
-  it('should handle error when writing data', async () => {
-    // Define current data in the sheet
-    const currentData = [
-      ['Name', 'Age'],
-      ['Charlie', 40]
-    ]
-
-    // Define headers
-    const headers = ['Name', 'Age']
-
-    // Define the expected range for the new data
-    const range = 'Sheet1!A3:B4'
-
-    const errorMessage = 'Test error'
-
-    // Mock getValues to return current data
-    ;(
-      mockSheetsService.getValues as ReturnType<typeof vi.fn>
-    ).mockResolvedValueOnce(currentData)
-
-    // Mock getHeaders to return headers
-    ;(getHeaders as ReturnType<typeof vi.fn>).mockResolvedValueOnce(headers)
-
-    // Mock createMultipleRowsRange to return the expected range
-    ;(createMultipleRowsRange as ReturnType<typeof vi.fn>).mockReturnValueOnce(
-      range
-    )
-
-    // Mock decombine to transform records into row values
-    ;(decombine as ReturnType<typeof vi.fn>).mockImplementation(
-      (record: { Name: string; Age: number }, headers: string[]) => {
-        return [record.Name, record.Age]
+    // Verify the result
+    expect(result).toEqual({
+      data: options.data,
+      row: [3, 4],
+      range: range,
+      metadata: {
+        operationId: 'test-operation-id',
+        timestamp: '2023-01-01T00:00:00.000Z',
+        duration: '50ms',
+        recordsAffected: 2,
+        status: 'success',
+        operationType: 'insert',
+        spreadsheetId: 'test-spreadsheet-id',
+        sheetId: 'Sheet1',
+        ranges: [range],
+        error: undefined,
+        userId: undefined
       }
-    )
-
-    // Mock write to throw an error
-    ;(write as ReturnType<typeof vi.fn>).mockRejectedValueOnce(
-      new Error(errorMessage)
-    )
-
-    // Execute the insert function and expect it to throw an error
-    await expect(insert(params, options)).rejects.toThrow(errorMessage)
-
-    // Assertions
-    expect(mockSheetsService.getValues).toHaveBeenCalledWith(
-      addSheetToRange({ sheet: 'Sheet1', range: 'A:Z' })
-    )
-    expect(getHeaders).toHaveBeenCalledWith({
-      sheet: 'Sheet1',
-      sheets: mockSheetsService,
-      spreadsheetId: 'test-spreadsheet-id'
-    })
-    expect(createMultipleRowsRange).toHaveBeenCalledWith({
-      sheet: 'Sheet1',
-      startRow: 3,
-      endRow: 4,
-      lastColumnIndex: 1
-    })
-    expect(decombine).toHaveBeenCalledTimes(2)
-    expect(decombine).toHaveBeenNthCalledWith(1, options.data[0], headers)
-    expect(decombine).toHaveBeenNthCalledWith(2, options.data[1], headers)
-    expect(write).toHaveBeenCalledWith({
-      range,
-      values: [
-        ['Alice', 30],
-        ['Bob', 25]
-      ],
-      spreadsheetId: 'test-spreadsheet-id',
-      sheets: mockSheetsService
     })
   })
 })

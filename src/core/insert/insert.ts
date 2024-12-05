@@ -7,6 +7,11 @@ import {
   createMultipleRowsRange
 } from '@/utils/rangeUtils/rangeUtils'
 import { CellValue } from '@/types/cellValue'
+import { OperationConfigs } from '@/types/operationConfigs'
+import { OperationResult } from '@/services/metadata/IMetadataService'
+import { MetadataService } from '@/services/metadata/MetadataService'
+import { IMetadataService } from '@/services/metadata/IMetadataService'
+import { ErrorMessages, ErrorCode } from '@/services/errors/errorMessages'
 
 /**
  * Parameters required for the insert operation.
@@ -23,7 +28,8 @@ export interface InsertParams {
  * @typeparam RecordType - The type of the records being inserted.
  * @param params - The parameters for the insert operation.
  * @param options - The options containing the data to insert.
- * @returns A promise that resolves when the insert operation is complete.
+ * @param configs - Optional configurations for the operation.
+ * @returns A promise that resolves with the operation result.
  *
  * @example
  * ```typescript
@@ -38,50 +44,130 @@ export interface InsertParams {
  *     { Name: 'Bob', Age: 25 },
  *   ],
  * };
- * await insert(params, options);
+ * await insert(params, options, { includeMetadata: true });
  * ```
  */
 export async function insert<RecordType extends Record<string, CellValue>>(
   params: InsertParams,
-  options: { data: RecordType[] }
-): Promise<void> {
+  options: { data: RecordType[] },
+  configs?: OperationConfigs
+): Promise<OperationResult<RecordType[]>> {
   const { spreadsheetId, sheets, sheet } = params
   const { data } = options
+  const { includeMetadata = false } = configs ?? {}
+  const metadataService: IMetadataService = new MetadataService()
+  const startTime = Date.now()
 
-  // Fetch the current data to find the last line
-  const currentData = await sheets.getValues(
-    addSheetToRange({ sheet, range: 'A:Z' })
-  )
+  try {
+    // Fetch the current data to find the last line
+    const currentData = await sheets.getValues(
+      addSheetToRange({ sheet, range: 'A:Z' })
+    )
 
-  if (!currentData || currentData.length === 0) {
-    throw new Error('No data found in the sheet.')
+    if (!currentData || currentData.length === 0) {
+      const duration = metadataService.calculateDuration(startTime)
+      const errorMessage = 'No data found in the sheet.'
+      if (includeMetadata) {
+        const metadata = metadataService.createMetadata({
+          operationType: 'insert',
+          spreadsheetId,
+          sheetId: sheet,
+          ranges: [],
+          recordsAffected: 0,
+          status: 'failure',
+          error: errorMessage,
+          duration
+        })
+        return {
+          data: undefined,
+          row: undefined,
+          range: undefined,
+          metadata
+        }
+      }
+      throw new Error(errorMessage)
+    }
+
+    const lastLine = currentData.length
+
+    // Get headers
+    const headers = await getHeaders({
+      sheet,
+      sheets,
+      spreadsheetId
+    })
+
+    // Transform records into values
+    const valuesFromRecords = data.map(record => decombine(record, headers))
+
+    // Define the range for the new data
+    const startRow = lastLine + 1
+    const endRow = lastLine + valuesFromRecords.length
+    const range = createMultipleRowsRange({
+      sheet: sheet,
+      startRow: startRow,
+      endRow: endRow,
+      lastColumnIndex: headers.length - 1
+    })
+
+    // Write to the sheet using the updated write function
+    await write({
+      range,
+      values: valuesFromRecords,
+      spreadsheetId,
+      sheets
+    })
+
+    const duration = metadataService.calculateDuration(startTime)
+    if (includeMetadata) {
+      const metadata = metadataService.createMetadata({
+        operationType: 'insert',
+        spreadsheetId,
+        sheetId: sheet,
+        ranges: [range],
+        recordsAffected: data.length,
+        status: 'success',
+        duration
+      })
+      return {
+        data: data,
+        row: Array.from({ length: data.length }, (_, i) => startRow + i),
+        range: range,
+        metadata
+      }
+    }
+
+    return {
+      data: data,
+      row: Array.from({ length: data.length }, (_, i) => startRow + i),
+      range: range
+    }
+  } catch (error: unknown) {
+    const duration = metadataService.calculateDuration(startTime)
+    const errorMessage =
+      error instanceof Error
+        ? error.message
+        : ErrorMessages[ErrorCode.UnknownError]
+    if (includeMetadata) {
+      const metadata = metadataService.createMetadata({
+        operationType: 'insert',
+        spreadsheetId,
+        sheetId: sheet,
+        ranges: [],
+        recordsAffected: 0,
+        status: 'failure',
+        error: errorMessage,
+        duration
+      })
+      return {
+        data: undefined,
+        row: undefined,
+        range: undefined,
+        metadata
+      }
+    }
+    throw error instanceof Error
+      ? error
+      : new Error('An unknown error occurred during the insert operation.')
   }
-
-  const lastLine = currentData.length
-
-  // Get headers
-  const headers = await getHeaders({
-    sheet,
-    sheets,
-    spreadsheetId
-  })
-
-  // Transform records into values
-  const valuesFromRecords = data.map(record => decombine(record, headers))
-
-  // Define the range for the new data
-  const range = createMultipleRowsRange({
-    sheet: sheet,
-    startRow: lastLine + 1,
-    endRow: lastLine + valuesFromRecords.length,
-    lastColumnIndex: headers.length - 1
-  })
-
-  // Write to the sheet using the updated write function
-  await write({
-    range,
-    values: valuesFromRecords,
-    spreadsheetId,
-    sheets
-  })
 }
