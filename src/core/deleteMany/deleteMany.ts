@@ -1,8 +1,14 @@
-import type { IGoogleSheetsService } from '@/services/google-sheets/IGoogleSheetsService' // Type import only
+import { IGoogleSheetsService } from '@/services/google-sheets/IGoogleSheetsService'
 import { WhereClause } from '@/types/where'
 import { findMany } from '@/core/findMany/findMany'
-import { SheetRecord } from '@/types/sheetRecord'
 import { CellValue } from '@/types/cellValue'
+import { OperationConfigs } from '@/types/operationConfigs'
+import { MetadataService } from '@/services/metadata/MetadataService'
+import {
+  IMetadataService,
+  BatchOperationResult
+} from '@/services/metadata/IMetadataService'
+import { ErrorMessages, ErrorCode } from '@/services/errors/errorMessages'
 
 /**
  * Deletes multiple records that match the provided where clause.
@@ -14,16 +20,19 @@ import { CellValue } from '@/types/cellValue'
  * @param params.sheet - The name of the sheet.
  * @param options - The options for the deleteMany operation.
  * @param options.where - The where clause to filter records.
- * @returns An array of deleted records.
+ * @param configs - Optional configurations for the operation.
+ * @returns A batch operation result containing deleted records and metadata.
  *
  * @example
  * ```typescript
  * const deletedRecords = await deleteMany<RecordType>({
  *   spreadsheetId: 'your_spreadsheet_id',
  *   sheets: googleSheetsServiceInstance,
- *   sheet: 'Sheet1'
+ *   sheet: 'Sheet1',
  * }, {
- *   where: { status: 'inactive' }
+ *   where: { status: 'inactive' },
+ * }, {
+ *   includeMetadata: true,
  * });
  * ```
  */
@@ -35,35 +44,98 @@ export async function deleteMany<RecordType extends Record<string, CellValue>>(
   },
   options: {
     where: WhereClause<RecordType>
-  }
-): Promise<SheetRecord<RecordType>[]> {
+  },
+  configs?: OperationConfigs
+): Promise<BatchOperationResult<RecordType>> {
   const { spreadsheetId, sheets, sheet } = params
   const { where } = options
+  const { includeMetadata = false } = configs ?? {}
+  const metadataService: IMetadataService = new MetadataService()
+  const startTime = Date.now()
 
   try {
     // Find all records that match the where clause
-    const records = await findMany<RecordType>(
+    const findResult = await findMany<RecordType>(
       { spreadsheetId, sheets, sheet },
-      { where }
+      { where },
+      { includeMetadata }
     )
 
-    if (records.length === 0) {
-      throw new Error('No records found to delete.')
+    if (!findResult.data || findResult.data.length === 0) {
+      const duration = metadataService.calculateDuration(startTime)
+      const metadata = includeMetadata
+        ? metadataService.createMetadata({
+            operationType: 'delete',
+            spreadsheetId,
+            sheetId: sheet,
+            ranges: findResult.ranges || [],
+            recordsAffected: 0,
+            status: 'failure',
+            error: ErrorMessages[ErrorCode.NoRecordFound],
+            duration
+          })
+        : undefined
+      return {
+        data: [],
+        rows: [],
+        ranges: [],
+        metadata
+      }
     }
 
+    const { data: records, rows, ranges } = findResult
+
     // Extract the row indices (0-based)
-    const rowIndices = records.map(record => record.row - 1)
+    const rowIndices = (rows as number[]).map(row => row - 1)
 
     // Delete all rows in a single batch operation
     await sheets.batchDeleteRows(sheet, rowIndices)
 
-    return records
-  } catch (error: unknown) {
-    if (error instanceof Error) {
-      console.error('Error deleting records:', error.message) // eslint-disable-line no-console
-      throw new Error(`Error deleting records: ${error.message}`)
+    const duration = metadataService.calculateDuration(startTime)
+    const metadata = includeMetadata
+      ? metadataService.createMetadata({
+          operationType: 'delete',
+          spreadsheetId,
+          sheetId: sheet,
+          ranges: ranges as string[],
+          recordsAffected: records.length,
+          status: 'success',
+          duration
+        })
+      : undefined
+
+    return {
+      data: records,
+      rows,
+      ranges,
+      metadata
     }
-    console.error('Error deleting records:', error) // eslint-disable-line no-console
-    throw new Error('An unknown error occurred while deleting records.')
+  } catch (error: unknown) {
+    const duration = metadataService.calculateDuration(startTime)
+    const errorMessage =
+      error instanceof Error
+        ? error.message
+        : ErrorMessages[ErrorCode.UnknownError]
+    if (includeMetadata) {
+      const metadata = metadataService.createMetadata({
+        operationType: 'delete',
+        spreadsheetId,
+        sheetId: sheet,
+        ranges: [],
+        recordsAffected: 0,
+        status: 'failure',
+        error: errorMessage,
+        duration
+      })
+      return {
+        data: undefined,
+        rows: undefined,
+        ranges: undefined,
+        metadata
+      }
+    }
+    throw error instanceof Error
+      ? error
+      : new Error('An unknown error occurred while deleting records.')
   }
 }
