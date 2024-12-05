@@ -13,6 +13,7 @@ import { WhereClause } from '@/types/where'
 import { SelectClause } from '@/types/select'
 import { IGoogleSheetsService } from '@/services/google-sheets/IGoogleSheetsService'
 import { GoogleSheetsService } from '@/services/google-sheets/GoogleSheetsService'
+import { OperationResult } from '@/services/metadata/IMetadataService'
 
 export default class HolySheets<RecordType extends Record<string, any> = any> {
   public sheets: IGoogleSheetsService
@@ -79,7 +80,7 @@ export default class HolySheets<RecordType extends Record<string, any> = any> {
   public async updateFirst(options: {
     where: WhereClause<RecordType>
     data: Partial<RecordType>
-  }): Promise<RecordType> {
+  }): Promise<OperationResult<RecordType>> {
     return await updateFirst<RecordType>(
       {
         spreadsheetId: this.spreadsheetId,

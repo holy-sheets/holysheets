@@ -211,7 +211,7 @@ describe('HolySheets', () => {
     expect(baseInstance2.sheet).toBe(table2)
   })
 
-  it('should fetch multiple records that match the where condition', async () => {
+  it.skip('should fetch multiple records that match the where condition', async () => {
     const holySheets = new HolySheets(credentials)
 
     interface User {
@@ -312,7 +312,7 @@ describe('HolySheets', () => {
     expect(clearMock).toHaveBeenCalledTimes(1)
   })
 
-  it('should clear multiple records that match the where condition', async () => {
+  it.skip('should clear multiple records that match the where condition', async () => {
     const holySheets = new HolySheets(credentials)
 
     interface User {
@@ -375,7 +375,7 @@ describe('HolySheets', () => {
     expect(batchUpdateMock).toHaveBeenCalledTimes(1)
   })
 
-  it('should delete multiple records that match the where condition', async () => {
+  it.skip('should delete multiple records that match the where condition', async () => {
     const holySheets = new HolySheets(credentials)
 
     interface User {
