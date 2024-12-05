@@ -1,411 +1,472 @@
+// index.spec.ts
+
 import { vi, describe, it, beforeEach, expect } from 'vitest'
 import HolySheets from './index'
-import { google } from 'googleapis'
+import { IGoogleSheetsService } from '@/services/google-sheets/IGoogleSheetsService'
+import { GoogleSheetsService } from '@/services/google-sheets/GoogleSheetsService'
+import {
+  sanitizeOperationResult,
+  sanitizeBatchOperationResult
+} from './utils/sanitizeResult/sanitizeResult'
 
-// Mocking the response from Google Sheets API
-const usersMock = [
-  ['name', 'email'],
-  ['John Doe', 'john@doe.com'],
-  ['Mary Jane', 'mary@jane.com'],
-  ['Jane Doe', 'jane@doe.com'],
-  ['Johnny Cash', 'johnny@cash.com']
-]
+// Mock utility functions
+vi.mock('./utils/sanitizeResult/sanitizeResult')
 
-const batchResponse = {
-  data: {
-    valueRanges: [
-      {
-        range: 'Users!A2:B2',
-        majorDimension: 'ROWS',
-        values: [['John Doe', 'john@doe.com']]
-      },
-      {
-        range: 'Users!A5:B5',
-        majorDimension: 'ROWS',
-        values: [['Johnny Cash', 'johnny@cash.com']]
-      }
-    ]
-  }
-}
+// Mock core functions
+vi.mock('@/core/insert/insert')
+vi.mock('@/core/findFirst/findFirst')
+vi.mock('@/core/findMany/findMany')
+vi.mock('@/core/updateFirst/updateFirst')
+vi.mock('@/core/updateMany/updateMany')
+vi.mock('@/core/clearFirst/clearFirst')
+vi.mock('@/core/clearMany/clearMany')
+vi.mock('@/core/deleteFirst/deleteFirst')
+vi.mock('@/core/deleteMany/deleteMany')
 
-// Fake Auth Client with necessary methods
-const fakeAuthClient = {
-  request: vi.fn().mockResolvedValue({ data: {} }),
-  getRequestHeaders: vi.fn().mockResolvedValue({})
-}
+// Import mocked core functions
+import { insert } from '@/core/insert/insert'
+import { findFirst } from '@/core/findFirst/findFirst'
+import { findMany } from '@/core/findMany/findMany'
+import { updateFirst } from '@/core/updateFirst/updateFirst'
+import { updateMany } from '@/core/updateMany/updateMany'
+import { clearFirst } from '@/core/clearFirst/clearFirst'
+import { clearMany } from '@/core/clearMany/clearMany'
+import { deleteFirst } from '@/core/deleteFirst/deleteFirst'
+import { deleteMany } from '@/core/deleteMany/deleteMany'
+import {
+  IMetadataService,
+  OperationMetadata
+} from './services/metadata/IMetadataService'
 
-const clearMock = vi.fn().mockResolvedValue({})
-const batchClearMock = vi.fn().mockResolvedValue({})
-const batchUpdateMock = vi.fn().mockResolvedValue({})
+// Mock core functions
+const mockInsert = vi.mocked(insert)
+const mockFindFirst = vi.mocked(findFirst)
+const mockFindMany = vi.mocked(findMany)
+const mockUpdateFirst = vi.mocked(updateFirst)
+const mockUpdateMany = vi.mocked(updateMany)
+const mockClearFirst = vi.mocked(clearFirst)
+const mockClearMany = vi.mocked(clearMany)
+const mockDeleteFirst = vi.mocked(deleteFirst)
+const mockDeleteMany = vi.mocked(deleteMany)
 
-// Define sheetsMock outside vi.mock
-const sheetsMock = {
-  spreadsheets: {
-    values: {
-      get: vi.fn().mockImplementation(({ range }) => {
-        // Mock responses based on the range
-        if (range === 'Users!1:1') {
-          // Headers
-          return Promise.resolve({ data: { values: [['name', 'email']] } })
-        } else if (range === 'Users!A:A') {
-          // Column A (names)
-          return Promise.resolve({
-            data: {
-              values: [
-                ['name'],
-                ['John Doe'],
-                ['Mary Jane'],
-                ['Jane Doe'],
-                ['Johnny Cash']
-              ]
-            }
-          })
-        } else if (range === 'Users!A2:B2') {
-          // Specific row A2:B2
-          return Promise.resolve({
-            data: {
-              values: [['John Doe', 'john@doe.com']]
-            }
-          })
-        } else if (range === 'Users!A5:B5') {
-          // Specific row A5:B5
-          return Promise.resolve({
-            data: {
-              values: [['Johnny Cash', 'johnny@cash.com']]
-            }
-          })
-        } else if (range === 'Users!A:AZ') {
-          // Full data for insert
-          return Promise.resolve({ data: { values: usersMock } })
-        }
-        // Default empty response for other ranges
-        return Promise.resolve({ data: { values: [] } })
-      }),
-      batchUpdate: batchUpdateMock,
-      batchGet: vi.fn().mockResolvedValue(batchResponse),
-      clear: clearMock,
-      batchClear: batchClearMock
-    },
-    get: vi.fn().mockResolvedValue({
-      data: {
-        sheets: [{ properties: { title: 'Users', sheetId: 12345 } }]
-      }
-    }),
-    batchUpdate: batchUpdateMock,
-    batchClear: clearMock
-  }
-}
+// Mock utility functions
+const mockSanitizeOperationResult = vi.mocked(sanitizeOperationResult)
+const mockSanitizeBatchOperationResult = vi.mocked(sanitizeBatchOperationResult)
 
-// Mock the googleapis module
-vi.mock('googleapis', () => {
-  return {
-    google: {
-      auth: {
-        // Mock the GoogleAuth class
-        GoogleAuth: class {
-          getClient() {
-            return Promise.resolve(fakeAuthClient)
-          }
-        },
-        JWT: class {
-          constructor(
-            email: string,
-            keyFile: string | null,
-            key: string,
-            scopes: string[]
-          ) {
-            // Simulate JWT client initialization
-          }
-          authorize() {
-            return Promise.resolve({ access_token: 'fake-access-token' })
-          }
-          // Mock methods if necessary
-        },
-        OAuth2: class {
-          constructor(
-            clientId: string,
-            clientSecret: string,
-            redirectUri: string
-          ) {
-            // Simulate OAuth2 client initialization
-          }
-          setCredentials(credentials: { access_token: string }) {
-            // Simulate setting credentials
-          }
-          // Mock methods if necessary
-        }
-      },
-      sheets: vi.fn().mockImplementation(options => sheetsMock)
-    }
-  }
-})
-
-describe('HolySheets', () => {
+describe('HolySheets Class', () => {
+  let holySheets: HolySheets
   const credentials = {
     spreadsheetId: 'spreadsheet-id',
-    auth: new google.auth.GoogleAuth({
-      credentials: {
-        client_email: 'test@example.com',
-        private_key: `-----BEGIN PRIVATE KEY-----\nYOUR_PRIVATE_KEY\n-----END PRIVATE KEY-----\n`
-      },
-      scopes: ['https://www.googleapis.com/auth/spreadsheets']
-    })
+    auth: {} as any // Mock authentication object
   }
 
   beforeEach(() => {
+    holySheets = new HolySheets(credentials)
     vi.clearAllMocks()
   })
 
-  it('should initialize HolySheets with credentials', () => {
-    const holySheets = new HolySheets(credentials)
-    expect(holySheets).toBeTruthy()
+  it('should initialize with the provided credentials', () => {
+    expect(holySheets.spreadsheetId).toBe('spreadsheet-id')
+    expect(holySheets.sheets).toBeInstanceOf(GoogleSheetsService)
   })
 
-  it('should initialize HolySheets with JWT authentication', () => {
-    const jwtClient = new google.auth.JWT(
-      'test@example.com', // email
-      undefined, // keyFile
-      '-----BEGIN PRIVATE KEY-----\nYOUR_PRIVATE_KEY\n-----END PRIVATE KEY-----\n', // key
-      ['https://www.googleapis.com/auth/spreadsheets'] // scopes
-    )
-
-    const credentials = {
-      spreadsheetId: 'spreadsheet-id',
-      auth: jwtClient
-    }
-
-    const holySheets = new HolySheets(credentials)
-    expect(holySheets).toBeTruthy()
-  })
-
-  it('should initialize HolySheets with OAuth2 authentication', () => {
-    const oauth2Client = new google.auth.OAuth2(
-      'YOUR_CLIENT_ID',
-      'YOUR_CLIENT_SECRET',
-      'YOUR_REDIRECT_URI'
-    )
-
-    // Simulate setting an access token
-    oauth2Client.setCredentials({
-      access_token: 'YOUR_ACCESS_TOKEN'
-    })
-
-    const credentials = {
-      spreadsheetId: 'spreadsheet-id',
-      auth: oauth2Client
-    }
-
-    const holySheets = new HolySheets(credentials)
-    expect(holySheets).toBeTruthy()
-  })
-
-  it('should set table with base method', () => {
-    const holySheets = new HolySheets(credentials)
+  it('should set the table with the base method', () => {
     const table = 'TestTable'
-    const table2 = 'TestTable2'
-    expect(holySheets.sheet).not.toBe(table)
     const baseInstance = holySheets.base(table)
+    expect(baseInstance).not.toBe(holySheets)
     expect(baseInstance.sheet).toBe(table)
-    expect(holySheets.sheet).not.toBe(table)
-    const baseInstance2 = holySheets.base(table2)
-    expect(baseInstance2.sheet).toBe(table2)
+    expect(holySheets.sheet).toBe('')
   })
 
-  it.skip('should fetch multiple records that match the where condition', async () => {
-    const holySheets = new HolySheets(credentials)
+  describe('Method calls and result sanitization', () => {
+    let holySheets: HolySheets<{ name: string; email: string; status: string }>
 
-    interface User {
-      name: string
-      email: string
-    }
-
-    const users = holySheets.base<User>('Users')
-
-    const result = await users.findMany({
-      where: {
-        name: {
-          contains: 'John'
-        }
-      }
+    beforeEach(() => {
+      holySheets = new HolySheets(credentials).base('Users')
+      vi.clearAllMocks()
     })
 
-    const expected = [
-      {
-        range: 'Users!A2:B2',
-        row: 2,
-        data: { name: 'John Doe', email: 'john@doe.com' }
-      },
-      {
-        range: 'Users!A5:B5',
+    it('should call insert and sanitize the result', async () => {
+      const insertResult = {
+        data: [{ name: 'Alice', email: 'alice@example.com', status: 'active' }],
         row: 5,
-        data: { name: 'Johnny Cash', email: 'johnny@cash.com' }
+        range: 'A5:B5',
+        metadata: undefined
       }
-    ]
+      mockInsert.mockResolvedValueOnce(insertResult)
 
-    expect(result).toEqual(expected)
-  })
+      const sanitizedResult = { data: insertResult.data }
+      mockSanitizeOperationResult.mockReturnValueOnce(sanitizedResult)
 
-  it.skip('should insert data into the sheet', async () => {
-    const holySheets = new HolySheets(credentials)
-    const users = holySheets.base<{ name: string; email: string }>('Users')
+      const result = await holySheets.insert({ data: insertResult.data })
 
-    const dataToInsert = [
-      { name: 'Alice Wonderland', email: 'alice@wonderland.com' }
-    ]
+      expect(mockInsert).toHaveBeenCalledWith(
+        {
+          spreadsheetId: 'spreadsheet-id',
+          sheets: holySheets.sheets,
+          sheet: 'Users'
+        },
+        { data: insertResult.data },
+        undefined
+      )
 
-    await users.insert({
-      data: dataToInsert
+      expect(mockSanitizeOperationResult).toHaveBeenCalledWith(insertResult)
+      expect(result).toEqual(sanitizedResult)
     })
 
-    expect(
-      google.sheets({ version: 'v4' }).spreadsheets.values.batchUpdate
-    ).toHaveBeenCalledTimes(1)
-  })
-
-  it('should handle errors when fetching headers', async () => {
-    const sheetsInstance = google.sheets({ version: 'v4' })
-    const getFn = sheetsInstance.spreadsheets.values
-      .get as unknown as ReturnType<typeof vi.fn>
-
-    getFn.mockImplementationOnce(({ range }: { range: string }) => {
-      if (range === 'Users!1:1') {
-        return Promise.reject(new Error('Test error'))
+    it('should call findFirst and sanitize the result', async () => {
+      const findFirstResult = {
+        data: { name: 'Bob', email: 'bob@example.com' },
+        row: 2,
+        range: 'A2:B2',
+        metadata: undefined
       }
-      // For other ranges, use the default mock implementation
-      return Promise.resolve({ data: { values: usersMock } })
-    })
+      mockFindFirst.mockResolvedValueOnce(findFirstResult)
 
-    const holySheets = new HolySheets(credentials)
+      const sanitizedResult = { data: findFirstResult.data }
+      mockSanitizeOperationResult.mockReturnValueOnce(sanitizedResult)
 
-    await expect(
-      holySheets.base<{ name: string; email: string }>('Users').findMany({
-        where: { name: 'John' }
+      const result = await holySheets.findFirst({
+        where: { name: 'Bob' }
       })
-    ).rejects.toThrow('Test error')
-  })
 
-  it('should clear the first record that matches the where condition', async () => {
-    const holySheets = new HolySheets(credentials)
+      expect(mockFindFirst).toHaveBeenCalledWith(
+        {
+          spreadsheetId: 'spreadsheet-id',
+          sheets: holySheets.sheets,
+          sheet: 'Users'
+        },
+        { where: { name: 'Bob' } },
+        undefined
+      )
 
-    interface User {
-      name: string
-      email: string
-    }
-
-    const users = holySheets.base<User>('Users')
-
-    const result = await users.clearFirst({
-      where: {
-        name: {
-          contains: 'John'
-        }
-      }
+      expect(mockSanitizeOperationResult).toHaveBeenCalledWith(findFirstResult)
+      expect(result).toEqual(sanitizedResult)
     })
 
-    const expected = {
-      data: { name: 'John Doe', email: 'john@doe.com' }
-    }
-
-    expect(result).toEqual(expected)
-    expect(clearMock).toHaveBeenCalledTimes(1)
-  })
-
-  it.skip('should clear multiple records that match the where condition', async () => {
-    const holySheets = new HolySheets(credentials)
-
-    interface User {
-      name: string
-      email: string
-    }
-
-    const users = holySheets.base<User>('Users')
-
-    const result = await users.clearMany({
-      where: {
-        name: {
-          contains: 'John'
-        }
+    it('should call findMany and sanitize the result', async () => {
+      const findManyResult = {
+        data: [
+          { name: 'Bob', email: 'bob@example.com', status: 'active' },
+          { name: 'Alice', email: 'alice@example.com', status: 'active' }
+        ],
+        rows: [2, 3],
+        ranges: ['A2:B2', 'A3:B3'],
+        metadata: undefined
       }
+      mockFindMany.mockResolvedValueOnce(findManyResult)
+
+      const sanitizedResult = { data: findManyResult.data }
+      mockSanitizeBatchOperationResult.mockReturnValueOnce(sanitizedResult)
+
+      const result = await holySheets.findMany({
+        where: { status: 'active' }
+      })
+
+      expect(mockFindMany).toHaveBeenCalledWith(
+        {
+          spreadsheetId: 'spreadsheet-id',
+          sheets: holySheets.sheets,
+          sheet: 'Users'
+        },
+        { where: { status: 'active' } },
+        undefined
+      )
+
+      expect(mockSanitizeBatchOperationResult).toHaveBeenCalledWith(
+        findManyResult
+      )
+      expect(result).toEqual(sanitizedResult)
     })
 
-    const expected = [
-      {
-        range: 'Users!A2:B2',
+    it('should handle metadata inclusion for findFirst correctly', async () => {
+      const findFirstResult = {
+        data: { name: 'Bob', email: 'bob@example.com', status: 'active' },
         row: 2,
-        data: { name: 'John Doe', email: 'john@doe.com' }
-      },
-      {
-        range: 'Users!A5:B5',
-        row: 5,
-        data: { name: 'Johnny Cash', email: 'johnny@cash.com' }
+        range: 'A2:B2',
+        metadata: {
+          operationId: '123',
+          timestamp: new Date().toISOString(),
+          duration: '100',
+          recordsAffected: 1,
+          status: 'success',
+          operationType: 'find',
+          spreadsheetId: 'spreadsheet-id',
+          sheetId: 'sheet-id',
+          ranges: ['A2:B2']
+        } as OperationMetadata
       }
-    ]
+      mockFindFirst.mockResolvedValueOnce(findFirstResult)
 
-    expect(result).toEqual(expected)
-    expect(batchClearMock).toHaveBeenCalledTimes(1)
-  })
-
-  it.skip('should delete the first record that matches the where condition', async () => {
-    const holySheets = new HolySheets(credentials)
-
-    interface User {
-      name: string
-      email: string
-    }
-
-    const users = holySheets.base<User>('Users')
-
-    const result = await users.deleteFirst({
-      where: {
-        name: {
-          contains: 'John'
-        }
+      const sanitizedResult = {
+        data: findFirstResult.data,
+        metadata: findFirstResult.metadata
       }
+      mockSanitizeOperationResult.mockReturnValueOnce(sanitizedResult)
+
+      const result = await holySheets.findFirst(
+        { where: { name: 'Bob' } },
+        { includeMetadata: true }
+      )
+
+      expect(mockFindFirst).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.anything(),
+        { includeMetadata: true }
+      )
+
+      expect(mockSanitizeOperationResult).toHaveBeenCalledWith(findFirstResult)
+      expect(result).toEqual(sanitizedResult)
     })
 
-    const expected = {
-      range: 'Users!A2:B2',
-      row: 2,
-      data: { name: 'John Doe', email: 'john@doe.com' }
-    }
-
-    expect(result).toEqual(expected)
-    expect(batchUpdateMock).toHaveBeenCalledTimes(1)
-  })
-
-  it.skip('should delete multiple records that match the where condition', async () => {
-    const holySheets = new HolySheets(credentials)
-
-    interface User {
-      name: string
-      email: string
-    }
-
-    const users = holySheets.base<User>('Users')
-
-    const result = await users.deleteMany({
-      where: {
-        name: {
-          contains: 'John'
-        }
+    it('should handle metadata inclusion for findMany correctly', async () => {
+      const findManyResult = {
+        data: [
+          { name: 'Bob', email: 'bob@example.com' },
+          { name: 'Alice', email: 'alice@example.com' }
+        ],
+        rows: [2, 3],
+        ranges: ['A2:B2', 'A3:B3'],
+        metadata: {} as OperationMetadata
       }
+      mockFindMany.mockResolvedValueOnce(findManyResult)
+
+      const sanitizedResult = {
+        data: findManyResult.data,
+        metadata: findManyResult.metadata
+      }
+      mockSanitizeBatchOperationResult.mockReturnValueOnce(sanitizedResult)
+
+      const result = await holySheets.findMany(
+        { where: { status: 'active' } },
+        { includeMetadata: true }
+      )
+
+      expect(mockFindMany).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.anything(),
+        { includeMetadata: true }
+      )
+
+      expect(mockSanitizeBatchOperationResult).toHaveBeenCalledWith(
+        findManyResult
+      )
+      expect(result).toEqual(sanitizedResult)
     })
 
-    const expected = [
-      {
-        range: 'Users!A2:B2',
+    it('should propagate errors from core functions', async () => {
+      const errorMessage = 'Test error'
+      mockFindFirst.mockRejectedValueOnce(new Error(errorMessage))
+
+      await expect(
+        holySheets.findFirst({ where: { name: 'Bob' } })
+      ).rejects.toThrow(errorMessage)
+
+      expect(mockFindFirst).toHaveBeenCalled()
+      expect(mockSanitizeOperationResult).not.toHaveBeenCalled()
+    })
+
+    // Similar tests for updateFirst, updateMany, clearFirst, clearMany, deleteFirst, deleteMany
+
+    it('should call updateFirst and sanitize the result', async () => {
+      const updateFirstResult = {
+        data: { name: 'Bob', email: 'bob@example.com', status: 'inactive' },
         row: 2,
-        data: { name: 'John Doe', email: 'john@doe.com' }
-      },
-      {
-        range: 'Users!A5:B5',
-        row: 5,
-        data: { name: 'Johnny Cash', email: 'johnny@cash.com' }
+        range: 'A2:B2',
+        metadata: undefined
       }
-    ]
+      mockUpdateFirst.mockResolvedValueOnce(updateFirstResult)
 
-    expect(result).toEqual(expect.arrayContaining(expected))
-    expect(result).toHaveLength(expected.length)
-    expect(batchUpdateMock).toHaveBeenCalledTimes(1)
+      const sanitizedResult = { data: updateFirstResult.data }
+      mockSanitizeOperationResult.mockReturnValueOnce(sanitizedResult)
+
+      const result = await holySheets.updateFirst({
+        where: { name: 'Bob' },
+        data: { status: 'inactive' }
+      })
+
+      expect(mockUpdateFirst).toHaveBeenCalledWith(
+        {
+          spreadsheetId: 'spreadsheet-id',
+          sheets: holySheets.sheets,
+          sheet: 'Users'
+        },
+        { where: { name: 'Bob' }, data: { status: 'inactive' } },
+        undefined
+      )
+
+      expect(mockSanitizeOperationResult).toHaveBeenCalledWith(
+        updateFirstResult
+      )
+      expect(result).toEqual(sanitizedResult)
+    })
+
+    it('should call updateMany and sanitize the result', async () => {
+      const updateManyResult = {
+        data: [
+          { name: 'Bob', email: 'bob@example.com', status: 'inactive' },
+          { name: 'Alice', email: 'alice@example.com', status: 'inactive' }
+        ],
+        rows: [2, 3],
+        ranges: ['A2:B2', 'A3:B3'],
+        metadata: undefined
+      }
+      mockUpdateMany.mockResolvedValueOnce(updateManyResult)
+
+      const sanitizedResult = { data: updateManyResult.data }
+      mockSanitizeBatchOperationResult.mockReturnValueOnce(sanitizedResult)
+
+      const result = await holySheets.updateMany({
+        where: { status: 'active' },
+        data: { status: 'inactive' }
+      })
+
+      expect(mockUpdateMany).toHaveBeenCalledWith(
+        {
+          spreadsheetId: 'spreadsheet-id',
+          sheets: holySheets.sheets,
+          sheet: 'Users'
+        },
+        { where: { status: 'active' }, data: { status: 'inactive' } },
+        undefined
+      )
+
+      expect(mockSanitizeBatchOperationResult).toHaveBeenCalledWith(
+        updateManyResult
+      )
+      expect(result).toEqual(sanitizedResult)
+    })
+
+    it('should call clearFirst and sanitize the result', async () => {
+      const clearFirstResult = {
+        data: { name: 'Bob', email: 'bob@example.com' },
+        row: 2,
+        range: 'A2:B2',
+        metadata: undefined
+      }
+      mockClearFirst.mockResolvedValueOnce(clearFirstResult)
+
+      const sanitizedResult = { data: clearFirstResult.data }
+      mockSanitizeOperationResult.mockReturnValueOnce(sanitizedResult)
+
+      const result = await holySheets.clearFirst({
+        where: { name: 'Bob' }
+      })
+
+      expect(mockClearFirst).toHaveBeenCalledWith(
+        {
+          spreadsheetId: 'spreadsheet-id',
+          sheets: holySheets.sheets,
+          sheet: 'Users'
+        },
+        { where: { name: 'Bob' } },
+        undefined
+      )
+
+      expect(mockSanitizeOperationResult).toHaveBeenCalledWith(clearFirstResult)
+      expect(result).toEqual(sanitizedResult)
+    })
+
+    it('should call clearMany and sanitize the result', async () => {
+      const clearManyResult = {
+        data: [
+          { name: 'Bob', email: 'bob@example.com' },
+          { name: 'Alice', email: 'alice@example.com' }
+        ],
+        rows: [2, 3],
+        ranges: ['A2:B2', 'A3:B3'],
+        metadata: undefined
+      }
+      mockClearMany.mockResolvedValueOnce(clearManyResult)
+
+      const sanitizedResult = { data: clearManyResult.data }
+      mockSanitizeBatchOperationResult.mockReturnValueOnce(sanitizedResult)
+
+      const result = await holySheets.clearMany({
+        where: { status: 'inactive' }
+      })
+
+      expect(mockClearMany).toHaveBeenCalledWith(
+        {
+          spreadsheetId: 'spreadsheet-id',
+          sheets: holySheets.sheets,
+          sheet: 'Users'
+        },
+        { where: { status: 'inactive' } },
+        undefined
+      )
+
+      expect(mockSanitizeBatchOperationResult).toHaveBeenCalledWith(
+        clearManyResult
+      )
+      expect(result).toEqual(sanitizedResult)
+    })
+
+    it('should call deleteFirst and sanitize the result', async () => {
+      const deleteFirstResult = {
+        data: { name: 'Bob', email: 'bob@example.com' },
+        row: 2,
+        range: 'A2:B2',
+        metadata: undefined
+      }
+      mockDeleteFirst.mockResolvedValueOnce(deleteFirstResult)
+
+      const sanitizedResult = { data: deleteFirstResult.data }
+      mockSanitizeOperationResult.mockReturnValueOnce(sanitizedResult)
+
+      const result = await holySheets.deleteFirst({
+        where: { name: 'Bob' }
+      })
+
+      expect(mockDeleteFirst).toHaveBeenCalledWith(
+        {
+          spreadsheetId: 'spreadsheet-id',
+          sheets: holySheets.sheets,
+          sheet: 'Users'
+        },
+        { where: { name: 'Bob' } },
+        undefined
+      )
+
+      expect(mockSanitizeOperationResult).toHaveBeenCalledWith(
+        deleteFirstResult
+      )
+      expect(result).toEqual(sanitizedResult)
+    })
+
+    it('should call deleteMany and sanitize the result', async () => {
+      const deleteManyResult = {
+        data: [
+          { name: 'Bob', email: 'bob@example.com' },
+          { name: 'Alice', email: 'alice@example.com' }
+        ],
+        rows: [2, 3],
+        ranges: ['A2:B2', 'A3:B3'],
+        metadata: undefined
+      }
+      mockDeleteMany.mockResolvedValueOnce(deleteManyResult)
+
+      const sanitizedResult = { data: deleteManyResult.data }
+      mockSanitizeBatchOperationResult.mockReturnValueOnce(sanitizedResult)
+
+      const result = await holySheets.deleteMany({
+        where: { status: 'inactive' }
+      })
+
+      expect(mockDeleteMany).toHaveBeenCalledWith(
+        {
+          spreadsheetId: 'spreadsheet-id',
+          sheets: holySheets.sheets,
+          sheet: 'Users'
+        },
+        { where: { status: 'inactive' } },
+        undefined
+      )
+
+      expect(mockSanitizeBatchOperationResult).toHaveBeenCalledWith(
+        deleteManyResult
+      )
+      expect(result).toEqual(sanitizedResult)
+    })
   })
 })
