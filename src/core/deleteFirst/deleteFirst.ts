@@ -83,6 +83,9 @@ export async function deleteFirst<RecordType extends Record<string, CellValue>>(
     }
 
     const { data, row } = recordResult
+    if (typeof row !== 'number') {
+      throw new Error('Row must be a number')
+    }
 
     // Delete the row using the deleteRows method from the interface
     await sheets.deleteRows(sheet, row - 1, row)
