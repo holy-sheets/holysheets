@@ -16,5 +16,5 @@
     }
   },
   "include": ["src/**/*", "src/.examples/**/*", "vitest.config.ts"],
-  "exclude": ["node_modules", "dist"]
+  "exclude": ["node_modules", "dist", "**/*.spec.ts", "**/*.spec.js"]
 }

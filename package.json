@@ -2,10 +2,21 @@
   "name": "holysheets",
   "version": "1.0.1",
   "description": "A Node.js library for interacting with Google Sheets",
-  "main": "dist/src/index.js",
-  "types": "dist/src/index.d.ts",
+  "main": "dist/cjs/src/index.js",
+  "module": "dist/esm/src/index.js",
+  "types": "dist/types/esm/src/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/esm/src/index.js",
+      "require": "./dist/cjs/src/index.js",
+      "types": "./dist/types/esm/src/index.d.ts"
+    }
+  },
+  "type": "module",
   "scripts": {
-    "build": "npm run clean && tsc",
+    "build": "npm run clean && pnpm run build:cjs && pnpm run build:esm",
+    "build:cjs": "tsc --project tsconfig.cjs.json",
+    "build:esm": "tsc --project tsconfig.esm.json",
     "clean": "rm -rf dist",
     "test": "vitest",
     "coverage": "vitest --coverage",
@@ -32,7 +43,7 @@
       [
         "@semantic-release/npm",
         {
-          "npmPublish": false
+          "npmPublish": true
         }
       ],
       "@semantic-release/git"
