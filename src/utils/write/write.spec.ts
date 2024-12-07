@@ -11,7 +11,12 @@ const mockSheets: IGoogleSheetsService = {
   updateValues: vi.fn(),
   batchUpdateValues: vi.fn(),
   clearValues: vi.fn(),
-  deleteRows: vi.fn()
+  deleteRows: vi.fn(),
+  batchGetValues: vi.fn(),
+  batchClearValues: vi.fn(),
+  batchDeleteRows: vi.fn(),
+  getSpreadsheet: vi.fn(),
+  getAuth: vi.fn()
 }
 
 describe('write', () => {
