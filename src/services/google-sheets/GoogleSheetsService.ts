@@ -8,9 +8,10 @@ export class GoogleSheetsService implements IGoogleSheetsService {
   private readonly spreadsheetId: string
   private readonly auth: AuthClient
 
-  constructor(credentials: HolySheetsCredentials) {
+  constructor(credentials: HolySheetsCredentials, sheets?: sheets_v4.Sheets) {
     this.spreadsheetId = credentials.spreadsheetId
-    this.sheets = google.sheets({ version: 'v4', auth: credentials.auth })
+    this.sheets =
+      sheets ?? google.sheets({ version: 'v4', auth: credentials.auth })
     this.auth = credentials.auth
   }
 

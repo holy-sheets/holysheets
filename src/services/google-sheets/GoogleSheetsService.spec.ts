@@ -29,8 +29,7 @@ describe('GoogleSheetsService', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
-    service = new GoogleSheetsService(credentials)
-    service['sheets'] = mockSheets
+    service = new GoogleSheetsService(credentials, mockSheets)
   })
 
   it('should get authentication client', () => {
