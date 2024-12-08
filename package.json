@@ -2,21 +2,18 @@
   "name": "holysheets",
   "version": "1.0.1",
   "description": "A Node.js library for interacting with Google Sheets",
-  "main": "dist/cjs/src/index.js",
-  "module": "dist/esm/src/index.js",
-  "types": "dist/types/esm/src/index.d.ts",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "import": "./dist/esm/src/index.js",
-      "require": "./dist/cjs/src/index.js",
-      "types": "./dist/types/esm/src/index.d.ts"
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
     }
   },
   "type": "module",
   "scripts": {
-    "build": "npm run clean && pnpm run build:cjs && pnpm run build:esm",
-    "build:cjs": "tsc --project tsconfig.cjs.json",
-    "build:esm": "tsc --project tsconfig.esm.json",
+    "build": "tsup",
     "clean": "rm -rf dist",
     "test": "vitest",
     "coverage": "vitest --coverage",
@@ -25,7 +22,6 @@
     "format": "prettier --write \"src/**/*.{ts,js,json,md}\"",
     "commit": "cz",
     "example:jwt": "npx ts-node -r tsconfig-paths/register src/.examples/jwt.ts",
-    "example:oauth": "npx ts-node -r tsconfig-paths/register src/.examples/oauth.ts",
     "prepublishOnly": "npm run build"
   },
   "repository": {

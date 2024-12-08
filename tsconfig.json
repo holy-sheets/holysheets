@@ -12,7 +12,7 @@
     "declaration": true,
     "baseUrl": "./",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["src/*", "tsup.config.ts"]
     }
   },
   "include": ["src/**/*", "src/.examples/**/*", "vitest.config.ts"],
