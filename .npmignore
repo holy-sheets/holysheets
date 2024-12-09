@@ -2,3 +2,14 @@
 .credentials.json
 .nvmrc
 tsconfig.json
+.gitignore
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+.prettierrc
+tsup.config.ts
+vitest.config.ts
+src
+*spec.ts
+coverage
+node_modules
