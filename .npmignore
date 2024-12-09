@@ -13,3 +13,6 @@ src
 *spec.ts
 coverage
 node_modules
+tsconfig.base.json
+tsconfig.cjs.json
+tsconfig.esm.json
