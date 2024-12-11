@@ -1,8 +1,4 @@
-import { defineConfig, DefaultTheme, LocaleSpecificConfig } from 'vitepress'
-
-interface ExtendedThemeConfig extends DefaultTheme.Config {
-  locales?: Record<string, LocaleSpecificConfig>
-}
+import { defineConfig } from 'vitepress'
 
 export default defineConfig({
   title: 'HolySheets',
@@ -10,6 +6,10 @@ export default defineConfig({
   themeConfig: {
     sidebar: {
       '/en/': [
+        {
+          text: '🇺🇸 English',
+          link: '/en'
+        },
         {
           text: 'Introduction',
           link: '/en/introduction'
@@ -58,6 +58,7 @@ export default defineConfig({
         }
       ],
       '/pt-br/': [
+        { text: '🇧🇷 Português', link: '/pt-br/' },
         {
           text: 'Introdução',
           link: '/pt-br/introducao'
