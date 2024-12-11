@@ -35,3 +35,25 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npx semantic-release
+
+      - name: Build documentation
+        run: npm run docs:build
+
+      - name: Checkout documentation repo
+        run: |
+          git clone https://github.com/holy-sheets/holy-sheets.github.io.git docs-site
+
+      - name: Copy generated docs to gh-pages repo
+        run: |
+          rm -rf docs-site/*
+          cp -R docs/.vitepress/dist/* docs-site/
+          cd docs-site
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .
+          git commit -m "docs: update site from main repo"
+
+      - name: Push to gh-pages
+        run: |
+          cd docs-site
+          git push https://${{ secrets.GITHUB_TOKEN }}@github.com/holy-sheets/holy-sheets.github.io.git main:main
