@@ -36,24 +36,27 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npx semantic-release
 
+      # Passos adicionais para construir e publicar a documentação
       - name: Build documentation
-        run: npm run docs:build
+        run: npm run docs:build # Certifique-se de que este comando gera os arquivos estáticos corretamente
 
       - name: Checkout documentation repo
-        run: |
-          git clone https://github.com/holy-sheets/holy-sheets.github.io.git docs-site
+        uses: actions/checkout@v3
+        with:
+          repository: holy-sheets/holy-sheets.github.io
+          token: ${{ secrets.DOCS_GH_TOKEN }}
+          path: docs-site # Diretório onde o repositório será clonado
 
       - name: Copy generated docs to gh-pages repo
         run: |
-          rm -rf docs-site/*
-          cp -R docs/.vitepress/dist/* docs-site/
+          rm -rf docs-site/*  # Remove arquivos antigos
+          cp -R docs/.vitepress/dist/* docs-site/  # Ajuste o caminho conforme sua estrutura de build
+
+      - name: Commit and Push changes
+        run: |
           cd docs-site
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add .
-          git commit -m "docs: update site from main repo"
-
-      - name: Push to gh-pages
-        run: |
-          cd docs-site
-          git push https://${{ secrets.GITHUB_TOKEN }}@github.com/holy-sheets/holy-sheets.github.io.git main:main
+          git commit -m "docs: update site from main repo" || echo "No changes to commit"
+          git push
