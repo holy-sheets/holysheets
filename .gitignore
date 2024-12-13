@@ -18,3 +18,4 @@ coverage
 # System files
 .DS_Store
 docs/.vitepress/cache/deps/_metadata.json
+docs/.vitepress/cache/

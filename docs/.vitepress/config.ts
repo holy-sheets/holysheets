@@ -1,9 +1,13 @@
 import { defineConfig } from 'vitepress'
 
 export default defineConfig({
-  title: 'HolySheets',
-  description: 'Documentation for HolySheets',
+  title: 'HolySheets!',
+  description: 'Documentation for HolySheets!',
   themeConfig: {
+    logo: '/logo.svg',
+    search: {
+      provider: 'local'
+    },
     sidebar: {
       '/en/': [
         {
