@@ -4,6 +4,11 @@
 
 `HolySheets!` is a TypeScript/Node.js library that simplifies interaction with the Google Sheets API, offering a Prisma-like syntax for querying and manipulating spreadsheet data. It abstracts away complexities like A1 ranges, headers extraction, and batch operations, letting you focus on your data and application logic.
 
+[![codecov](https://codecov.io/github/holy-sheets/holysheets/branch/main/graph/badge.svg?token=DCG1F1XSVZ)](https://codecov.io/github/holy-sheets/holysheets)
+[![npm version](https://img.shields.io/npm/v/holysheets.svg)](https://www.npmjs.com/package/holysheets)
+[![License](https://img.shields.io/npm/l/holysheets.svg)](https://github.com/holy-sheets/holysheets/blob/main/LICENSE)
+[![Build Status](https://github.com/holy-sheets/holysheets/actions/workflows/publish.yml/badge.svg)](https://github.com/holy-sheets/holysheets/actions/workflows/publish.yml)
+
 ## Key Features
 
 - **No more manual A1 ranges:** The library manages Google Sheets ranges internally.
