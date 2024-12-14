@@ -25,10 +25,10 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
 
       - name: Install dependencies
-        run: npm install
+        run: pnpm install
 
       - name: Test
-        run: npm test:ci
+        run: pnpm run test:ci
 
       - name: Run semantic-release
         env:
@@ -38,7 +38,7 @@ jobs:
 
       # Additional steps to build and publish the documentation
       - name: Build documentation
-        run: npm run docs:build # Ensure this command correctly generates the static files
+        run: pnpm run docs:build # Ensure this command correctly generates the static files
 
       - name: Checkout documentation repo
         uses: actions/checkout@v3
