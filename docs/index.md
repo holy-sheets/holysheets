@@ -19,7 +19,7 @@ hero:
       text: GitHub
       link: https://github.com/holy-sheets/holysheets
   image:
-    src: /logo.svg
+    src: logo.svg
     alt: HolySheets
 
 features:
