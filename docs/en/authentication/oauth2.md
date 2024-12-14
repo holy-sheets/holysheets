@@ -3,31 +3,11 @@ title: Authentication
 description: Comprehensive guide to setting up OAuth2 and JWT authentication with HolySheets.
 ---
 
-# Authentication
-
-HolySheets supports multiple authentication methods to securely interact with your Google Sheets. This guide covers two primary authentication methods: **OAuth2** and **JWT**. Follow the steps below to configure each method and integrate them into your HolySheets project.
-
-## Table of Contents
-
-1. [OAuth2 Authentication](#oauth2-authentication)
-   - [1.1. Configuring OAuth2 Credentials in Google Cloud Console](#11-configuring-oauth2-credentials-in-google-cloud-console)
-   - [1.2. Obtaining a Refresh Token](#12-obtaining-a-refresh-token)
-   - [1.3. Integrating OAuth2 with HolySheets](#13-integrating-oauth2-with-holysheets)
-   - [1.4. Inserting Data Example](#14-inserting-data-example)
-2. [JWT Authentication](#jwt-authentication)
-   - [2.1. Configuring JWT Credentials in Google Cloud Console](#21-configuring-jwt-credentials-in-google-cloud-console)
-   - [2.2. Integrating JWT with HolySheets](#22-integrating-jwt-with-holysheets)
-   - [2.3. Inserting Data Example](#23-inserting-data-example)
-3. [References and Additional Resources](#references-and-additional-resources)
-4. [Examples Repository](#examples-repository)
-
----
-
-## OAuth2 Authentication
+# OAuth2 Authentication
 
 OAuth2 is a widely-used authentication protocol that allows your application to access user data securely. Follow the steps below to set up OAuth2 authentication with HolySheets.
 
-### 1.1. Configuring OAuth2 Credentials in Google Cloud Console
+## 1. Configuring OAuth2 Credentials in Google Cloud Console
 
 To enable HolySheets to access your Google Sheets securely, you need to configure OAuth2 credentials in the Google Cloud Console.
 
@@ -64,7 +44,7 @@ To enable HolySheets to access your Google Sheets securely, you need to configur
        ```
      - Click **"Update"** and then **"Save and Continue"**.
    - **Add Test Users:**
-     - In the **"Test users"** section, add your Google account email (e.g., `josetelesmaciel@gmail.com`).
+     - In the **"Test users"** section, add your Google account email (e.g., `youremail@emailprovider.com`).
      - Click **"Save and Continue"**.
    - **Finalize Configuration:**
      - Skip the optional sections and click **"Save and Continue"** until you finish.
@@ -84,7 +64,7 @@ To enable HolySheets to access your Google Sheets securely, you need to configur
      - After creation, a dialog will display your **Client ID** and **Client Secret**.
      - **Copy** these values securely; you'll need them for your project.
 
-### 1.2. Obtaining a Refresh Token
+## 2. Obtaining a Refresh Token
 
 A **refresh token** allows your application to obtain new access tokens without user intervention. Follow these steps to obtain a refresh token using the **OAuth 2.0 Playground**.
 
@@ -118,11 +98,11 @@ A **refresh token** allows your application to obtain new access tokens without 
    - You will receive an **Access Token** and a **Refresh Token**.
    - **Copy the Refresh Token** and keep it secure; you'll need it for your project.
 
-### 1.3. Integrating OAuth2 with HolySheets
+## 3. Integrating OAuth2 with HolySheets
 
 With your OAuth2 credentials and refresh token obtained, integrate OAuth2 authentication into your existing HolySheets project.
 
-#### 1.3.1. Initializing the OAuth2 Client
+### 3.1. Initializing the OAuth2 Client
 
 Create a file named `auth.ts` in your project's `src` directory to handle OAuth2 client initialization.
 
@@ -155,7 +135,7 @@ export function initializeOAuth2Client() {
 
 **Note**: Replace 'YOUR_CLIENT_ID_HERE', 'YOUR_CLIENT_SECRET_HERE', and 'YOUR_REFRESH_TOKEN_HERE' with your actual credentials obtained from the previous steps.
 
-#### 1.3.2. Integrating HolySheets with OAuth2
+### 3.2. Integrating HolySheets with OAuth2
 
 Create or update your index.ts file in the src directory to set up HolySheets with the OAuth2 client.
 
