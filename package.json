@@ -16,7 +16,7 @@
     "build": "tsup",
     "clean": "rm -rf dist",
     "test": "vitest",
-    "coverage": "vitest --coverage",
+    "test:ci": "vitest --coverage",
     "lint": "eslint . --ext .ts",
     "lint:fix": "eslint . --ext .ts --fix",
     "format": "prettier --write \"src/**/*.{ts,js,json,md}\"",

@@ -28,7 +28,7 @@ jobs:
         run: npm install
 
       - name: Test
-        run: npm test
+        run: npm test:ci
 
       - name: Run semantic-release
         env:
