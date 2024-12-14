@@ -11,10 +11,6 @@ export default defineConfig({
     sidebar: {
       '/en/': [
         {
-          text: '🇺🇸 English',
-          link: '/en'
-        },
-        {
           text: 'Introduction',
           link: '/en/introduction'
         },
@@ -74,80 +70,11 @@ export default defineConfig({
           text: 'Configuration',
           link: '/en/configuration'
         }
-      ],
-      '/pt-br/': [
-        { text: '🇧🇷 Português', link: '/pt-br/' },
-        {
-          text: 'Introdução',
-          link: '/pt-br/introducao'
-        },
-        {
-          text: 'Início Rápido',
-          link: '/pt-br/inicio-rapido'
-        },
-        {
-          text: 'Conceitos',
-          items: [
-            {
-              text: 'Fundamentos de Planilhas',
-              link: '/pt-br/conceitos/fundamentos-planilhas'
-            },
-            {
-              text: 'Consultando Dados',
-              link: '/pt-br/conceitos/consultando-dados'
-            },
-            {
-              text: 'Operações de Dados',
-              link: '/pt-br/conceitos/operacoes-dados'
-            },
-            { text: 'Filtros Where', link: '/pt-br/conceitos/filtros-where' }
-          ]
-        },
-        {
-          text: 'Guias',
-          items: [
-            { text: 'Inserindo Dados', link: '/pt-br/guias/inserindo-dados' },
-            {
-              text: 'Encontrando Dados',
-              link: '/pt-br/guias/encontrando-dados'
-            },
-            {
-              text: 'Atualizando Dados',
-              link: '/pt-br/guias/atualizando-dados'
-            },
-            { text: 'Deletando Dados', link: '/pt-br/guias/deletando-dados' },
-            { text: 'Limpando Dados', link: '/pt-br/guias/limpando-dados' }
-          ]
-        },
-        {
-          text: 'Exemplos',
-          items: [
-            {
-              text: 'Consultas Básicas',
-              link: '/pt-br/exemplos/consultas-basicas'
-            },
-            {
-              text: 'Consultas Avançadas',
-              link: '/pt-br/exemplos/consultas-avancadas'
-            }
-          ]
-        },
-        {
-          text: 'Referência',
-          items: [
-            { text: 'Autenticação', link: '/pt-br/referencia/autenticacao' },
-            { text: 'Operações', link: '/pt-br/referencia/operacoes' },
-            {
-              text: 'Tratamento de Erros',
-              link: '/pt-br/referencia/tratamento-erros'
-            }
-          ]
-        },
-        {
-          text: 'Configuração',
-          link: '/pt-br/configuracao'
-        }
       ]
+    },
+    editLink: {
+      pattern: 'https://github.com/holy-sheets/holysheets/edit/main/docs/:path',
+      text: 'Edit this page on GitHub'
     }
   }
 })
