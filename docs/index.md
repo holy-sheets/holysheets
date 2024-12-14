@@ -36,25 +36,3 @@ features:
     title: Simple and Intuitive
     details: Focus on your data without the complexity of managing A1 ranges, making data operations straightforward and efficient.
 ---
-
-<style>
-:root {
-  --vp-home-hero-name-background: -webkit-linear-gradient(120deg, #34A853 30%, #0F9D58);
-  --vp-home-hero-image-background-image: linear-gradient(-45deg, #34A853 50%, #0F9D58 50%);
-  --vp-home-hero-image-filter: blur(44px);
-  --vp-home-hero-name-color: #11c111;
-  --vp-button-brand-bg: #11c111;
-}
-
-@media (min-width: 640px) {
-  :root {
-    --vp-home-hero-image-filter: blur(56px);
-  }
-}
-
-@media (min-width: 960px) {
-  :root {
-    --vp-home-hero-image-filter: blur(68px);
-  }
-}
-</style>
