@@ -32,6 +32,20 @@ export default defineConfig({
           ]
         },
         {
+          text: 'Authentication',
+          link: '/en/authentication/authentication',
+          items: [
+            {
+              text: 'OAuth2',
+              link: '/en/authentication/oauth2'
+            },
+            {
+              text: 'JWT',
+              link: '/en/authentication/jwt'
+            }
+          ]
+        },
+        {
           text: 'Guides',
           items: [
             { text: 'Inserting Data', link: '/en/guides/inserting-data' },
