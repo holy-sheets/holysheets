@@ -60,3 +60,8 @@ jobs:
           git add .
           git commit -m "docs: update site from main repo" || echo "No changes to commit"
           git push origin main  # Push to the main branch
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
