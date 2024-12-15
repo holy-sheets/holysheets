@@ -2,6 +2,23 @@
 
 **Where filters** allow refining queries and retrieving specific subsets of data based on certain conditions. **HolySheets** supports a variety of filters, enabling precise data manipulation and retrieval.
 
+## Supported Where Filters Table
+
+| **Filter Type** | **Description**                            | **Example Usage**                            |
+| --------------- | ------------------------------------------ | -------------------------------------------- |
+| `equals`        | Exact match                                | `{ status: { equals: 'active' } }`           |
+| `not`           | Not equal                                  | `{ role: { not: 'admin' } }`                 |
+| `in`            | Value is in a list of values               | `{ status: { in: ['pending', 'shipped'] } }` |
+| `notIn`         | Value is not in a list of values           | `{ category: { notIn: ['Electronics'] } }`   |
+| `lt`            | Less than a specified value                | `{ amount: { lt: 1000 } }`                   |
+| `lte`           | Less than or equal to a specified value    | `{ attendees: { lte: 50 } }`                 |
+| `gt`            | Greater than a specified value             | `{ experience: { gt: 5 } }`                  |
+| `gte`           | Greater than or equal to a specified value | `{ budget: { gte: 50000 } }`                 |
+| `contains`      | Contains a specified substring             | `{ title: { contains: 'HolySheets' } }`      |
+| `startsWith`    | Starts with a specified substring          | `{ username: { startsWith: 'admin' } }`      |
+| `endsWith`      | Ends with a specified substring            | `{ email: { endsWith: '@example.com' } }`    |
+| `search`        | Matches a regular expression pattern       | `{ name: { search: '^Pro.*' } }`             |
+
 ## equals
 
 Filters records where the specified field exactly matches the provided value.
@@ -326,23 +343,6 @@ Retrieves all products whose `name` starts with `'Pro'` (e.g., `'Projector'`, `'
   { "Product ID": 1002, "Name": "Processor Pro" }
 ]
 ```
-
-## Supported Where Filters Table
-
-| **Filter Type** | **Description**                            | **Example Usage**                            |
-| --------------- | ------------------------------------------ | -------------------------------------------- |
-| `equals`        | Exact match                                | `{ status: { equals: 'active' } }`           |
-| `not`           | Not equal                                  | `{ role: { not: 'admin' } }`                 |
-| `in`            | Value is in a list of values               | `{ status: { in: ['pending', 'shipped'] } }` |
-| `notIn`         | Value is not in a list of values           | `{ category: { notIn: ['Electronics'] } }`   |
-| `lt`            | Less than a specified value                | `{ amount: { lt: 1000 } }`                   |
-| `lte`           | Less than or equal to a specified value    | `{ attendees: { lte: 50 } }`                 |
-| `gt`            | Greater than a specified value             | `{ experience: { gt: 5 } }`                  |
-| `gte`           | Greater than or equal to a specified value | `{ budget: { gte: 50000 } }`                 |
-| `contains`      | Contains a specified substring             | `{ title: { contains: 'HolySheets' } }`      |
-| `startsWith`    | Starts with a specified substring          | `{ username: { startsWith: 'admin' } }`      |
-| `endsWith`      | Ends with a specified substring            | `{ email: { endsWith: '@example.com' } }`    |
-| `search`        | Matches a regular expression pattern       | `{ name: { search: '^Pro.*' } }`             |
 
 ## Best Practices
 
