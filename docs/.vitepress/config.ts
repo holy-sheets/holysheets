@@ -61,7 +61,6 @@ export default defineConfig({
         {
           text: 'Reference',
           items: [
-            { text: 'Authentication', link: '/en/reference/authentication' },
             { text: 'Error Handling', link: '/en/reference/error-handling' },
             { text: 'Operations', link: '/en/reference/operations' }
           ]
@@ -69,6 +68,10 @@ export default defineConfig({
         {
           text: 'Configuration',
           link: '/en/configuration'
+        },
+        {
+          text: 'Changelog',
+          link: '/en/changelog'
         }
       ]
     },
