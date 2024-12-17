@@ -22,3 +22,5 @@ docs/.vitepress/cache/
 docs/.vitepress/cache/deps/_metadata.json
 docs/.vitepress/cache/deps/_metadata.json
 docs/.vitepress/cache/deps/@theme_index.js.map
+.early.coverage
+examples/
