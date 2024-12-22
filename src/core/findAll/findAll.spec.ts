@@ -549,95 +549,92 @@ describe('findAll', () => {
     })
   })
 
-  it.todo(
-    'should return empty objects when all fields are omitted via select',
-    async () => {
-      // Arrange
-      const spreadsheetId = 'test-spreadsheet-id'
-      const sheetName = 'Sheet1'
-      const select = { id: false, name: false, email: false }
-      const headers: SheetHeaders[] = [
-        { name: 'id', column: 'A', index: 0 },
-        { name: 'name', column: 'B', index: 1 },
-        { name: 'email', column: 'C', index: 2 }
-      ]
+  it('should return empty objects when all fields are omitted via select', async () => {
+    // Arrange
+    const spreadsheetId = 'test-spreadsheet-id'
+    const sheetName = 'Sheet1'
+    const select = { id: false, name: false, email: false }
+    const headers: SheetHeaders[] = [
+      { name: 'id', column: 'A', index: 0 },
+      { name: 'name', column: 'B', index: 1 },
+      { name: 'email', column: 'C', index: 2 }
+    ]
 
-      const allValues: CellValue[][] = [
-        ['1', 'John Doe', 'john@example.com'],
-        ['2', 'Jane Smith', 'jane@example.com']
-      ]
+    const allValues: CellValue[][] = [
+      ['1', 'John Doe', 'john@example.com'],
+      ['2', 'Jane Smith', 'jane@example.com']
+    ]
 
-      // Mock the getHeaders function to return headers
-      ;(getHeaders as any).mockResolvedValue(headers)
-      const selectedHeaders = headers.filter(header =>
-        select ? select[header.name] : true
-      )
+    // Mock the getHeaders function to return headers
+    ;(getHeaders as any).mockResolvedValue(headers)
 
-      // Mock the sheets.getValues function to return allValues
-      mockGetValues.mockResolvedValue(allValues)
-      ;(combine as ReturnType<typeof vi.fn>).mockImplementation(
-        (data, headers) => {
-          return headers.reduce((acc: RecordType, header) => {
-            const headerByIndex = headers.find(h => h.index === header.index)
-            const key = headerByIndex?.name as keyof RecordType
-            acc[key] = data[header.index] as RecordType[keyof RecordType]
-            return acc
-          }, {} as RecordType)
-        }
-      )
-      // Act
-      const result = await findAll<RecordType>(
-        {
-          spreadsheetId,
-          sheets: mockSheetsService,
-          sheet: sheetName
-        },
-        {
-          select
-        },
-        {
-          includeMetadata: true
-        }
-      )
+    // Mock the sheets.getValues function to return allValues
+    mockGetValues.mockResolvedValue(allValues)
 
-      // Assert
-      expect(getHeaders).toHaveBeenCalledWith({
-        sheet: sheetName,
+    // Mock the combine function to handle empty headers
+    ;(combine as ReturnType<typeof vi.fn>).mockImplementation(
+      (data, headers) => {
+        return headers.reduce((acc: RecordType, header) => {
+          const headerByIndex = headers.find(h => h.index === header.index)
+          const key = headerByIndex?.name as keyof RecordType
+          acc[key] = data[header.index] as RecordType[keyof RecordType]
+          return acc
+        }, {} as RecordType)
+      }
+    )
+
+    // Act
+    const result = await findAll<RecordType>(
+      {
+        spreadsheetId,
         sheets: mockSheetsService,
-        spreadsheetId
-      })
+        sheet: sheetName
+      },
+      {
+        select
+      },
+      {
+        includeMetadata: true
+      }
+    )
 
-      expect(mockGetValues).toHaveBeenCalledWith(`${sheetName}!A2:C`)
+    // Assert
+    expect(getHeaders).toHaveBeenCalledWith({
+      sheet: sheetName,
+      sheets: mockSheetsService,
+      spreadsheetId
+    })
 
-      expect(combine).toHaveBeenCalledTimes(2)
-      expect(combine).toHaveBeenNthCalledWith(
-        1,
-        ['1', 'John Doe', 'john@example.com'],
-        headers
-      )
-      expect(combine).toHaveBeenNthCalledWith(
-        2,
-        ['2', 'Jane Smith', 'jane@example.com'],
-        headers
-      )
+    expect(mockGetValues).toHaveBeenCalledWith(`${sheetName}!A2:C`)
 
-      expect(result).toEqual({
-        data: [
-          {}, // All fields omitted
-          {}
-        ],
-        rows: [2, 3],
+    expect(combine).toHaveBeenCalledTimes(2)
+    expect(combine).toHaveBeenNthCalledWith(
+      1,
+      ['1', 'John Doe', 'john@example.com'],
+      []
+    )
+    expect(combine).toHaveBeenNthCalledWith(
+      2,
+      ['2', 'Jane Smith', 'jane@example.com'],
+      []
+    )
+
+    expect(result).toEqual({
+      data: [
+        {}, // All fields omitted
+        {}
+      ],
+      rows: [2, 3],
+      ranges: [`${sheetName}!A2:C`],
+      metadata: {
+        operationType: 'find',
+        spreadsheetId,
+        sheetId: sheetName,
         ranges: [`${sheetName}!A2:C`],
-        metadata: {
-          operationType: 'find',
-          spreadsheetId,
-          sheetId: sheetName,
-          ranges: [`${sheetName}!A2:C`],
-          recordsAffected: 2,
-          status: 'success',
-          duration: 100
-        }
-      })
-    }
-  )
+        recordsAffected: 2,
+        status: 'success',
+        duration: 100
+      }
+    })
+  })
 })
