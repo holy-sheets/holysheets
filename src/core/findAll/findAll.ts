@@ -6,6 +6,7 @@ import {
 } from '@/services/metadata/IMetadataService'
 import { MetadataService } from '@/services/metadata/MetadataService'
 import { CellValue } from '@/types/cellValue'
+import { SheetHeaders } from '@/types/headers'
 import { OperationConfigs } from '@/types/operationConfigs'
 import { SelectClause } from '@/types/select'
 import { combine } from '@/utils/dataUtils/dataUtils'
@@ -75,7 +76,7 @@ export async function findAll<RecordType extends Record<string, CellValue>>(
         select ? select[header.name] : true
       )
       const data = combine<RecordType>(
-        row.filter(value => value !== null) as string[],
+        row ? (row.filter(value => value !== null) as string[]) : [],
         selectedHeaders
       )
       return data

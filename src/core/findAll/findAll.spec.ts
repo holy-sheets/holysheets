@@ -6,6 +6,7 @@ import { getHeaders } from '../../utils/headers/headers'
 import { combine } from '../../utils/dataUtils/dataUtils'
 import { ErrorCode, ErrorMessages } from '../../services/errors/errorMessages'
 import { CellValue } from '../../types/cellValue'
+import { SheetHeaders } from '../../types/headers'
 
 // Define a RecordType for the tests
 type RecordType = {
@@ -45,12 +46,13 @@ vi.mock('../../utils/headers/headers', () => {
 // Mock the combine function
 vi.mock('../../utils/dataUtils/dataUtils', () => {
   return {
-    combine: vi.fn((row, headers) => {
-      const combined: Record<string, any> = {}
-      headers.forEach((header, index) => {
-        combined[header.name] = row[index] || null
+    combine: vi.fn((data, headers) => {
+      return headers.reduce((acc, header) => {
+        const headerByIndex = headers.find(h => h.index === header.index)
+        const key = headerByIndex?.name
+        acc[key] = data[header.index]
+        return acc
       })
-      return combined
     })
   }
 })
@@ -103,12 +105,12 @@ describe('findAll', () => {
     // Arrange
     const spreadsheetId = 'test-spreadsheet-id'
     const sheetName = 'Sheet1'
-    const headers = [
-      { name: 'id', column: 'A' },
-      { name: 'name', column: 'B' },
-      { name: 'email', column: 'C' }
+    const headers: SheetHeaders[] = [
+      { name: 'id', column: 'A', index: 0 },
+      { name: 'name', column: 'B', index: 1 },
+      { name: 'email', column: 'C', index: 2 }
     ]
-
+    // const values = [['Alice'], ['Bob'], ['Alice']]
     const allValues: CellValue[][] = [
       ['1', 'John Doe', 'john@example.com'],
       ['2', 'Jane Smith', 'jane@example.com']
@@ -119,7 +121,15 @@ describe('findAll', () => {
 
     // Mock the sheets.getValues function to return allValues
     mockGetValues.mockResolvedValue(allValues)
-
+    ;(combine as ReturnType<typeof vi.fn>).mockImplementation(
+      (values, headers) => {
+        const record: Record<string, any> = {}
+        headers.forEach((header: { name: string }, index: number) => {
+          record[header.name] = values[index]
+        })
+        return record
+      }
+    )
     // Act
     const result = await findAll<RecordType>(
       {
@@ -141,7 +151,6 @@ describe('findAll', () => {
     })
 
     expect(mockGetValues).toHaveBeenCalledWith(`${sheetName}!A2:C`)
-
     expect(combine).toHaveBeenCalledTimes(2)
     expect(combine).toHaveBeenNthCalledWith(
       1,
@@ -153,7 +162,7 @@ describe('findAll', () => {
       ['2', 'Jane Smith', 'jane@example.com'],
       headers
     )
-    console.log({ result })
+    expect(true).toBe(true)
     expect(result).toEqual({
       data: [
         { id: '1', name: 'John Doe', email: 'john@example.com' },
@@ -173,95 +182,91 @@ describe('findAll', () => {
     })
   })
 
-  it.todo(
-    'should retrieve selected fields when selection options are provided',
-    async () => {
-      // Arrange
-      const spreadsheetId = 'test-spreadsheet-id'
-      const sheetName = 'Sheet1'
-      const headers = [
-        { name: 'id', column: 'A' },
-        { name: 'name', column: 'B' },
-        { name: 'email', column: 'C' }
-      ]
-
-      const allValues: CellValue[][] = [
-        ['1', 'John Doe', 'john@example.com'],
-        ['2', 'Jane Smith', 'jane@example.com']
-      ]
-
-      const select = { name: true, email: true }
-
-      // Mock the getHeaders function to return headers
-      ;(getHeaders as any).mockResolvedValue(headers)
-
-      // Mock the sheets.getValues function to return allValues
-      mockGetValues.mockResolvedValue(allValues)
-
-      // Act
-      const result = await findAll<RecordType>(
-        {
-          spreadsheetId,
-          sheets: mockSheetsService,
-          sheet: sheetName
-        },
-        {
-          select
-        },
-        {
-          includeMetadata: true
-        }
-      )
-
-      // Assert
-      expect(getHeaders).toHaveBeenCalledWith({
-        sheet: sheetName,
-        sheets: mockSheetsService,
-        spreadsheetId
-      })
-
-      expect(mockGetValues).toHaveBeenCalledWith(`${sheetName}!A2:C`)
-
-      expect(combine).toHaveBeenCalledTimes(2)
-      expect(combine).toHaveBeenNthCalledWith(
-        1,
-        ['1', 'John Doe', 'john@example.com'],
-        headers
-      )
-      expect(combine).toHaveBeenNthCalledWith(
-        2,
-        ['2', 'Jane Smith', 'jane@example.com'],
-        headers
-      )
-
-      expect(result).toEqual({
-        data: [
-          { name: 'John Doe', email: 'john@example.com' },
-          { name: 'Jane Smith', email: 'jane@example.com' }
-        ],
-        rows: [2, 3],
-        ranges: [`${sheetName}!A2:C`],
-        metadata: {
-          operationType: 'find',
-          spreadsheetId,
-          sheetId: sheetName,
-          ranges: [`${sheetName}!A2:C`],
-          recordsAffected: 2,
-          status: 'success',
-          duration: 100
-        }
-      })
-    }
-  )
-
-  it.todo('should include metadata when includeMetadata is true', async () => {
+  it('should retrieve selected fields when selection options are provided', async () => {
     // Arrange
     const spreadsheetId = 'test-spreadsheet-id'
     const sheetName = 'Sheet1'
-    const headers = [
-      { name: 'id', column: 'A' },
-      { name: 'name', column: 'B' },
-      { name: 'email', column: 'C' }
+    const headers: SheetHeaders[] = [
+      { name: 'id', column: 'A', index: 0 },
+      { name: 'name', column: 'B', index: 1 },
+      { name: 'email', column: 'C', index: 2 }
+    ]
+
+    const allValues: CellValue[][] = [
+      ['1', 'John Doe', 'john@example.com'],
+      ['2', 'Jane Smith', 'jane@example.com']
+    ]
+
+    const select = { name: true, email: true }
+
+    // Mock the getHeaders function to return headers
+    ;(getHeaders as any).mockResolvedValue(headers)
+
+    // Mock the sheets.getValues function to return allValues
+    mockGetValues.mockResolvedValue(allValues)
+    ;(combine as ReturnType<typeof vi.fn>).mockImplementation(
+      (data, headers) => {
+        return headers.reduce((acc: RecordType, header) => {
+          const headerByIndex = headers.find(h => h.index === header.index)
+          const key = headerByIndex?.name as keyof RecordType
+          acc[key] = data[header.index] as RecordType[keyof RecordType]
+          return acc
+        }, {} as RecordType)
+      }
+    )
+    // Act
+    const result = await findAll<RecordType>(
+      {
+        spreadsheetId,
+        sheets: mockSheetsService,
+        sheet: sheetName
+      },
+      {
+        select
+      },
+      {
+        includeMetadata: true
+      }
+    )
+
+    // Assert
+    expect(getHeaders).toHaveBeenCalledWith({
+      sheet: sheetName,
+      sheets: mockSheetsService,
+      spreadsheetId
+    })
+
+    expect(mockGetValues).toHaveBeenCalledWith(`${sheetName}!A2:C`)
+
+    expect(combine).toHaveBeenCalledTimes(2)
+
+    expect(result).toEqual({
+      data: [
+        { name: 'John Doe', email: 'john@example.com' },
+        { name: 'Jane Smith', email: 'jane@example.com' }
+      ],
+      rows: [2, 3],
+      ranges: [`${sheetName}!A2:C`],
+      metadata: {
+        operationType: 'find',
+        spreadsheetId,
+        sheetId: sheetName,
+        ranges: [`${sheetName}!A2:C`],
+        recordsAffected: 2,
+        status: 'success',
+        duration: 100
+      }
+    })
+  })
+
+  it('should include metadata when includeMetadata is true', async () => {
+    // Arrange
+    const spreadsheetId = 'test-spreadsheet-id'
+    const sheetName = 'Sheet1'
+    const headers: SheetHeaders[] = [
+      { name: 'id', column: 'A', index: 0 },
+      { name: 'name', column: 'B', index: 1 },
+      { name: 'email', column: 'C', index: 2 }
     ]
 
     const allValues: CellValue[][] = [['1', 'John Doe', 'john@example.com']]
@@ -271,7 +276,16 @@ describe('findAll', () => {
 
     // Mock the sheets.getValues function to return allValues
     mockGetValues.mockResolvedValue(allValues)
-
+    ;(combine as ReturnType<typeof vi.fn>).mockImplementation(
+      (data, headers) => {
+        return headers.reduce((acc: RecordType, header) => {
+          const headerByIndex = headers.find(h => h.index === header.index)
+          const key = headerByIndex?.name as keyof RecordType
+          acc[key] = data[header.index] as RecordType[keyof RecordType]
+          return acc
+        }, {} as RecordType)
+      }
+    )
     // Act
     const result = await findAll<RecordType>(
       {
@@ -541,10 +555,11 @@ describe('findAll', () => {
       // Arrange
       const spreadsheetId = 'test-spreadsheet-id'
       const sheetName = 'Sheet1'
-      const headers = [
-        { name: 'id', column: 'A' },
-        { name: 'name', column: 'B' },
-        { name: 'email', column: 'C' }
+      const select = { id: false, name: false, email: false }
+      const headers: SheetHeaders[] = [
+        { name: 'id', column: 'A', index: 0 },
+        { name: 'name', column: 'B', index: 1 },
+        { name: 'email', column: 'C', index: 2 }
       ]
 
       const allValues: CellValue[][] = [
@@ -552,14 +567,24 @@ describe('findAll', () => {
         ['2', 'Jane Smith', 'jane@example.com']
       ]
 
-      const select = { id: false, name: false, email: false }
-
       // Mock the getHeaders function to return headers
       ;(getHeaders as any).mockResolvedValue(headers)
+      const selectedHeaders = headers.filter(header =>
+        select ? select[header.name] : true
+      )
 
       // Mock the sheets.getValues function to return allValues
       mockGetValues.mockResolvedValue(allValues)
-
+      ;(combine as ReturnType<typeof vi.fn>).mockImplementation(
+        (data, headers) => {
+          return headers.reduce((acc: RecordType, header) => {
+            const headerByIndex = headers.find(h => h.index === header.index)
+            const key = headerByIndex?.name as keyof RecordType
+            acc[key] = data[header.index] as RecordType[keyof RecordType]
+            return acc
+          }, {} as RecordType)
+        }
+      )
       // Act
       const result = await findAll<RecordType>(
         {
