@@ -6,7 +6,6 @@ import {
 } from '@/services/metadata/IMetadataService'
 import { MetadataService } from '@/services/metadata/MetadataService'
 import { CellValue } from '@/types/cellValue'
-import { SheetHeaders } from '@/types/headers'
 import { OperationConfigs } from '@/types/operationConfigs'
 import { SelectClause } from '@/types/select'
 import { combine } from '@/utils/dataUtils/dataUtils'
@@ -22,6 +21,7 @@ import { getHeaders } from '@/utils/headers/headers'
  * @param params.sheet - The name of the sheet.
  * @param options - The options for the getAllRecords operation.
  * @param options.select - The select clause to specify fields to return.
+ * @param options.includeEmptyRows - Whether to include empty rows in the result.
  * @param configs - Optional configurations for the operation.
  * @returns A batch operation result containing all records and metadata.
  *
@@ -32,7 +32,8 @@ import { getHeaders } from '@/utils/headers/headers'
  *   sheets: googleSheetsServiceInstance,
  *   sheet: 'Sheet1'
  * }, {
- *   select: { name: true, email: true }
+ *   select: { name: true, email: true },
+ *   includeEmptyRows: false
  * }, {
  *   includeMetadata: true
  * });
