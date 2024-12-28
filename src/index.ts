@@ -117,6 +117,7 @@ export default class HolySheets<RecordType extends Record<string, any> = any> {
   public async findAll(
     options?: {
       select?: SelectClause<RecordType>
+      includeEmptyRows?: boolean
     },
     configs?: OperationConfigs
   ): Promise<SanitizedBatchOperationResult<RecordType>> {
