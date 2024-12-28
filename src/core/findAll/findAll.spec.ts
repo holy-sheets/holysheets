@@ -637,4 +637,198 @@ describe('findAll', () => {
       }
     })
   })
+  it('should not include empty rows from the result', async () => {
+    // Arrange
+    const spreadsheetId = 'test-spreadsheet-id'
+    const sheetName = 'Sheet1'
+    const headers: SheetHeaders[] = [
+      { name: 'id', column: 'A', index: 0 },
+      { name: 'name', column: 'B', index: 1 },
+      { name: 'email', column: 'C', index: 2 }
+    ]
+
+    // Simulating data with an empty row in the middle
+    const allValues: CellValue[][] = [
+      ['1', 'John Doe', 'john@example.com'],
+      ['2', 'Jane Smith', 'jane@example.com'],
+      [], // Linha vazia
+      ['3', 'Alice Johnson', 'alice@example.com']
+    ]
+
+    ;(getHeaders as any).mockResolvedValue(headers)
+
+    mockGetValues.mockResolvedValue(allValues)
+    ;(combine as ReturnType<typeof vi.fn>).mockImplementation(
+      (data, headers) => {
+        if (headers.length === 0) {
+          return {}
+        }
+        return headers.reduce((acc: RecordType, header) => {
+          const key = header.name as keyof RecordType
+          acc[key] = data[header.index] as RecordType[keyof RecordType]
+          return acc
+        }, {} as RecordType)
+      }
+    )
+
+    // Act
+    const result = await findAll<RecordType>(
+      {
+        spreadsheetId,
+        sheets: mockSheetsService,
+        sheet: sheetName
+      },
+      {},
+      {
+        includeMetadata: true
+      }
+    )
+
+    // Assert
+    expect(getHeaders).toHaveBeenCalledWith({
+      sheet: sheetName,
+      sheets: mockSheetsService,
+      spreadsheetId
+    })
+
+    expect(mockGetValues).toHaveBeenCalledWith(`${sheetName}!A2:C`)
+
+    expect(combine).toHaveBeenCalledTimes(3) // Total lines excluding the empty one
+
+    // Verify combine function calls
+    expect(combine).toHaveBeenNthCalledWith(
+      1,
+      ['1', 'John Doe', 'john@example.com'],
+      headers
+    )
+    expect(combine).toHaveBeenNthCalledWith(
+      2,
+      ['2', 'Jane Smith', 'jane@example.com'],
+      headers
+    )
+    expect(combine).toHaveBeenNthCalledWith(
+      3,
+      ['3', 'Alice Johnson', 'alice@example.com'],
+      headers
+    )
+
+    // Result should not contain the empty row
+    expect(result).toEqual({
+      data: [
+        { id: '1', name: 'John Doe', email: 'john@example.com' },
+        { id: '2', name: 'Jane Smith', email: 'jane@example.com' },
+        { id: '3', name: 'Alice Johnson', email: 'alice@example.com' }
+      ],
+      rows: [2, 3, 5], // Considering that the empty row is 4
+      ranges: [`${sheetName}!A2:C`],
+      metadata: {
+        operationType: 'find',
+        spreadsheetId,
+        sheetId: sheetName,
+        ranges: [`${sheetName}!A2:C`],
+        recordsAffected: 3, // Excluding the empty row
+        status: 'success',
+        duration: 100
+      }
+    })
+  })
+
+  it('should include empty rows when includeEmptyRows is true from the result', async () => {
+    // Arrange
+    const spreadsheetId = 'test-spreadsheet-id'
+    const sheetName = 'Sheet1'
+    const headers: SheetHeaders[] = [
+      { name: 'id', column: 'A', index: 0 },
+      { name: 'name', column: 'B', index: 1 },
+      { name: 'email', column: 'C', index: 2 }
+    ]
+
+    const allValues: CellValue[][] = [
+      ['1', 'John Doe', 'john@example.com'],
+      ['2', 'Jane Smith', 'jane@example.com'],
+      [], // Empty row
+      ['3', 'Alice Johnson', 'alice@example.com']
+    ]
+
+    ;(getHeaders as any).mockResolvedValue(headers)
+
+    mockGetValues.mockResolvedValue(allValues)
+    ;(combine as ReturnType<typeof vi.fn>).mockImplementation(
+      (data, headers) => {
+        if (headers.length === 0) {
+          return {}
+        }
+        return headers.reduce((acc: RecordType, header) => {
+          const key = header.name as keyof RecordType
+          acc[key] = data[header.index] as RecordType[keyof RecordType]
+          return acc
+        }, {} as RecordType)
+      }
+    )
+
+    // Act
+    const result = await findAll<RecordType>(
+      {
+        spreadsheetId,
+        sheets: mockSheetsService,
+        sheet: sheetName
+      },
+      {
+        includeEmptyRows: true
+      },
+      {
+        includeMetadata: true
+      }
+    )
+
+    // Assert
+    expect(getHeaders).toHaveBeenCalledWith({
+      sheet: sheetName,
+      sheets: mockSheetsService,
+      spreadsheetId
+    })
+
+    expect(mockGetValues).toHaveBeenCalledWith(`${sheetName}!A2:C`)
+
+    expect(combine).toHaveBeenCalledTimes(4) // Total lines including the empty one
+
+    // Verify combine function calls
+    expect(combine).toHaveBeenNthCalledWith(
+      1,
+      ['1', 'John Doe', 'john@example.com'],
+      headers
+    )
+    expect(combine).toHaveBeenNthCalledWith(
+      2,
+      ['2', 'Jane Smith', 'jane@example.com'],
+      headers
+    )
+    expect(combine).toHaveBeenNthCalledWith(3, [], headers)
+    expect(combine).toHaveBeenNthCalledWith(
+      4,
+      ['3', 'Alice Johnson', 'alice@example.com'],
+      headers
+    )
+
+    // Result should contain all rows, including the empty one
+    expect(result).toEqual({
+      data: [
+        { id: '1', name: 'John Doe', email: 'john@example.com' },
+        { id: '2', name: 'Jane Smith', email: 'jane@example.com' },
+        { id: undefined, name: undefined, email: undefined },
+        { id: '3', name: 'Alice Johnson', email: 'alice@example.com' }
+      ],
+      rows: [2, 3, 5], // Considering that the empty row is 4
+      ranges: [`${sheetName}!A2:C`],
+      metadata: {
+        operationType: 'find',
+        spreadsheetId,
+        sheetId: sheetName,
+        ranges: [`${sheetName}!A2:C`],
+        recordsAffected: 4,
+        status: 'success',
+        duration: 100
+      }
+    })
+  })
 })

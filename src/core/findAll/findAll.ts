@@ -46,11 +46,12 @@ export async function findAll<RecordType extends Record<string, CellValue>>(
   },
   options?: {
     select?: SelectClause<RecordType>
+    includeEmptyRows?: boolean
   },
   configs?: OperationConfigs
 ): Promise<BatchOperationResult<RecordType>> {
   const { spreadsheetId, sheets, sheet } = params
-  const { select } = options || {}
+  const { select, includeEmptyRows = false } = options || {}
   const { includeMetadata = false } = configs ?? {}
   const metadataService: IMetadataService = new MetadataService()
   const startTime = Date.now()
@@ -69,9 +70,11 @@ export async function findAll<RecordType extends Record<string, CellValue>>(
 
     // Get all values within the range
     const allValues: CellValue[][] = await sheets.getValues(range)
+    const allNonEmptyValues = allValues.filter(row => row.length > 0)
+    const valuesToCombine = includeEmptyRows ? allValues : allNonEmptyValues
 
     // Combine values with selected headers
-    const resultData: RecordType[] = allValues.map(row => {
+    const resultData: RecordType[] = valuesToCombine.map(row => {
       const selectedHeaders = headers.filter(header =>
         select ? select[header.name] : true
       )
@@ -89,7 +92,7 @@ export async function findAll<RecordType extends Record<string, CellValue>>(
           spreadsheetId,
           sheetId: sheet,
           ranges: [range],
-          recordsAffected: resultData.length,
+          recordsAffected: valuesToCombine.length,
           status: 'success',
           duration
         })
@@ -97,7 +100,12 @@ export async function findAll<RecordType extends Record<string, CellValue>>(
 
     return {
       data: resultData,
-      rows: allValues.map((_, index) => index + 2), // Rows start at 2
+      rows: allValues.reduce((acc: number[], item, index) => {
+        if (item.length > 0) {
+          acc.push(index + 2) // Rows start at 2
+        }
+        return acc
+      }, []),
       ranges: [range],
       metadata
     }
