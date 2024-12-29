@@ -1,5 +1,3 @@
-**deleting-data.md**
-
 # Deleting Data
 
 HolySheets! provides methods to remove existing data from your Google Sheets. Depending on your needs, you can delete a single matching record or multiple matching records at once.
