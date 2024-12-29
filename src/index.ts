@@ -2,6 +2,7 @@ import { HolySheetsCredentials } from '@/types/credentials'
 import { insert } from '@/core/insert/insert'
 import { findFirst } from '@/core/findFirst/findFirst'
 import { findMany } from '@/core/findMany/findMany'
+import { findAll } from '@/core/findAll/findAll'
 import { updateFirst } from '@/core/updateFirst/updateFirst'
 import { updateMany } from '@/core/updateMany/updateMany'
 import { clearFirst } from '@/core/clearFirst/clearFirst'
@@ -102,6 +103,25 @@ export default class HolySheets<RecordType extends Record<string, any> = any> {
     configs?: OperationConfigs
   ): Promise<SanitizedBatchOperationResult<RecordType>> {
     const result = await findMany<RecordType>(
+      {
+        spreadsheetId: this.spreadsheetId,
+        sheets: this.sheets,
+        sheet: this.sheet
+      },
+      options,
+      configs
+    )
+    return sanitizeBatchOperationResult(result)
+  }
+
+  public async findAll(
+    options?: {
+      select?: SelectClause<RecordType>
+      includeEmptyRows?: boolean
+    },
+    configs?: OperationConfigs
+  ): Promise<SanitizedBatchOperationResult<RecordType>> {
+    const result = await findAll<RecordType>(
       {
         spreadsheetId: this.spreadsheetId,
         sheets: this.sheets,

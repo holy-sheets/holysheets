@@ -1,5 +1,3 @@
-// updateFirst.ts
-
 import { IGoogleSheetsService } from '@/services/google-sheets/IGoogleSheetsService'
 import { WhereClause } from '@/types/where'
 import { findFirst } from '@/core/findFirst/findFirst'
