@@ -1,3 +1,17 @@
+# [2.1.0](https://github.com/holy-sheets/holysheets/compare/v2.0.0...v2.1.0) (2024-12-29)
+
+
+### Bug Fixes
+
+* update findAll function to handle headers and data more robustly ([3581c28](https://github.com/holy-sheets/holysheets/commit/3581c283778b7959b54dfee069c07fc315b710e7))
+
+
+### Features
+
+* add findAll function to retrieve all records from a specified sheet [#12](https://github.com/holy-sheets/holysheets/issues/12) ([759a974](https://github.com/holy-sheets/holysheets/commit/759a974818bc018c917e91e2ec8d1fa9bf9b7d93))
+* add includeEmptyRows option to findAll function ([29bfec3](https://github.com/holy-sheets/holysheets/commit/29bfec32666df5142536bec9bc7c065eedcd4ce8))
+* enhance findAll function to optionally include empty rows in results [#12](https://github.com/holy-sheets/holysheets/issues/12) ([2c21398](https://github.com/holy-sheets/holysheets/commit/2c213987844849125f2d6bb89856b460cfefe7a2))
+
 # [2.0.0](https://github.com/holy-sheets/holy-sheets/compare/v1.1.0...v2.0.0) (2024-12-08)
 
 ## Breaking Changes
