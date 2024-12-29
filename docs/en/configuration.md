@@ -16,7 +16,7 @@ pnpm install holysheets
 
    - Create a **Google Cloud project** and enable the _Google Sheets API_.
    - Generate the appropriate **credentials** (JWT or OAuth2) with permission to access the intended spreadsheet.
-   - For more information about authentication check [JWT](/en/authentication/jwt) and [OAuth](/en/authentication/oauth)
+   - For more information about authentication check [JWT](/en/authentication/jwt) and [OAuth2](/en/authentication/oauth2)
 
 3. **Initialize HolySheets**
 
