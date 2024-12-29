@@ -2,7 +2,7 @@
 
 HolySheets provides a set of CRUD-like operations:
 
-- **findFirst**, **findMany**: Query rows.
+- **findFirst**, **findMany**, **findAll**: Query rows.
 - **insert**: Insert new records.
 - **updateFirst**, **updateMany**: Update existing rows.
 - **deleteFirst**, **deleteMany**: Delete records.
