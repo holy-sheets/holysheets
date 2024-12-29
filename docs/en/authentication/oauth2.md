@@ -1,15 +1,15 @@
 ---
 title: Authentication
-description: Comprehensive guide to setting up OAuth2 and JWT authentication with HolySheets.
+description: Comprehensive guide to setting up OAuth2 and JWT authentication with HolySheets!.
 ---
 
 # OAuth2 Authentication
 
-OAuth2 is a widely-used authentication protocol that allows your application to access user data securely. Follow the steps below to set up OAuth2 authentication with HolySheets.
+OAuth2 is a widely-used authentication protocol that allows your application to access user data securely. Follow the steps below to set up OAuth2 authentication with HolySheets!.
 
 ## 1. Configuring OAuth2 Credentials in Google Cloud Console
 
-To enable HolySheets to access your Google Sheets securely, you need to configure OAuth2 credentials in the Google Cloud Console.
+To enable HolySheets! to access your Google Sheets securely, you need to configure OAuth2 credentials in the Google Cloud Console.
 
 1. **Access Google Cloud Console:**
 
@@ -32,7 +32,7 @@ To enable HolySheets to access your Google Sheets securely, you need to configur
    - In the left sidebar, navigate to **"APIs & Services" > "OAuth consent screen"**.
    - Choose **"External"** and click **"Create"**.
    - Fill in the required details:
-     - **App Name:** e.g., `HolySheets Documentation`.
+     - **App Name:** e.g., `HolySheets! Documentation`.
      - **User Support Email:** Your email address.
      - **Developer Contact Information:** Your email address.
    - Click **"Save and Continue"**.
@@ -54,7 +54,7 @@ To enable HolySheets to access your Google Sheets securely, you need to configur
    - From the left sidebar, go to **"APIs & Services" > "Credentials"**.
    - Click **"Create Credentials"** > **"OAuth client ID"**.
    - Select **"Web application"** as the application type.
-   - **Name:** e.g., `HolySheets OAuth Client`.
+   - **Name:** e.g., `HolySheets! OAuth Client`.
    - **Authorized Redirect URIs:**
      ```
      https://developers.google.com/oauthplayground
@@ -100,7 +100,7 @@ A **refresh token** allows your application to obtain new access tokens without 
 
 ## 3. Integrating OAuth2 with HolySheets
 
-With your OAuth2 credentials and refresh token obtained, integrate OAuth2 authentication into your existing HolySheets project.
+With your OAuth2 credentials and refresh token obtained, integrate OAuth2 authentication into your existing HolySheets! project.
 
 ### 3.1. Initializing the OAuth2 Client
 
@@ -135,9 +135,9 @@ export function initializeOAuth2Client() {
 
 **Note**: Replace 'YOUR_CLIENT_ID_HERE', 'YOUR_CLIENT_SECRET_HERE', and 'YOUR_REFRESH_TOKEN_HERE' with your actual credentials obtained from the previous steps.
 
-### 3.2. Integrating HolySheets with OAuth2
+### 3.2. Integrating HolySheets! with OAuth2
 
-Create or update your index.ts file in the src directory to set up HolySheets with the OAuth2 client.
+Create or update your index.ts file in the src directory to set up HolySheets! with the OAuth2 client.
 
 ```Typescript
 // src/index.ts

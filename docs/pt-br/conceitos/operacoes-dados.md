@@ -1,1 +1,0 @@
-# Operações com Dados

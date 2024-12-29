@@ -1,15 +1,15 @@
 ---
 title: JWT Authentication
-description: Comprehensive guide to setting up JWT (Service Account) authentication with HolySheets.
+description: Comprehensive guide to setting up JWT (Service Account) authentication with HolySheets!.
 ---
 
 # JWT Authentication
 
-HolySheets supports multiple authentication methods to securely interact with your Google Sheets. This guide focuses on **JWT (Service Account) Authentication**, providing step-by-step instructions to configure a service account in Google Cloud Console, integrate it with HolySheets, and perform a simple data insertion example.
+HolySheets! supports multiple authentication methods to securely interact with your Google Sheets. This guide focuses on **JWT (Service Account) Authentication**, providing step-by-step instructions to configure a service account in Google Cloud Console, integrate it with HolySheets!, and perform a simple data insertion example.
 
 ## Configuring JWT Credentials in Google Cloud Console
 
-To enable HolySheets to access your Google Sheets securely using JWT, you need to set up a **Service Account** in the Google Cloud Console. Follow these steps to configure the necessary credentials.
+To enable HolySheets! to access your Google Sheets securely using JWT, you need to set up a **Service Account** in the Google Cloud Console. Follow these steps to configure the necessary credentials.
 
 ## 1. Enable Google Sheets API
 
@@ -38,7 +38,7 @@ To enable HolySheets to access your Google Sheets securely using JWT, you need t
 
 2. **Configure Service Account Details:**
 
-   - **Service Account Name:** e.g., `HolySheets Service Account`.
+   - **Service Account Name:** e.g., `HolySheets! Service Account`.
    - **Service Account Description:** Optional.
    - Click **"Create and Continue"**.
 
@@ -68,7 +68,7 @@ To enable HolySheets to access your Google Sheets securely using JWT, you need t
 
 1. **Open Your Google Sheet:**
 
-   - Navigate to the Google Sheet you intend to access with HolySheets.
+   - Navigate to the Google Sheet you intend to access with HolySheets!.
 
 2. **Share the Sheet with the Service Account:**
 
@@ -81,7 +81,7 @@ To enable HolySheets to access your Google Sheets securely using JWT, you need t
 
 ## 5. Integrating JWT with HolySheets
 
-With your service account credentials obtained and your Google Sheet shared with the service account, you can now integrate JWT authentication into your HolySheets project.
+With your service account credentials obtained and your Google Sheet shared with the service account, you can now integrate JWT authentication into your HolySheets! project.
 
 ## 6. Initializing the JWT Client
 
@@ -130,9 +130,9 @@ export function initializeJWTClient() {
 path-to-your-service-account-key.json
 ```
 
-## 7. Integrating HolySheets with JWT
+## 7. Integrating HolySheets! with JWT
 
-Create or update your jwtIndex.ts file in the src directory to set up HolySheets with the JWT client.
+Create or update your jwtIndex.ts file in the src directory to set up HolySheets! with the JWT client.
 
 ```typescript
 // src/jwtIndex.ts

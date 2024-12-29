@@ -1,6 +1,6 @@
 # Data Operations
 
-HolySheets provides a set of CRUD-like operations:
+HolySheets! provides a set of CRUD-like operations:
 
 - **findFirst**, **findMany**, **findAll**: Query rows.
 - **insert**: Insert new records.

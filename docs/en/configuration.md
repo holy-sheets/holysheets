@@ -1,6 +1,6 @@
 # Configuration
 
-To configure HolySheets:
+To configure HolySheets!:
 
 - **spreadsheetId**: The ID of your Google Spreadsheet.
 - **auth**: A Google Auth client (JWT or OAuth2) with appropriate permissions.

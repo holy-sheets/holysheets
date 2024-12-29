@@ -1,6 +1,6 @@
 # Authentication
 
-HolySheets requires a Google Auth client:
+HolySheets! requires a Google Auth client:
 
 - **JWT (Service Account)**: Easy for server-to-server.
 - **OAuth2**: For user-based access.

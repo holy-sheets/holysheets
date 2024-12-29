@@ -1,6 +1,6 @@
 # Where Filters
 
-**Where filters** allow refining queries and retrieving specific subsets of data based on certain conditions. **HolySheets** supports a variety of filters, enabling precise data manipulation and retrieval.
+**Where filters** allow refining queries and retrieving specific subsets of data based on certain conditions. **HolySheets!** supports a variety of filters, enabling precise data manipulation and retrieval.
 
 ## Supported Where Filters Table
 
@@ -14,7 +14,7 @@
 | `lte`           | Less than or equal to a specified value    | `{ attendees: { lte: 50 } }`                 |
 | `gt`            | Greater than a specified value             | `{ experience: { gt: 5 } }`                  |
 | `gte`           | Greater than or equal to a specified value | `{ budget: { gte: 50000 } }`                 |
-| `contains`      | Contains a specified substring             | `{ title: { contains: 'HolySheets' } }`      |
+| `contains`      | Contains a specified substring             | `{ title: { contains: 'HolySheets!' } }`     |
 | `startsWith`    | Starts with a specified substring          | `{ username: { startsWith: 'admin' } }`      |
 | `endsWith`      | Ends with a specified substring            | `{ email: { endsWith: '@example.com' } }`    |
 | `search`        | Matches a regular expression pattern       | `{ name: { search: '^Pro.*' } }`             |
@@ -245,21 +245,21 @@ Filters records where the specified field's value contains the provided substrin
 ```Typescript
 await articles.findMany({
   where: {
-    title: { contains: 'HolySheets' }
+    title: { contains: 'HolySheets!' }
   }
 });
 ```
 
 ### Explanation
 
-Retrieves all articles whose `title` includes the substring `'HolySheets'`.
+Retrieves all articles whose `title` includes the substring `'HolySheets!'`.
 
 ### Output
 
 ```JavaScript
 [
-  { "Article ID": 701, "Title": "Getting Started with HolySheets" },
-  { "Article ID": 702, "Title": "Advanced HolySheets Techniques" }
+  { "Article ID": 701, "Title": "Getting Started with HolySheets!" },
+  { "Article ID": 702, "Title": "Advanced HolySheets! Techniques" }
 ]
 ```
 
@@ -346,7 +346,7 @@ Retrieves all products whose `name` starts with `'Pro'` (e.g., `'Projector'`, `'
 
 ## Best Practices
 
-- **Consistent Headers:** Ensure that the first row of your spreadsheet contains clear and consistent headers. HolySheets relies on these headers to map the data correctly.
+- **Consistent Headers:** Ensure that the first row of your spreadsheet contains clear and consistent headers. HolySheets! relies on these headers to map the data correctly.
 - **Data Types:** Maintain consistent data types within each column to avoid unexpected behavior during data operations.
 - **Unique Identifiers:** Use unique identifiers (such as `Task ID`) for each row to simplify update and delete operations.
 - **Organize Sheets:** Structure your spreadsheet logically, separating different types of data into distinct sheets (e.g., Tasks, Team Members, Projects).

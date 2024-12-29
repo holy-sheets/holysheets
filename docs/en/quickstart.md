@@ -20,7 +20,7 @@ pnpm install holysheets
 
 2. Authenticate with Google APIs (using a Service Account or OAuth).
 
-3. Initialize HolySheets:
+3. Initialize HolySheets!:
 
 ```Typescript
 import HolySheets from 'holysheets'

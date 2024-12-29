@@ -6,4 +6,4 @@ This repository (`holy-sheets/holysheets.github.io`) contains the generated docu
 
 HolySheets! is a powerful tool designed to simplify and enhance the management of spreadsheets. It provides a range of features to automate tasks, improve data analysis, and streamline workflows, making it an essential tool for anyone who works extensively with spreadsheets.
 
-For more information, please visit the [HolySheets repository](https://github.com/holy-sheets/holysheets).
+For more information, please visit the [HolySheets! repository](https://github.com/holy-sheets/holysheets).

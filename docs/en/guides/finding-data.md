@@ -140,4 +140,4 @@ The `configs` parameter allows you to configure operational aspects of the data 
 
 ## Additional Notes
 
-HolySheets leverages `where` filters to enable powerful and flexible querying capabilities. These filters allow you to define precise conditions for selecting records, ensuring that your data retrieval is both efficient and tailored to your specific requirements.
+HolySheets! leverages `where` filters to enable powerful and flexible querying capabilities. These filters allow you to define precise conditions for selecting records, ensuring that your data retrieval is both efficient and tailored to your specific requirements.

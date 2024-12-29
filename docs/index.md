@@ -2,7 +2,7 @@
 layout: home
 
 title: HolySheets!
-titleTemplate: HolySheets Documentation
+titleTemplate: HolySheets! Documentation
 
 hero:
   name: HolySheets!

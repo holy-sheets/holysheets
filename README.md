@@ -27,7 +27,7 @@ npm install holysheets
 
 ## Authentication and Credentials
 
-Before using HolySheets, you need Google credentials (Service Account or OAuth2) with access to your target spreadsheet. For guidance, check the [Getting Credentials](docs/getting-credentials.md) documentation.
+Before using HolySheets!, you need Google credentials (Service Account or OAuth2) with access to your target spreadsheet. For guidance, check the [Getting Credentials](docs/getting-credentials.md) documentation.
 
 ## Quickstart Example
 
