@@ -48,7 +48,7 @@ jobs:
       - name: Checkout documentation repo
         uses: actions/checkout@v3
         with:
-          repository: holy-sheets/holysheets.github.io
+          repository: holy-sheets/holy-sheets.github.io
           token: ${{ secrets.DOCS_GH_TOKEN }}
           path: docs-site # Directory where the repository will be cloned
 
