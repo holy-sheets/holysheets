@@ -78,7 +78,7 @@ A promise that resolves to a `SanitizedBatchOperationResult` containing the matc
 
 ## findAll
 
-**(Added in version 2.0.1)**
+**(Added in version 2.1.0)**
 
 Retrieves all records from the specified sheet, with optional selection of fields and inclusion of empty rows.
 
@@ -134,7 +134,7 @@ The `configs` parameter allows you to configure operational aspects of the data 
 
 ## Version History
 
-- **Version 2.0.1**: Introduced the `findAll` method for retrieving all records with additional options.
+- **Version 2.1.0**: Introduced the `findAll` method for retrieving all records with additional options.
 
 ---
 
