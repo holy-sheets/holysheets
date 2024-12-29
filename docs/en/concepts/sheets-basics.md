@@ -61,27 +61,30 @@ Below is an example of how your Google Spreadsheet should be structured for opti
 
 ### Tasks Sheet
 
-| **Task ID** | **Title**           | **Assigned To** | **Status**  | **Due Date** |
-| ----------- | ------------------- | --------------- | ----------- | ------------ |
-| 1           | Design Homepage     | Alice           | In Progress | 2024-05-10   |
-| 2           | Develop API         | Bob             | Pending     | 2024-05-15   |
-| 3           | Write Documentation | Charlie         | Completed   | 2024-04-25   |
+|     | A           | B                   | C               | D           | E            |
+| --- | ----------- | ------------------- | --------------- | ----------- | ------------ |
+| 1   | **Task ID** | **Title**           | **Assigned To** | **Status**  | **Due Date** |
+| 2   | 1           | Design Homepage     | Alice           | In Progress | 2024-05-10   |
+| 3   | 2           | Develop API         | Bob             | Pending     | 2024-05-15   |
+| 4   | 3           | Write Documentation | Charlie         | Completed   | 2024-04-25   |
 
 ### Team Members Sheet
 
-| **Member ID** | **Name** | **Role**          | **Email**           |
-| ------------- | -------- | ----------------- | ------------------- |
-| 1             | Alice    | Designer          | alice@example.com   |
-| 2             | Bob      | Backend Developer | bob@example.com     |
-| 3             | Charlie  | Technical Writer  | charlie@example.com |
+|     | A             | B        | C                 | D                   |
+| --- | ------------- | -------- | ----------------- | ------------------- |
+| 1   | **Member ID** | **Name** | **Role**          | **Email**           |
+| 2   | 1             | Alice    | Designer          | alice@example.com   |
+| 3   | 2             | Bob      | Backend Developer | bob@example.com     |
+| 4   | 3             | Charlie  | Technical Writer  | charlie@example.com |
 
 ### Projects Sheet
 
-| **Project ID** | **Project Name**  | **Start Date** | **End Date** | **Status** |
-| -------------- | ----------------- | -------------- | ------------ | ---------- |
-| 101            | Website Redesign  | 2024-04-01     | 2024-06-30   | Ongoing    |
-| 102            | Mobile App Launch | 2024-05-15     | 2024-09-15   | Planning   |
-| 103            | API Integration   | 2024-03-20     | 2024-07-20   | Completed  |
+|     | A              | B                 | C              | D            | E          |
+| --- | -------------- | ----------------- | -------------- | ------------ | ---------- |
+| 1   | **Project ID** | **Project Name**  | **Start Date** | **End Date** | **Status** |
+| 2   | 101            | Website Redesign  | 2024-04-01     | 2024-06-30   | Ongoing    |
+| 3   | 102            | Mobile App Launch | 2024-05-15     | 2024-09-15   | Planning   |
+| 4   | 103            | API Integration   | 2024-03-20     | 2024-07-20   | Completed  |
 
 ## API Access Limits
 
