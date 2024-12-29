@@ -22,7 +22,6 @@ export default defineConfig({
           text: 'Concepts',
           items: [
             { text: 'Sheets Basics', link: '/en/concepts/sheets-basics' },
-            { text: 'Querying Data', link: '/en/concepts/querying-data' },
             { text: 'Data Operations', link: '/en/concepts/data-operations' },
             { text: 'Where Filters', link: '/en/concepts/where-filters' }
           ]
