@@ -25,4 +25,7 @@ docs/.vitepress/cache/deps/@theme_index.js.map
 .early.coverage
 examples/
 
+# Editor files
 .vscode/
+docs/.vitepress/cache
+docs/.vitepress/cache/*
