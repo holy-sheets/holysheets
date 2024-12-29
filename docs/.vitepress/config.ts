@@ -61,7 +61,7 @@ export default defineConfig({
           text: 'Reference',
           items: [
             { text: 'Error Handling', link: '/en/reference/error-handling' },
-            { text: 'Operations', link: '/en/reference/operations' }
+            { text: 'Types', link: '/en/reference/types' }
           ]
         },
         {

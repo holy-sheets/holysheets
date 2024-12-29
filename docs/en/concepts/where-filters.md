@@ -19,6 +19,19 @@
 | `endsWith`      | Ends with a specified substring            | `{ email: { endsWith: '@example.com' } }`    |
 | `search`        | Matches a regular expression pattern       | `{ name: { search: '^Pro.*' } }`             |
 
+> **Note**: When multiple filters are set on the **same field**, they are combined with an **AND** operation. For instance:
+>
+> ```typescript
+> // Both conditions must be met:
+> // The 'role' field is not 'admin', AND it starts with 'senior'
+> where: {
+>   role: {
+>     not: 'admin',
+>     startsWith: 'senior'
+>   }
+> }
+> ```
+
 ## equals
 
 Filters records where the specified field exactly matches the provided value.
