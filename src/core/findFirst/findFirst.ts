@@ -1,6 +1,4 @@
 import { IGoogleSheetsService } from '@/services/google-sheets/IGoogleSheetsService'
-import { WhereClause } from '@/types/where'
-import { SelectClause } from '@/types/select'
 import { getHeaders } from '@/utils/headers/headers'
 import { checkWhereFilter } from '@/utils/where/where'
 import { combine } from '@/utils/dataUtils/dataUtils'
@@ -17,6 +15,7 @@ import {
 } from '@/services/metadata/IMetadataService'
 import { MetadataService } from '@/services/metadata/MetadataService'
 import { ErrorCode, ErrorMessages } from '@/services/errors/errorMessages'
+import { OperationOptions } from '@/types/operationOptions'
 
 export async function findFirst<RecordType extends Record<string, CellValue>>(
   params: {
@@ -24,10 +23,7 @@ export async function findFirst<RecordType extends Record<string, CellValue>>(
     sheets: IGoogleSheetsService
     sheet: string
   },
-  options: {
-    where: WhereClause<RecordType>
-    select?: SelectClause<RecordType>
-  },
+  options: OperationOptions<RecordType>,
   configs?: OperationConfigs
 ): Promise<RawOperationResult<RecordType>> {
   const { spreadsheetId, sheets, sheet } = params

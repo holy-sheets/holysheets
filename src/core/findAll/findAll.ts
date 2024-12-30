@@ -7,6 +7,7 @@ import {
 import { MetadataService } from '@/services/metadata/MetadataService'
 import { CellValue } from '@/types/cellValue'
 import { OperationConfigs } from '@/types/operationConfigs'
+import { FindAllOptions } from '@/types/operationOptions'
 import { SelectClause } from '@/types/select'
 import { combine } from '@/utils/dataUtils/dataUtils'
 import { getHeaders } from '@/utils/headers/headers'
@@ -45,10 +46,7 @@ export async function findAll<RecordType extends Record<string, CellValue>>(
     sheets: IGoogleSheetsService
     sheet: string
   },
-  options?: {
-    select?: SelectClause<RecordType>
-    includeEmptyRows?: boolean
-  },
+  options: FindAllOptions<RecordType>,
   configs?: OperationConfigs
 ): Promise<RawBatchOperationResult<RecordType>> {
   const { spreadsheetId, sheets, sheet } = params

@@ -10,8 +10,6 @@ import { clearMany } from '@/core/clearMany/clearMany'
 import { getSheetId } from '@/core/getSheetId/getSheetId'
 import { deleteFirst } from '@/core/deleteFirst/deleteFirst'
 import { deleteMany } from '@/core/deleteMany/deleteMany'
-import { WhereClause } from '@/types/where'
-import { SelectClause } from '@/types/select'
 import { IGoogleSheetsService } from '@/services/google-sheets/IGoogleSheetsService'
 import { GoogleSheetsService } from '@/services/google-sheets/GoogleSheetsService'
 import {
@@ -22,7 +20,13 @@ import { OperationConfigs } from '@/types/operationConfigs'
 import {
   sanitizeBatchOperationResult,
   sanitizeOperationResult
-} from './utils/sanitizeResult/sanitizeResult'
+} from '@/utils/sanitizeResult/sanitizeResult'
+import {
+  BaseOperationOptions,
+  FindAllOptions,
+  OperationOptions,
+  UpdateOptions
+} from '@/types/operationOptions'
 
 export default class HolySheets<RecordType extends Record<string, any> = any> {
   public sheets: IGoogleSheetsService
@@ -77,10 +81,7 @@ export default class HolySheets<RecordType extends Record<string, any> = any> {
   }
 
   public async findFirst(
-    options: {
-      where: WhereClause<RecordType>
-      select?: SelectClause<RecordType>
-    },
+    options: OperationOptions<RecordType>,
     configs?: OperationConfigs
   ): Promise<OperationResult<RecordType>> {
     const result = await findFirst<RecordType>(
@@ -96,10 +97,7 @@ export default class HolySheets<RecordType extends Record<string, any> = any> {
   }
 
   public async findMany(
-    options: {
-      where: WhereClause<RecordType>
-      select?: SelectClause<RecordType>
-    },
+    options: OperationOptions<RecordType>,
     configs?: OperationConfigs
   ): Promise<BatchOperationResult<RecordType>> {
     const result = await findMany<RecordType>(
@@ -115,10 +113,7 @@ export default class HolySheets<RecordType extends Record<string, any> = any> {
   }
 
   public async findAll(
-    options?: {
-      select?: SelectClause<RecordType>
-      includeEmptyRows?: boolean
-    },
+    options: FindAllOptions<RecordType>,
     configs?: OperationConfigs
   ): Promise<BatchOperationResult<RecordType>> {
     const result = await findAll<RecordType>(
@@ -134,10 +129,7 @@ export default class HolySheets<RecordType extends Record<string, any> = any> {
   }
 
   public async updateFirst(
-    options: {
-      where: WhereClause<RecordType>
-      data: Partial<RecordType>
-    },
+    options: UpdateOptions<RecordType>,
     configs?: OperationConfigs
   ): Promise<OperationResult<RecordType>> {
     const result = await updateFirst<RecordType>(
@@ -153,10 +145,7 @@ export default class HolySheets<RecordType extends Record<string, any> = any> {
   }
 
   public async updateMany(
-    options: {
-      where: WhereClause<RecordType>
-      data: Partial<RecordType>
-    },
+    options: UpdateOptions<RecordType>,
     configs?: OperationConfigs
   ): Promise<BatchOperationResult<RecordType>> {
     const result = await updateMany<RecordType>(
@@ -172,9 +161,7 @@ export default class HolySheets<RecordType extends Record<string, any> = any> {
   }
 
   public async clearFirst(
-    options: {
-      where: WhereClause<RecordType>
-    },
+    options: BaseOperationOptions<RecordType>,
     configs?: OperationConfigs
   ): Promise<OperationResult<RecordType>> {
     const result = await clearFirst<RecordType>(
@@ -190,7 +177,7 @@ export default class HolySheets<RecordType extends Record<string, any> = any> {
   }
 
   public async clearMany(
-    options: { where: WhereClause<RecordType> },
+    options: BaseOperationOptions<RecordType>,
     configs?: OperationConfigs
   ): Promise<BatchOperationResult<RecordType>> {
     const result = await clearMany<RecordType>(
@@ -206,7 +193,7 @@ export default class HolySheets<RecordType extends Record<string, any> = any> {
   }
 
   public async deleteFirst(
-    options: { where: WhereClause<RecordType> },
+    options: BaseOperationOptions<RecordType>,
     configs?: OperationConfigs
   ): Promise<OperationResult<RecordType>> {
     const result = await deleteFirst<RecordType>(
@@ -222,7 +209,7 @@ export default class HolySheets<RecordType extends Record<string, any> = any> {
   }
 
   public async deleteMany(
-    options: { where: WhereClause<RecordType> },
+    options: BaseOperationOptions<RecordType>,
     configs?: OperationConfigs
   ): Promise<BatchOperationResult<RecordType>> {
     const result = await deleteMany<RecordType>(

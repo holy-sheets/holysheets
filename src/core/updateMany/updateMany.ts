@@ -1,5 +1,4 @@
 import { IGoogleSheetsService } from '@/services/google-sheets/IGoogleSheetsService'
-import { WhereClause } from '@/types/where'
 import { findMany } from '@/core/findMany/findMany'
 import { CellValue } from '@/types/cellValue'
 import { MetadataService } from '@/services/metadata/MetadataService'
@@ -9,6 +8,7 @@ import {
 } from '@/services/metadata/IMetadataService'
 import { OperationConfigs } from '@/types/operationConfigs'
 import { ErrorMessages, ErrorCode } from '@/services/errors/errorMessages'
+import { UpdateOptions } from '@/types/operationOptions'
 
 /**
  * Updates multiple records that match the given where clause using batchUpdate.
@@ -44,10 +44,7 @@ export async function updateMany<RecordType extends Record<string, CellValue>>(
     sheets: IGoogleSheetsService
     sheet: string
   },
-  options: {
-    where: WhereClause<RecordType>
-    data: Partial<RecordType>
-  },
+  options: UpdateOptions<RecordType>,
   configs?: OperationConfigs
 ): Promise<RawBatchOperationResult<RecordType>> {
   const { spreadsheetId, sheets, sheet } = params
@@ -90,7 +87,7 @@ export async function updateMany<RecordType extends Record<string, CellValue>>(
 
     // Preparar os dados para batchUpdate
     const batchUpdateData = records.map((record, index) => {
-      const updatedFields = { ...record, ...data } as RecordType
+      const updatedFields = { ...record, ...data }
       if (!ranges) {
         throw new Error('Ranges are undefined or null')
       }
@@ -117,9 +114,7 @@ export async function updateMany<RecordType extends Record<string, CellValue>>(
       : undefined
 
     // Retornar os registros atualizados
-    const updatedRecords = records.map(
-      record => ({ ...record, ...data }) as RecordType
-    )
+    const updatedRecords = records.map(record => ({ ...record, ...data }))
     return {
       data: updatedRecords,
       rows,

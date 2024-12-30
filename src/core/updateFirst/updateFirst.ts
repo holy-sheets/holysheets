@@ -1,5 +1,4 @@
 import { IGoogleSheetsService } from '@/services/google-sheets/IGoogleSheetsService'
-import { WhereClause } from '@/types/where'
 import { findFirst } from '@/core/findFirst/findFirst'
 import { CellValue } from '@/types/cellValue'
 import { OperationConfigs } from '@/types/operationConfigs'
@@ -9,6 +8,7 @@ import {
   RawOperationResult
 } from '@/services/metadata/IMetadataService'
 import { ErrorMessages, ErrorCode } from '@/services/errors/errorMessages'
+import { UpdateOptions } from '@/types/operationOptions'
 
 /**
  * Updates the first record that matches the given where clause.
@@ -44,10 +44,7 @@ export async function updateFirst<RecordType extends Record<string, CellValue>>(
     sheets: IGoogleSheetsService
     sheet: string
   },
-  options: {
-    where: WhereClause<RecordType>
-    data: Partial<RecordType>
-  },
+  options: UpdateOptions<RecordType>,
   configs?: OperationConfigs
 ): Promise<RawOperationResult<RecordType>> {
   const { spreadsheetId, sheets, sheet } = params
@@ -90,7 +87,7 @@ export async function updateFirst<RecordType extends Record<string, CellValue>>(
     const { data: existingData, range } = recordResult
 
     // Combine the existing fields with the data to be updated
-    const updatedFields = { ...existingData, ...data } as RecordType
+    const updatedFields = { ...existingData, ...data }
 
     // Update the values in Google Sheets
     await sheets.updateValues(range, [Object.values(updatedFields)], 'RAW')

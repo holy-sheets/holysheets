@@ -9,6 +9,7 @@ import {
   RawBatchOperationResult
 } from '@/services/metadata/IMetadataService'
 import { ErrorMessages, ErrorCode } from '@/services/errors/errorMessages'
+import { BaseOperationOptions } from '@/types/operationOptions'
 
 /**
  * Clears multiple records that match the given where clause.
@@ -42,9 +43,7 @@ export async function clearMany<RecordType extends Record<string, CellValue>>(
     sheets: IGoogleSheetsService
     sheet: string
   },
-  options: {
-    where: WhereClause<RecordType>
-  },
+  options: BaseOperationOptions<RecordType>,
   configs?: OperationConfigs
 ): Promise<RawBatchOperationResult<RecordType>> {
   const { spreadsheetId, sheets, sheet } = params

@@ -1,5 +1,4 @@
 import { IGoogleSheetsService } from '@/services/google-sheets/IGoogleSheetsService'
-import { WhereClause } from '@/types/where'
 import { findFirst } from '@/core/findFirst/findFirst'
 import { CellValue } from '@/types/cellValue'
 import { OperationConfigs } from '@/types/operationConfigs'
@@ -7,6 +6,7 @@ import { RawOperationResult } from '@/services/metadata/IMetadataService'
 import { MetadataService } from '@/services/metadata/MetadataService'
 import { IMetadataService } from '@/services/metadata/IMetadataService'
 import { ErrorMessages, ErrorCode } from '@/services/errors/errorMessages'
+import { BaseOperationOptions } from '@/types/operationOptions'
 
 /**
  * Clears the first record that matches the given where clause.
@@ -40,9 +40,7 @@ export async function clearFirst<RecordType extends Record<string, CellValue>>(
     sheets: IGoogleSheetsService
     sheet: string
   },
-  options: {
-    where: WhereClause<RecordType>
-  },
+  options: BaseOperationOptions<RecordType>,
   configs?: OperationConfigs
 ): Promise<RawOperationResult<RecordType>> {
   const { spreadsheetId, sheets, sheet } = params

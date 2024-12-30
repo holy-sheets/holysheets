@@ -1,5 +1,4 @@
 import { IGoogleSheetsService } from '@/services/google-sheets/IGoogleSheetsService'
-import { WhereClause } from '@/types/where'
 import { findMany } from '@/core/findMany/findMany'
 import { CellValue } from '@/types/cellValue'
 import { OperationConfigs } from '@/types/operationConfigs'
@@ -9,6 +8,7 @@ import {
   RawBatchOperationResult
 } from '@/services/metadata/IMetadataService'
 import { ErrorMessages, ErrorCode } from '@/services/errors/errorMessages'
+import { BaseOperationOptions } from '@/types/operationOptions'
 
 /**
  * Deletes multiple records that match the provided where clause.
@@ -42,9 +42,7 @@ export async function deleteMany<RecordType extends Record<string, CellValue>>(
     sheets: IGoogleSheetsService
     sheet: string
   },
-  options: {
-    where: WhereClause<RecordType>
-  },
+  options: BaseOperationOptions<RecordType>,
   configs?: OperationConfigs
 ): Promise<RawBatchOperationResult<RecordType>> {
   const { spreadsheetId, sheets, sheet } = params

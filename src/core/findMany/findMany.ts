@@ -1,6 +1,4 @@
 import { IGoogleSheetsService } from '@/services/google-sheets/IGoogleSheetsService'
-import { WhereClause } from '@/types/where'
-import { SelectClause } from '@/types/select'
 import { getHeaders } from '@/utils/headers/headers'
 import { checkWhereFilter } from '@/utils/where/where'
 import { combine } from '@/utils/dataUtils/dataUtils'
@@ -16,6 +14,7 @@ import {
   RawBatchOperationResult
 } from '@/services/metadata/IMetadataService'
 import { ErrorMessages, ErrorCode } from '@/services/errors/errorMessages'
+import { OperationOptions } from '@/types/operationOptions'
 
 /**
  * Finds multiple records that match the given where clause.
@@ -51,10 +50,7 @@ export async function findMany<RecordType extends Record<string, CellValue>>(
     sheets: IGoogleSheetsService
     sheet: string
   },
-  options: {
-    where: WhereClause<RecordType>
-    select?: SelectClause<RecordType>
-  },
+  options: OperationOptions<RecordType>,
   configs?: OperationConfigs
 ): Promise<RawBatchOperationResult<RecordType>> {
   const { spreadsheetId, sheets, sheet } = params
