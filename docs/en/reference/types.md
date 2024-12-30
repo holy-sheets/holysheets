@@ -173,18 +173,28 @@ export interface SanitizedBatchOperationResult<T> {
 
 - **Strongly Typed Columns**: You can replace `RecordType` with your own interface or type if your columns are well-defined. For example:
 
-  ```ts
-  interface UserRecord {
-    id: number
-    name: string
-    email: string
-    isActive: boolean
-  }
+```ts
+interface UserRecord {
+  id: number
+  name: string
+  email: string
+  isActive: boolean
+}
 
-  // Then use it with HolySheets:
-  const holySheets = new HolySheets<UserRecord>({ spreadsheetId, auth })
-  ```
+// Then use it with HolySheets:
+const sheets = new Holysheets({
+  spreadsheetId: 'your-spreadsheet-id',
+  auth: yourAuthInstance // OAuth2 or JWT instance
+})
+
+// Select the 'Users' sheet
+const usersBase = sheets.base<UserRecord>('Users')
+```
 
 - **Flexible Filtering**: `WhereClause<RecordType>` offers powerful filtering via filter objects (e.g., `{ equals: 'Alice', startsWith: 'Al' }`), which are combined with AND logic if multiple filters exist on the same field.
 
 - **Metadata**: Set `{ includeMetadata: true }` in `OperationConfigs` to receive additional details about your operation. The returned `OperationMetadata` object can help with logging, auditing, or performance monitoring.
+
+```
+
+```
