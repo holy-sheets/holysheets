@@ -41,7 +41,7 @@ const result = await holySheetsInstance.deleteFirst(
 
 ### Returns
 
-A promise that resolves to a `SanitizedOperationResult<RecordType>` containing the deleted record and optional metadata.
+A promise that resolves to a `OperationResult<RecordType>` containing the deleted record and optional metadata.
 
 ---
 
@@ -77,7 +77,7 @@ const results = await holySheetsInstance.deleteMany(
 
 ### Returns
 
-A promise that resolves to a `SanitizedBatchOperationResult<RecordType>` containing the deleted records and optional metadata.
+A promise that resolves to a `BatchOperationResult<RecordType>` containing the deleted records and optional metadata.
 
 ---
 

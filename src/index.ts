@@ -15,8 +15,8 @@ import { SelectClause } from '@/types/select'
 import { IGoogleSheetsService } from '@/services/google-sheets/IGoogleSheetsService'
 import { GoogleSheetsService } from '@/services/google-sheets/GoogleSheetsService'
 import {
-  SanitizedBatchOperationResult,
-  SanitizedOperationResult
+  BatchOperationResult,
+  OperationResult
 } from '@/services/metadata/IMetadataService'
 import { OperationConfigs } from '@/types/operationConfigs'
 import {
@@ -63,7 +63,7 @@ export default class HolySheets<RecordType extends Record<string, any> = any> {
       data: RecordType[]
     },
     configs?: OperationConfigs
-  ): Promise<SanitizedOperationResult<RecordType[]>> {
+  ): Promise<OperationResult<RecordType[]>> {
     const result = await insert<RecordType>(
       {
         spreadsheetId: this.spreadsheetId,
@@ -82,7 +82,7 @@ export default class HolySheets<RecordType extends Record<string, any> = any> {
       select?: SelectClause<RecordType>
     },
     configs?: OperationConfigs
-  ): Promise<SanitizedOperationResult<RecordType>> {
+  ): Promise<OperationResult<RecordType>> {
     const result = await findFirst<RecordType>(
       {
         spreadsheetId: this.spreadsheetId,
@@ -101,7 +101,7 @@ export default class HolySheets<RecordType extends Record<string, any> = any> {
       select?: SelectClause<RecordType>
     },
     configs?: OperationConfigs
-  ): Promise<SanitizedBatchOperationResult<RecordType>> {
+  ): Promise<BatchOperationResult<RecordType>> {
     const result = await findMany<RecordType>(
       {
         spreadsheetId: this.spreadsheetId,
@@ -120,7 +120,7 @@ export default class HolySheets<RecordType extends Record<string, any> = any> {
       includeEmptyRows?: boolean
     },
     configs?: OperationConfigs
-  ): Promise<SanitizedBatchOperationResult<RecordType>> {
+  ): Promise<BatchOperationResult<RecordType>> {
     const result = await findAll<RecordType>(
       {
         spreadsheetId: this.spreadsheetId,
@@ -139,7 +139,7 @@ export default class HolySheets<RecordType extends Record<string, any> = any> {
       data: Partial<RecordType>
     },
     configs?: OperationConfigs
-  ): Promise<SanitizedOperationResult<RecordType>> {
+  ): Promise<OperationResult<RecordType>> {
     const result = await updateFirst<RecordType>(
       {
         spreadsheetId: this.spreadsheetId,
@@ -158,7 +158,7 @@ export default class HolySheets<RecordType extends Record<string, any> = any> {
       data: Partial<RecordType>
     },
     configs?: OperationConfigs
-  ): Promise<SanitizedBatchOperationResult<RecordType>> {
+  ): Promise<BatchOperationResult<RecordType>> {
     const result = await updateMany<RecordType>(
       {
         spreadsheetId: this.spreadsheetId,
@@ -176,7 +176,7 @@ export default class HolySheets<RecordType extends Record<string, any> = any> {
       where: WhereClause<RecordType>
     },
     configs?: OperationConfigs
-  ): Promise<SanitizedOperationResult<RecordType>> {
+  ): Promise<OperationResult<RecordType>> {
     const result = await clearFirst<RecordType>(
       {
         spreadsheetId: this.spreadsheetId,
@@ -192,7 +192,7 @@ export default class HolySheets<RecordType extends Record<string, any> = any> {
   public async clearMany(
     options: { where: WhereClause<RecordType> },
     configs?: OperationConfigs
-  ): Promise<SanitizedBatchOperationResult<RecordType>> {
+  ): Promise<BatchOperationResult<RecordType>> {
     const result = await clearMany<RecordType>(
       {
         spreadsheetId: this.spreadsheetId,
@@ -208,7 +208,7 @@ export default class HolySheets<RecordType extends Record<string, any> = any> {
   public async deleteFirst(
     options: { where: WhereClause<RecordType> },
     configs?: OperationConfigs
-  ): Promise<SanitizedOperationResult<RecordType>> {
+  ): Promise<OperationResult<RecordType>> {
     const result = await deleteFirst<RecordType>(
       {
         spreadsheetId: this.spreadsheetId,
@@ -224,7 +224,7 @@ export default class HolySheets<RecordType extends Record<string, any> = any> {
   public async deleteMany(
     options: { where: WhereClause<RecordType> },
     configs?: OperationConfigs
-  ): Promise<SanitizedBatchOperationResult<RecordType>> {
+  ): Promise<BatchOperationResult<RecordType>> {
     const result = await deleteMany<RecordType>(
       {
         spreadsheetId: this.spreadsheetId,

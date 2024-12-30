@@ -5,7 +5,7 @@ import { CellValue } from '@/types/cellValue'
 import { MetadataService } from '@/services/metadata/MetadataService'
 import {
   IMetadataService,
-  BatchOperationResult
+  RawBatchOperationResult
 } from '@/services/metadata/IMetadataService'
 import { OperationConfigs } from '@/types/operationConfigs'
 import { ErrorMessages, ErrorCode } from '@/services/errors/errorMessages'
@@ -49,7 +49,7 @@ export async function updateMany<RecordType extends Record<string, CellValue>>(
     data: Partial<RecordType>
   },
   configs?: OperationConfigs
-): Promise<BatchOperationResult<RecordType>> {
+): Promise<RawBatchOperationResult<RecordType>> {
   const { spreadsheetId, sheets, sheet } = params
   const { where, data } = options
   const { includeMetadata = false } = configs ?? {}

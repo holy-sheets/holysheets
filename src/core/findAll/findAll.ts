@@ -1,7 +1,7 @@
 import { ErrorCode, ErrorMessages } from '@/services/errors/errorMessages'
 import { IGoogleSheetsService } from '@/services/google-sheets/IGoogleSheetsService'
 import {
-  BatchOperationResult,
+  RawBatchOperationResult,
   IMetadataService
 } from '@/services/metadata/IMetadataService'
 import { MetadataService } from '@/services/metadata/MetadataService'
@@ -50,7 +50,7 @@ export async function findAll<RecordType extends Record<string, CellValue>>(
     includeEmptyRows?: boolean
   },
   configs?: OperationConfigs
-): Promise<BatchOperationResult<RecordType>> {
+): Promise<RawBatchOperationResult<RecordType>> {
   const { spreadsheetId, sheets, sheet } = params
   const { select, includeEmptyRows = false } = options || {}
   const { includeMetadata = false } = configs ?? {}

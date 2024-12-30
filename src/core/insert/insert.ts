@@ -8,7 +8,7 @@ import {
 } from '@/utils/rangeUtils/rangeUtils'
 import { CellValue } from '@/types/cellValue'
 import { OperationConfigs } from '@/types/operationConfigs'
-import { OperationResult } from '@/services/metadata/IMetadataService'
+import { RawOperationResult } from '@/services/metadata/IMetadataService'
 import { MetadataService } from '@/services/metadata/MetadataService'
 import { IMetadataService } from '@/services/metadata/IMetadataService'
 import { ErrorMessages, ErrorCode } from '@/services/errors/errorMessages'
@@ -51,7 +51,7 @@ export async function insert<RecordType extends Record<string, CellValue>>(
   params: InsertParams,
   options: { data: RecordType[] },
   configs?: OperationConfigs
-): Promise<OperationResult<RecordType[]>> {
+): Promise<RawOperationResult<RecordType[]>> {
   const { spreadsheetId, sheets, sheet } = params
   const { data } = options
   const { includeMetadata = false } = configs ?? {}

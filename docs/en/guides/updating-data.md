@@ -43,7 +43,7 @@ const result = await holySheetsInstance.updateFirst(
 
 ### Returns
 
-A promise that resolves to a `SanitizedOperationResult<RecordType>` containing the updated record and optional metadata.
+A promise that resolves to a `OperationResult<RecordType>` containing the updated record and optional metadata.
 
 ---
 
@@ -81,7 +81,7 @@ const results = await holySheetsInstance.updateMany(
 
 ### Returns
 
-A promise that resolves to a `SanitizedBatchOperationResult<RecordType>` containing all updated records and optional metadata.
+A promise that resolves to a `BatchOperationResult<RecordType>` containing all updated records and optional metadata.
 
 ---
 

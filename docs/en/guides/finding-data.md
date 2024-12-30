@@ -41,7 +41,7 @@ const result = await holySheetsInstance.findFirst({
 
 ### Returns
 
-A promise that resolves to a `SanitizedOperationResult<RecordType>` containing the first matching record and optional metadata.
+A promise that resolves to a `OperationResult<RecordType>` containing the first matching record and optional metadata.
 
 ## findMany
 
@@ -74,7 +74,7 @@ const results = await holySheetsInstance.findMany({
 
 ### Returns
 
-A promise that resolves to a `SanitizedBatchOperationResult<RecordType>` containing the matching records and optional metadata.
+A promise that resolves to a `BatchOperationResult<RecordType>` containing the matching records and optional metadata.
 
 ## findAll
 
@@ -108,7 +108,7 @@ const allRecords = await holySheetsInstance.findAll({
 
 ### Returns
 
-A promise that resolves to a `SanitizedBatchOperationResult<RecordType>` containing all records and optional metadata.
+A promise that resolves to a `BatchOperationResult<RecordType>` containing all records and optional metadata.
 
 ---
 

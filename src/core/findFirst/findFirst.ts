@@ -13,7 +13,7 @@ import { CellValue } from '@/types/cellValue'
 import { OperationConfigs } from '@/types/operationConfigs'
 import {
   IMetadataService,
-  OperationResult
+  RawOperationResult
 } from '@/services/metadata/IMetadataService'
 import { MetadataService } from '@/services/metadata/MetadataService'
 import { ErrorCode, ErrorMessages } from '@/services/errors/errorMessages'
@@ -29,7 +29,7 @@ export async function findFirst<RecordType extends Record<string, CellValue>>(
     select?: SelectClause<RecordType>
   },
   configs?: OperationConfigs
-): Promise<OperationResult<RecordType>> {
+): Promise<RawOperationResult<RecordType>> {
   const { spreadsheetId, sheets, sheet } = params
   const { where, select } = options
   const { includeMetadata = false } = configs ?? {}

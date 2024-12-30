@@ -13,7 +13,7 @@ import { OperationConfigs } from '@/types/operationConfigs'
 import { MetadataService } from '@/services/metadata/MetadataService'
 import {
   IMetadataService,
-  BatchOperationResult
+  RawBatchOperationResult
 } from '@/services/metadata/IMetadataService'
 import { ErrorMessages, ErrorCode } from '@/services/errors/errorMessages'
 
@@ -56,7 +56,7 @@ export async function findMany<RecordType extends Record<string, CellValue>>(
     select?: SelectClause<RecordType>
   },
   configs?: OperationConfigs
-): Promise<BatchOperationResult<RecordType>> {
+): Promise<RawBatchOperationResult<RecordType>> {
   const { spreadsheetId, sheets, sheet } = params
   const { where, select } = options
   const { includeMetadata = false } = configs ?? {}

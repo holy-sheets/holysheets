@@ -10,8 +10,8 @@ Below is a quick-reference table for the most common **HolySheets!** types, foll
 | `SelectClause<RecordType>`         | Determines which columns to return (`true` to include, `false` to omit).       |
 | `OperationConfigs`                 | Configurations for including metadata and other optional features.             |
 | `OperationMetadata`                | Contains details about a completed operation (e.g., duration, status, errors). |
-| `SanitizedOperationResult<T>`      | Return type for single-record operations (e.g., `findFirst`).                  |
-| `SanitizedBatchOperationResult<T>` | Return type for multi-record operations (e.g., `findMany`).                    |
+| `OperationResult<RecordType>`      | Return type for single-record operations (e.g., `findFirst`).                  |
+| `BatchOperationResult<RecordType>` | Return type for multi-record operations (e.g., `findMany`).                    |
 
 ---
 
@@ -137,7 +137,7 @@ export interface OperationMetadata {
 
 ---
 
-## `SanitizedOperationResult<T>`
+## `OperationResult<RecordType>`
 
 Represents the result of a **single-record operation** (like `findFirst`, `updateFirst`, `deleteFirst`, etc.). It includes:
 
@@ -145,7 +145,7 @@ Represents the result of a **single-record operation** (like `findFirst`, `updat
 - **`metadata`**: Optional metadata (if `includeMetadata` was `true`).
 
 ```ts
-export interface SanitizedOperationResult<T> {
+export interface OperationResult<RecordType> {
   data: T | undefined
   metadata?: OperationMetadata
 }
@@ -153,7 +153,7 @@ export interface SanitizedOperationResult<T> {
 
 ---
 
-## `SanitizedBatchOperationResult<T>`
+## `BatchOperationResult<RecordType>`
 
 Represents the result of a **multi-record operation** (like `findMany`, `updateMany`, `deleteMany`, etc.). It includes:
 
@@ -161,7 +161,7 @@ Represents the result of a **multi-record operation** (like `findMany`, `updateM
 - **`metadata`**: Optional metadata (if `includeMetadata` was `true`).
 
 ```ts
-export interface SanitizedBatchOperationResult<T> {
+export interface BatchOperationResult<RecordType> {
   data: T[] | undefined
   metadata?: OperationMetadata
 }

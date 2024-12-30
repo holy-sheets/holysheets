@@ -3,7 +3,7 @@ import { WhereClause } from '@/types/where'
 import { findFirst } from '@/core/findFirst/findFirst'
 import { CellValue } from '@/types/cellValue'
 import { OperationConfigs } from '@/types/operationConfigs'
-import { OperationResult } from '@/services/metadata/IMetadataService'
+import { RawOperationResult } from '@/services/metadata/IMetadataService'
 import { MetadataService } from '@/services/metadata/MetadataService'
 import { IMetadataService } from '@/services/metadata/IMetadataService'
 import { ErrorMessages, ErrorCode } from '@/services/errors/errorMessages'
@@ -44,7 +44,7 @@ export async function deleteFirst<RecordType extends Record<string, CellValue>>(
     where: WhereClause<RecordType>
   },
   configs?: OperationConfigs
-): Promise<OperationResult<RecordType>> {
+): Promise<RawOperationResult<RecordType>> {
   const { spreadsheetId, sheets, sheet } = params
   const { where } = options
   const { includeMetadata = false } = configs ?? {}

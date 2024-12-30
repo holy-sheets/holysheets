@@ -43,7 +43,7 @@ const result = await holySheetsInstance.insert(
 
 ### Returns
 
-A promise that resolves to a `SanitizedOperationResult<RecordType[]>` containing the inserted records and optional metadata.
+A promise that resolves to a `OperationResult<RecordType[]>` containing the inserted records and optional metadata.
 
 ---
 

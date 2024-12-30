@@ -1,24 +1,24 @@
 import {
-  BatchOperationResult,
-  OperationResult
+  RawBatchOperationResult,
+  RawOperationResult
 } from '@/services/metadata/IMetadataService'
 import {
-  SanitizedOperationResult,
-  SanitizedBatchOperationResult
+  OperationResult,
+  BatchOperationResult
 } from '@/services/metadata/IMetadataService'
 
 /**
- * Sanitizes an OperationResult by removing 'row' and 'range' keys.
+ * Sanitizes an RawOperationResult by removing 'row' and 'range' keys.
  * Also removes 'metadata' if it's undefined.
  *
  * @param result - The original OperationResult.
- * @returns A SanitizedOperationResult without 'row' and 'range'.
+ * @returns A OperationResult without 'row' and 'range'.
  */
 export function sanitizeOperationResult<T>(
-  result: OperationResult<T>
-): SanitizedOperationResult<T> {
+  result: RawOperationResult<T>
+): OperationResult<T> {
   const { data, metadata } = result
-  const sanitized: SanitizedOperationResult<T> = { data }
+  const sanitized: OperationResult<T> = { data }
 
   if (metadata !== undefined) {
     sanitized.metadata = metadata
@@ -28,17 +28,17 @@ export function sanitizeOperationResult<T>(
 }
 
 /**
- * Sanitizes a BatchOperationResult by removing 'rows' and 'ranges' keys.
+ * Sanitizes a RawBatchOperationResult by removing 'rows' and 'ranges' keys.
  * Also removes 'metadata' if it's undefined.
  *
  * @param result - The original BatchOperationResult.
- * @returns A SanitizedBatchOperationResult without 'rows' and 'ranges'.
+ * @returns A BatchOperationResult without 'rows' and 'ranges'.
  */
 export function sanitizeBatchOperationResult<T>(
-  result: BatchOperationResult<T>
-): SanitizedBatchOperationResult<T> {
+  result: RawBatchOperationResult<T>
+): BatchOperationResult<T> {
   const { data, metadata } = result
-  const sanitized: SanitizedBatchOperationResult<T> = { data }
+  const sanitized: BatchOperationResult<T> = { data }
 
   if (metadata !== undefined) {
     sanitized.metadata = metadata

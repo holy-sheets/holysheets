@@ -6,7 +6,7 @@ import { OperationConfigs } from '@/types/operationConfigs'
 import { MetadataService } from '@/services/metadata/MetadataService'
 import {
   IMetadataService,
-  OperationResult
+  RawOperationResult
 } from '@/services/metadata/IMetadataService'
 import { ErrorMessages, ErrorCode } from '@/services/errors/errorMessages'
 
@@ -49,7 +49,7 @@ export async function updateFirst<RecordType extends Record<string, CellValue>>(
     data: Partial<RecordType>
   },
   configs?: OperationConfigs
-): Promise<OperationResult<RecordType>> {
+): Promise<RawOperationResult<RecordType>> {
   const { spreadsheetId, sheets, sheet } = params
   const { where, data } = options
   const { includeMetadata = false } = configs ?? {}

@@ -62,26 +62,26 @@ export interface IMetadataService {
   calculateDuration: (startTime: number) => string
 }
 
-export interface OperationResult<T> {
+export interface RawOperationResult<RecordType> {
   row: number | undefined | number[]
   range: string | undefined
-  data: T | undefined
+  data: RecordType | undefined
   metadata?: OperationMetadata
 }
 
-export interface SanitizedOperationResult<T> {
-  data: T | undefined
+export interface OperationResult<RecordType> {
+  data: RecordType | undefined
   metadata?: OperationMetadata
 }
 
-export interface BatchOperationResult<T> {
+export interface RawBatchOperationResult<RecordType> {
   rows: number[] | undefined
   ranges: string[] | undefined
-  data: T[] | undefined
+  data: RecordType[] | undefined
   metadata?: OperationMetadata
 }
 
-export interface SanitizedBatchOperationResult<T> {
-  data: T[] | undefined
+export interface BatchOperationResult<RecordType> {
+  data: RecordType[] | undefined
   metadata?: OperationMetadata
 }

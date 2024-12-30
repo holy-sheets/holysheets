@@ -4,7 +4,7 @@ import { OperationConfigs } from '@/types/operationConfigs'
 import { MetadataService } from '@/services/metadata/MetadataService'
 import {
   IMetadataService,
-  OperationResult
+  RawOperationResult
 } from '@/services/metadata/IMetadataService'
 import { ErrorMessages, ErrorCode } from '@/services/errors/errorMessages'
 
@@ -42,7 +42,7 @@ export async function getSheetId(
     title: string
   },
   configs?: OperationConfigs
-): Promise<OperationResult<number>> {
+): Promise<RawOperationResult<number>> {
   const { spreadsheetId, sheets, title } = params
   const { includeMetadata = false } = configs ?? {}
   const metadataService: IMetadataService = new MetadataService()

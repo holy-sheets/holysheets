@@ -41,7 +41,7 @@ const result = await holySheetsInstance.clearFirst(
 
 ### Returns
 
-A promise that resolves to a `SanitizedOperationResult<RecordType>` containing the cleared record and optional metadata.
+A promise that resolves to a `OperationResult<RecordType>` containing the cleared record and optional metadata.
 
 ---
 
@@ -77,7 +77,7 @@ const results = await holySheetsInstance.clearMany(
 
 ### Returns
 
-A promise that resolves to a `SanitizedBatchOperationResult<RecordType>` containing the cleared records and optional metadata.
+A promise that resolves to a `BatchOperationResult<RecordType>` containing the cleared records and optional metadata.
 
 ---
 
