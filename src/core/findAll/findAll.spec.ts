@@ -831,4 +831,164 @@ describe('findAll', () => {
       }
     })
   })
+
+  it('should throw an SelectAndOmitForbidden error when both select and omit are provided', async () => {
+    // Arrange
+    const spreadsheetId = 'test-spreadsheet-id'
+    const sheetName = 'Sheet1'
+    const headers: SheetHeaders[] = [
+      { name: 'id', column: 'A', index: 0 },
+      { name: 'name', column: 'B', index: 1 },
+      { name: 'email', column: 'C', index: 2 }
+    ]
+
+    const allValues: CellValue[][] = [
+      ['1', 'John Doe', 'john@example.com'],
+      ['2', 'Jane Smith', 'jane@example.com']
+    ]
+
+    const select = { name: true, email: true }
+    const omit = { id: true }
+
+    // Mock the getHeaders function to return headers
+    ;(getHeaders as any).mockResolvedValue(headers)
+
+    // Mock the sheets.getValues function to return allValues
+    mockGetValues.mockResolvedValue(allValues)
+
+    // Act & Assert
+    await expect(
+      findAll<RecordType>(
+        {
+          spreadsheetId,
+          sheets: mockSheetsService,
+          sheet: sheetName
+        },
+        {
+          select,
+          omit
+        },
+        {
+          includeMetadata: true
+        }
+      )
+    ).rejects.toThrow(ErrorMessages[ErrorCode.SelectAndOmitForbidden])
+
+    await expect(
+      findAll<RecordType>(
+        {
+          spreadsheetId,
+          sheets: mockSheetsService,
+          sheet: sheetName
+        },
+        {
+          select,
+          omit
+        },
+        {
+          includeMetadata: true
+        }
+      )
+    ).rejects.toThrowError(ErrorMessages[ErrorCode.SelectAndOmitForbidden])
+
+    expect(getHeaders).not.toHaveBeenCalled()
+    expect(mockGetValues).not.toHaveBeenCalled()
+    expect(combine).not.toHaveBeenCalled()
+  })
+
+  it('should retrieve records with omitted fields when omit is provided without select', async () => {
+    // Arrange
+    const spreadsheetId = 'test-spreadsheet-id'
+    const sheetName = 'Sheet1'
+    const headers: SheetHeaders[] = [
+      { name: 'id', column: 'A', index: 0 },
+      { name: 'name', column: 'B', index: 1 },
+      { name: 'email', column: 'C', index: 2 }
+    ]
+
+    const allValues: CellValue[][] = [
+      ['1', 'John Doe', 'john@example.com'],
+      ['2', 'Jane Smith', 'jane@example.com']
+    ]
+
+    const omit = { email: true }
+
+    // Mock the getHeaders function to return headers
+    ;(getHeaders as any).mockResolvedValue(headers)
+
+    // Mock the sheets.getValues function to return allValues
+    mockGetValues.mockResolvedValue(allValues)
+
+    // Mock the combine function to handle omitted headers
+    ;(combine as ReturnType<typeof vi.fn>).mockImplementation(
+      (data, headers) => {
+        const record: RecordType = {}
+        headers.forEach(header => {
+          record[header.name] = data[header.index]
+        })
+        return record
+      }
+    )
+
+    // Act
+    const result = await findAll<RecordType>(
+      {
+        spreadsheetId,
+        sheets: mockSheetsService,
+        sheet: sheetName
+      },
+      {
+        omit
+      },
+      {
+        includeMetadata: true
+      }
+    )
+
+    // Assert
+    expect(getHeaders).toHaveBeenCalledWith({
+      sheet: sheetName,
+      sheets: mockSheetsService,
+      spreadsheetId
+    })
+
+    expect(mockGetValues).toHaveBeenCalledWith(`${sheetName}!A2:C`)
+
+    // combine should be called with headers excluding 'email'
+    expect(combine).toHaveBeenCalledTimes(2)
+    expect(combine).toHaveBeenNthCalledWith(
+      1,
+      ['1', 'John Doe', 'john@example.com'],
+      [
+        { name: 'id', column: 'A', index: 0 },
+        { name: 'name', column: 'B', index: 1 }
+      ]
+    )
+    expect(combine).toHaveBeenNthCalledWith(
+      2,
+      ['2', 'Jane Smith', 'jane@example.com'],
+      [
+        { name: 'id', column: 'A', index: 0 },
+        { name: 'name', column: 'B', index: 1 }
+      ]
+    )
+
+    expect(result).toEqual({
+      data: [
+        { id: '1', name: 'John Doe' }, // 'email' omitted
+        { id: '2', name: 'Jane Smith' } // 'email' omitted
+      ],
+      rows: [2, 3],
+      ranges: [`${sheetName}!A2:C`],
+      metadata: {
+        operationType: 'find',
+        spreadsheetId,
+        sheetId: sheetName,
+        ranges: [`${sheetName}!A2:C`],
+        recordsAffected: 2,
+        status: 'success',
+        duration: 100
+      }
+    })
+  })
 })
