@@ -24,7 +24,7 @@ import {
 import {
   BaseOperationOptions,
   FindAllOptions,
-  OperationOptions,
+  FindOperationOptions,
   UpdateOptions
 } from '@/types/operationOptions'
 
@@ -81,7 +81,7 @@ export default class HolySheets<RecordType extends Record<string, any> = any> {
   }
 
   public async findFirst(
-    options: OperationOptions<RecordType>,
+    options: FindOperationOptions<RecordType>,
     configs?: OperationConfigs
   ): Promise<OperationResult<RecordType>> {
     const result = await findFirst<RecordType>(
@@ -97,7 +97,7 @@ export default class HolySheets<RecordType extends Record<string, any> = any> {
   }
 
   public async findMany(
-    options: OperationOptions<RecordType>,
+    options: FindOperationOptions<RecordType>,
     configs?: OperationConfigs
   ): Promise<BatchOperationResult<RecordType>> {
     const result = await findMany<RecordType>(

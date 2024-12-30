@@ -14,7 +14,7 @@ import {
   RawBatchOperationResult
 } from '@/services/metadata/IMetadataService'
 import { ErrorMessages, ErrorCode } from '@/services/errors/errorMessages'
-import { OperationOptions } from '@/types/operationOptions'
+import { FindOperationOptions } from '@/types/operationOptions'
 
 /**
  * Finds multiple records that match the given where clause.
@@ -50,11 +50,14 @@ export async function findMany<RecordType extends Record<string, CellValue>>(
     sheets: IGoogleSheetsService
     sheet: string
   },
-  options: OperationOptions<RecordType>,
+  options: FindOperationOptions<RecordType>,
   configs?: OperationConfigs
 ): Promise<RawBatchOperationResult<RecordType>> {
   const { spreadsheetId, sheets, sheet } = params
-  const { where, select } = options
+  const { where, select, omit } = options
+  if (select && omit) {
+    throw new Error(ErrorMessages.SELECT_AND_OMIT_FORBIDDEN)
+  }
   const { includeMetadata = false } = configs ?? {}
   const metadataService: IMetadataService = new MetadataService()
   const startTime = Date.now()
@@ -179,7 +182,7 @@ export async function findMany<RecordType extends Record<string, CellValue>>(
     const resultData: RecordType[] = batchGetResponse.valueRanges.map(
       valueRange => {
         const selectedHeaders = headers.filter(header =>
-          select ? select[header.name] : true
+          select ? select[header.name] : !omit || !omit[header.name]
         )
         const data = combine<RecordType>(
           valueRange.values

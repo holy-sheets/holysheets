@@ -50,7 +50,10 @@ export async function findAll<RecordType extends Record<string, CellValue>>(
   configs?: OperationConfigs
 ): Promise<RawBatchOperationResult<RecordType>> {
   const { spreadsheetId, sheets, sheet } = params
-  const { select, includeEmptyRows = false } = options || {}
+  const { select, includeEmptyRows = false, omit } = options || {}
+  if (select && omit) {
+    throw new Error(ErrorMessages.SELECT_AND_OMIT_FORBIDDEN)
+  }
   const { includeMetadata = false } = configs ?? {}
   const metadataService: IMetadataService = new MetadataService()
   const startTime = Date.now()
@@ -75,7 +78,7 @@ export async function findAll<RecordType extends Record<string, CellValue>>(
     // Combine values with selected headers
     const resultData: RecordType[] = valuesToCombine.map(row => {
       const selectedHeaders = headers.filter(header =>
-        select ? select[header.name] : true
+        select ? select[header.name] : !omit || !omit[header.name]
       )
       const data = combine<RecordType>(
         row ? (row.filter(value => value !== null) as string[]) : [],
