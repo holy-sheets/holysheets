@@ -324,4 +324,133 @@ describe('findFirst', () => {
       expect.any(Number)
     )
   })
+
+  it('should throw an error when both select and omit are provided', async () => {
+    // Arrange
+    const select = { status: true }
+    const omit = { status: true }
+
+    // Act & Assert
+    await expect(
+      findFirst<Record<string, CellValue>>(
+        {
+          spreadsheetId: 'test-spreadsheet-id',
+          sheets: mockSheets,
+          sheet: 'Sheet1'
+        },
+        {
+          where: { status: 'inactive' },
+          select,
+          omit
+        },
+        {
+          includeMetadata: true
+        }
+      )
+    ).rejects.toThrow(ErrorMessages.SELECT_AND_OMIT_FORBIDDEN)
+
+    await expect(
+      findFirst<Record<string, CellValue>>(
+        {
+          spreadsheetId: 'test-spreadsheet-id',
+          sheets: mockSheets,
+          sheet: 'Sheet1'
+        },
+        {
+          where: { status: 'inactive' },
+          select,
+          omit
+        },
+        {
+          includeMetadata: true
+        }
+      )
+    ).rejects.toThrowError(ErrorMessages.SELECT_AND_OMIT_FORBIDDEN)
+
+    // Ensure that no further processing occurs
+    expect(mockedGetHeaders).not.toHaveBeenCalled()
+    expect(mockSheets.getValues).not.toHaveBeenCalled()
+    expect(combine).not.toHaveBeenCalled()
+  })
+
+  it('should retrieve the first matching record with omitted fields when omit is provided without select', async () => {
+    // Arrange
+    const omit = { status: true }
+
+    const headers = [
+      { name: 'status', column: 'A' as SheetColumn, index: 0 },
+      { name: 'age', column: 'B' as SheetColumn, index: 1 }
+    ]
+
+    const values: CellValue[][] = [['inactive'], ['active']]
+    const rowValues: CellValue[][] = [['inactive', 30]]
+
+    mockedGetHeaders.mockResolvedValueOnce(headers)
+    ;(mockSheets.getValues as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
+      values
+    )
+    ;(mockSheets.getValues as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
+      rowValues
+    )
+    mockedCheckWhereFilter.mockReturnValueOnce(true)
+    mockedCombine.mockReturnValueOnce({ age: 30 }) // 'status' is omitted
+
+    mockedCreateFullRange.mockReturnValueOnce(`${sheet}!A1:B1`)
+
+    // Act
+    const result = await findFirst<{ status: string; age: number }>(
+      {
+        spreadsheetId: 'test-spreadsheet-id',
+        sheets: mockSheets,
+        sheet: 'Sheet1'
+      },
+      {
+        where: { status: 'inactive' },
+        omit
+      },
+      {
+        includeMetadata: true
+      }
+    )
+    console.log({ result })
+    // Assert
+    expect(result).toEqual({
+      data: { age: 30 }, // 'status' omitted
+      row: 1,
+      range: `${sheet}!A1:B1`,
+      metadata: {
+        operationId: 'test-operation-id',
+        timestamp: '2023-01-01T00:00:00.000Z',
+        duration: '50ms',
+        recordsAffected: 1,
+        status: 'success',
+        operationType: 'find',
+        spreadsheetId: 'test-spreadsheet-id',
+        sheetId: sheet,
+        ranges: [`${sheet}!A:A`, `${sheet}!A1:B1`],
+        error: undefined,
+        userId: undefined
+      }
+    })
+
+    expect(mockedGetHeaders).toHaveBeenCalledWith({
+      sheet,
+      sheets: mockSheets,
+      spreadsheetId: 'test-spreadsheet-id'
+    })
+    expect(mockSheets.getValues).toHaveBeenCalledWith(`${sheet}!A:A`)
+    expect(mockSheets.getValues).toHaveBeenCalledWith(`${sheet}!A1:B1`)
+    expect(metadataInstance.calculateDuration).toHaveBeenCalledWith(
+      expect.any(Number)
+    )
+    expect(metadataInstance.createMetadata).toHaveBeenCalledWith({
+      operationType: 'find',
+      spreadsheetId: 'test-spreadsheet-id',
+      sheetId: sheet,
+      ranges: [`${sheet}!A:A`, `${sheet}!A1:B1`],
+      recordsAffected: 1,
+      status: 'success',
+      duration: '50ms'
+    })
+  })
 })
