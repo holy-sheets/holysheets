@@ -61,7 +61,6 @@ describe('findMany', () => {
         userId: options.userId
       }))
     }
-
     ;(MetadataService as unknown as ReturnType<typeof vi.fn>).mockReturnValue(
       metadataInstance as unknown as MetadataService
     )
@@ -298,5 +297,163 @@ describe('findMany', () => {
       column: 'A'
     })
     expect(mockSheetsService.getValues).toHaveBeenCalledWith('Sheet1!A:A')
+  })
+
+  it('should throw an error when both select and omit are provided', async () => {
+    // Arrange
+    const select = { Name: true, Age: true }
+    const omit = { Email: true }
+
+    // Act & Assert
+    await expect(
+      findMany<Record<string, CellValue>>(
+        {
+          spreadsheetId: 'test-spreadsheet-id',
+          sheets: mockSheetsService,
+          sheet: 'Sheet1'
+        },
+        {
+          where: { Name: 'Alice' },
+          select,
+          omit
+        },
+        {
+          includeMetadata: true
+        }
+      )
+    ).rejects.toThrow(ErrorMessages.SELECT_AND_OMIT_FORBIDDEN)
+
+    await expect(
+      findMany<Record<string, CellValue>>(
+        {
+          spreadsheetId: 'test-spreadsheet-id',
+          sheets: mockSheetsService,
+          sheet: 'Sheet1'
+        },
+        {
+          where: { Name: 'Alice' },
+          select,
+          omit
+        },
+        {
+          includeMetadata: true
+        }
+      )
+    ).rejects.toThrowError(ErrorMessages.SELECT_AND_OMIT_FORBIDDEN)
+
+    // Ensure that no further processing occurs
+    expect(getHeaders).not.toHaveBeenCalled()
+    expect(mockSheetsService.getValues).not.toHaveBeenCalled()
+    expect(combine).not.toHaveBeenCalled()
+  })
+
+  it('should retrieve records with omitted fields when omit is provided without select', async () => {
+    // Arrange
+    const omit = { Email: true }
+
+    const headers = [
+      { name: 'Name', column: 'A', index: 0 },
+      { name: 'Age', column: 'B', index: 1 },
+      { name: 'Email', column: 'C', index: 2 }
+    ]
+
+    const allValues: CellValue[][] = [
+      ['Alice', 30, 'alice@example.com'],
+      ['Bob', 25, 'bob@example.com']
+    ]
+
+    const rowIndexes = [0, 1] // indices based on zero
+
+    const ranges = ['Sheet1!A1:C1', 'Sheet1!A2:C2']
+
+    const batchGetResponse = {
+      valueRanges: [
+        { values: [['Alice', 30, 'alice@example.com']] },
+        { values: [['Bob', 25, 'bob@example.com']] }
+      ]
+    }
+
+    // Mock the utility functions
+    ;(getHeaders as ReturnType<typeof vi.fn>).mockResolvedValueOnce(headers)
+    ;(createSingleColumnRange as ReturnType<typeof vi.fn>).mockReturnValueOnce(
+      'Sheet1!A:A'
+    )
+    ;(
+      mockSheetsService.getValues as ReturnType<typeof vi.fn>
+    ).mockResolvedValueOnce(allValues)
+    ;(checkWhereFilter as ReturnType<typeof vi.fn>).mockImplementation(
+      (filter, value) => value === 'Alice' || value === 'Bob'
+    )
+    ;(createSingleRowRange as ReturnType<typeof vi.fn>).mockImplementation(
+      ({ row }) => ranges[row - 1]
+    )
+    ;(
+      mockSheetsService.batchGetValues as ReturnType<typeof vi.fn>
+    ).mockResolvedValueOnce(batchGetResponse)
+    ;(combine as ReturnType<typeof vi.fn>).mockImplementation(
+      (values, headers) => {
+        const record = {}
+        headers.forEach(header => {
+          record[header.name] = values[header.index]
+        })
+        return record
+      }
+    )
+
+    // Act
+    const result = await findMany(
+      {
+        spreadsheetId: 'test-spreadsheet-id',
+        sheets: mockSheetsService,
+        sheet: 'Sheet1'
+      },
+      {
+        where: { Name: 'Alice' },
+        omit
+      },
+      {
+        includeMetadata: true
+      }
+    )
+
+    // Assert
+    expect(getHeaders).toHaveBeenCalledWith({
+      sheet: 'Sheet1',
+      sheets: mockSheetsService,
+      spreadsheetId: 'test-spreadsheet-id'
+    })
+
+    expect(createSingleColumnRange).toHaveBeenCalledWith({
+      sheet: 'Sheet1',
+      column: 'A'
+    })
+
+    expect(mockSheetsService.getValues).toHaveBeenCalledWith('Sheet1!A:A')
+    expect(checkWhereFilter).toHaveBeenCalledTimes(2)
+    expect(createSingleRowRange).toHaveBeenCalledTimes(2)
+    expect(mockSheetsService.batchGetValues).toHaveBeenCalledWith(ranges)
+    expect(combine).toHaveBeenCalledTimes(2)
+
+    expect(result).toEqual({
+      data: [
+        { Name: 'Alice', Age: 30 }, // 'Email' omitted
+        { Name: 'Bob', Age: 25 } // 'Email' omitted
+      ],
+      rows: [1, 2],
+      ranges: ['Sheet1!A1:C1', 'Sheet1!A2:C2'],
+      metadata: {
+        operationId: 'test-operation-id',
+        timestamp: '2023-01-01T00:00:00.000Z',
+        duration: '50ms',
+        recordsAffected: 2,
+        status: 'success',
+        operationType: 'find',
+        spreadsheetId: 'test-spreadsheet-id',
+        sheetId: 'Sheet1',
+        ranges: ranges,
+        error: undefined,
+        userId: undefined
+      }
+    })
   })
 })
