@@ -2,6 +2,10 @@ import { sheets_v4, google } from 'googleapis'
 import type { IGoogleSheetsService } from '@/services/google-sheets/IGoogleSheetsService'
 import { CellValue } from '@/types/cellValue'
 import { HolySheetsCredentials, AuthClient } from '@/types/credentials'
+import { SheetNotFoundError } from '@/errors/SheetNotFoundError'
+import { AuthenticationError } from '@/errors/AuthenticationError'
+import { HolySheetsError } from '@/errors/HolySheetsError'
+import { ErrorCodes } from '@/errors/ErrorCodes'
 
 export class GoogleSheetsService implements IGoogleSheetsService {
   private readonly sheets: sheets_v4.Sheets
@@ -24,40 +28,87 @@ export class GoogleSheetsService implements IGoogleSheetsService {
     return this.auth
   }
 
-  async getValues(range: string): Promise<CellValue[][]> {
+  async getValues(range: string): Promise<string[][]> {
     try {
       const response = await this.sheets.spreadsheets.values.get({
         spreadsheetId: this.spreadsheetId,
         range
       })
-      return (response.data.values as CellValue[][]) || []
+      return (response.data.values as string[][]) || []
     } catch (error: unknown) {
       if (error instanceof Error) {
-        throw new Error(`Error getting values: ${error.message}`)
+        const errorMessage = error.message.toLowerCase()
+        if (errorMessage.includes('unable to parse range')) {
+          const [sheetName] = range.split('!')
+          throw new SheetNotFoundError(sheetName)
+        } else if (
+          errorMessage.includes('authorization') ||
+          errorMessage.includes('auth')
+        ) {
+          throw new AuthenticationError()
+        } else {
+          throw new HolySheetsError(
+            `Error getting values: ${error.message}`,
+            ErrorCodes.FETCH_COLUMNS_ERROR
+          )
+        }
       }
-      throw new Error('An unknown error occurred while getting values.')
+      throw new HolySheetsError(
+        'An unknown error occurred while getting values.',
+        ErrorCodes.UNKNOWN_ERROR
+      )
     }
   }
 
-  async batchGetValues(
-    ranges: string[]
-  ): Promise<{ valueRanges: { range: string; values?: CellValue[][] }[] }> {
+  /**
+   * Performs a batch get operation for the specified ranges and returns an array
+   * of parsed values for each range.
+   *
+   * @param ranges Array of A1 notation ranges.
+   * @returns A promise that resolves to an array where each element is a string[][]
+   *          representing the values of a particular range.
+   *
+   * @throws SheetNotFoundError, AuthenticationError, or HolySheetsError in case of errors.
+   */
+  async batchGetValues(ranges: string[]): Promise<string[][][]> {
     try {
       const response = await this.sheets.spreadsheets.values.batchGet({
         spreadsheetId: this.spreadsheetId,
         ranges
       })
-      return {
-        valueRanges: response.data.valueRanges as {
-          range: string
-          values?: CellValue[][]
-        }[]
-      }
+
+      // Se response.data.valueRanges for indefinido, retorne um array vazio
+      const valueRanges = response.data.valueRanges ?? []
+
+      // Mapeia cada range para um string[][] (ou um array vazio, se nenhum valor for retornado)
+      const results: string[][][] = valueRanges.map(vr => {
+        return (vr.values as string[][]) || []
+      })
+
+      return results
     } catch (error: unknown) {
       if (error instanceof Error) {
-        throw new Error(`Error performing batch get: ${error.message}`)
+        const errorMessage = error.message.toLowerCase()
+        if (errorMessage.includes('unable to parse range')) {
+          // Para batchGet, podemos escolher a primeira range para extrair o sheetName
+          const [sheetName] = ranges[0].split('!')
+          throw new SheetNotFoundError(sheetName)
+        } else if (
+          errorMessage.includes('authorization') ||
+          errorMessage.includes('auth')
+        ) {
+          throw new AuthenticationError()
+        } else {
+          throw new HolySheetsError(
+            `Error performing batch get: ${error.message}`,
+            ErrorCodes.FETCH_COLUMNS_ERROR
+          )
+        }
       }
-      throw new Error('An unknown error occurred during batch get.')
+      throw new HolySheetsError(
+        'An unknown error occurred during batch get.',
+        ErrorCodes.UNKNOWN_ERROR
+      )
     }
   }
 
@@ -131,11 +182,6 @@ export class GoogleSheetsService implements IGoogleSheetsService {
     }
   }
 
-  /**
-   * Gets the complete metadata of the spreadsheet.
-   *
-   * @returns A promise that resolves with the spreadsheet metadata.
-   */
   async getSpreadsheet(): Promise<sheets_v4.Schema$Spreadsheet> {
     try {
       const response = await this.sheets.spreadsheets.get({
@@ -156,23 +202,15 @@ export class GoogleSheetsService implements IGoogleSheetsService {
     }
   }
 
-  /**
-   * Gets the sheet ID from the name.
-   *
-   * @param sheetName - The name of the sheet.
-   * @returns The sheet ID.
-   */
   private async getSheetId(sheetName: string): Promise<number> {
     try {
       const spreadsheet = await this.getSpreadsheet()
       const sheet = spreadsheet.sheets?.find(
         s => s.properties?.title === sheetName
       )
-
       if (!sheet?.properties?.sheetId) {
         throw new Error(`Sheet with name "${sheetName}" not found.`)
       }
-
       return sheet.properties.sheetId
     } catch (error: unknown) {
       if (error instanceof Error) {
@@ -182,14 +220,6 @@ export class GoogleSheetsService implements IGoogleSheetsService {
     }
   }
 
-  /**
-   * Deletes a range of rows in the specified sheet.
-   *
-   * @param sheetName - The name of the sheet from which the rows will be deleted.
-   * @param startIndex - The starting index of the rows to be deleted (0-based, inclusive).
-   * @param endIndex - The ending index of the rows to be deleted (0-based, exclusive).
-   * @returns A promise that resolves when the delete operation is complete.
-   */
   async deleteRows(
     sheetName: string,
     startIndex: number,
@@ -204,7 +234,7 @@ export class GoogleSheetsService implements IGoogleSheetsService {
             {
               deleteDimension: {
                 range: {
-                  sheetId: sheetId,
+                  sheetId,
                   dimension: 'ROWS',
                   startIndex,
                   endIndex
@@ -222,39 +252,26 @@ export class GoogleSheetsService implements IGoogleSheetsService {
     }
   }
 
-  /**
-   * Deletes multiple rows in the specified sheet in a single batch operation.
-   *
-   * @param sheetName - The name of the sheet from which the rows will be deleted.
-   * @param rowIndices - An array of row indices to be deleted (0-based).
-   * @returns A promise that resolves when all delete operations are complete.
-   */
   async batchDeleteRows(
     sheetName: string,
     rowIndices: number[]
   ): Promise<void> {
     try {
       const sheetId = await this.getSheetId(sheetName)
-
-      // Sort the row indices in descending order to avoid index shifting
       const sortedRowIndices = [...rowIndices].sort((a, b) => b - a)
-
       const requests = sortedRowIndices.map(rowIndex => ({
         deleteDimension: {
           range: {
-            sheetId: sheetId,
+            sheetId,
             dimension: 'ROWS',
             startIndex: rowIndex,
             endIndex: rowIndex + 1
           }
         }
       }))
-
       await this.sheets.spreadsheets.batchUpdate({
         spreadsheetId: this.spreadsheetId,
-        requestBody: {
-          requests
-        }
+        requestBody: { requests }
       })
     } catch (error: unknown) {
       if (error instanceof Error) {

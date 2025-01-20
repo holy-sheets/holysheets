@@ -1,5 +1,3 @@
-import { IGoogleSheetsService } from '@/services/google-sheets/IGoogleSheetsService'
-
 import { OperationConfigs } from '@/types/operationConfigs'
 import { MetadataService } from '@/services/metadata/MetadataService'
 import {
@@ -7,6 +5,7 @@ import {
   RawOperationResult
 } from '@/services/metadata/IMetadataService'
 import { ErrorMessages, ErrorCode } from '@/services/errors/errorMessages'
+import { SheetsAdapterService } from '@/types/SheetsAdapterService'
 
 /**
  * Retrieves the sheet ID for the given sheet title.
@@ -38,7 +37,7 @@ import { ErrorMessages, ErrorCode } from '@/services/errors/errorMessages'
 export async function getSheetId(
   params: {
     spreadsheetId: string
-    sheets: IGoogleSheetsService
+    sheets: SheetsAdapterService
     title: string
   },
   configs?: OperationConfigs

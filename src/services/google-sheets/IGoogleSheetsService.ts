@@ -2,6 +2,9 @@ import type { sheets_v4 } from 'googleapis'
 import { CellValue } from '@/types/cellValue'
 import { AuthClient } from '@/types/credentials'
 
+/**
+ * Interface representing a service for interacting with Google Sheets.
+ */
 export interface IGoogleSheetsService {
   /**
    * Gets values from a specific range in the spreadsheet.
@@ -9,7 +12,7 @@ export interface IGoogleSheetsService {
    * @param range - The range of cells to retrieve (e.g., 'Sheet1!A1:B2').
    * @returns A promise that resolves with the retrieved values.
    */
-  getValues: (range: string) => Promise<CellValue[][]>
+  getValues: (range: string) => Promise<string[][]>
 
   /**
    * Gets values from multiple ranges in the spreadsheet.
@@ -17,9 +20,7 @@ export interface IGoogleSheetsService {
    * @param ranges - An array of cell ranges to retrieve.
    * @returns A promise that resolves with the retrieved values.
    */
-  batchGetValues: (
-    ranges: string[]
-  ) => Promise<{ valueRanges: { range: string; values?: CellValue[][] }[] }>
+  batchGetValues: (ranges: string[]) => Promise<string[][][]>
 
   /**
    * Updates values in a specific range in the spreadsheet.
