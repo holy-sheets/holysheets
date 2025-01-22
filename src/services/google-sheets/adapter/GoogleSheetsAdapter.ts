@@ -7,6 +7,7 @@ import {
   getSingleColumnNotation,
   getSingleRowNotation
 } from '../helpers/notation'
+import { SheetNotFoundError } from '@/errors/SheetNotFoundError'
 
 export class GoogleSheetsAdapter implements SheetsAdapterService {
   private readonly sheets: sheets_v4.Sheets
@@ -52,6 +53,18 @@ export class GoogleSheetsAdapter implements SheetsAdapterService {
     })
     return response.data
   }
+
+  async getSheetId(sheetName: string): Promise<number> {
+    const spreadsheet = await this.getSpreadsheet()
+    const sheet = spreadsheet.sheets?.find(
+      sheet => sheet.properties?.title === sheetName
+    )
+    if (!sheet) {
+      throw new SheetNotFoundError(sheetName)
+    }
+    return sheet.properties?.sheetId ?? 0
+  }
+
   getAuth(): AuthClient {
     return this.sheetService.getAuth()
   }

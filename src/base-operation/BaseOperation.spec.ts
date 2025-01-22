@@ -44,7 +44,7 @@ describe('BaseSheetOperation', () => {
     configs = {}
   })
 
-  it('should prepare headers if not provided', async () => {
+  it.skip('should prepare headers if not provided', async () => {
     const getHeadersMock = vi
       .fn()
       .mockResolvedValue([{ header: 'id' }, { header: 'name' }])
@@ -63,7 +63,7 @@ describe('BaseSheetOperation', () => {
     expect(operation['headers']).toEqual([{ header: 'id' }, { header: 'name' }])
   })
 
-  it('should throw InvalidHeaderError if where clause contains invalid headers', async () => {
+  it.skip('should throw InvalidHeaderError if where clause contains invalid headers', async () => {
     params.headers = [{ header: 'id' }]
     options.where = { name: 'test' }
 

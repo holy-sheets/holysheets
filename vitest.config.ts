@@ -10,6 +10,7 @@ export default defineConfig({
   test: {
     globals: true, // Enables global variables like 'describe' and 'it'
     environment: 'node', // Sets the test environment, can be 'node' or 'jsdom'
+    reporters: ['html'],
     coverage: {
       provider: 'v8' // For code coverage reports, optional
     }

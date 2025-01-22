@@ -4,8 +4,6 @@ import whereFilters from '@/services/where/whereFilters'
 import { SingleColumn } from '@/services/header/HeaderService.types'
 import { WhereClause, WhereFilterKey } from '@/types/where'
 
-const FIRST_ROW_OFFSET_INDEX = 1
-
 export class WhereService<RecordType> {
   private readonly where: WhereClause<RecordType>
   private readonly columns: SingleColumn[]
@@ -48,10 +46,7 @@ export class WhereService<RecordType> {
     if (conditionKeys.length === 0) {
       // For example, we will use columns[0]?.values.length to know how many rows there are
       const totalRows = this.columns[0]?.values.length ?? 0
-      return Array.from(
-        { length: totalRows },
-        (_, i) => i + this.headerRow + FIRST_ROW_OFFSET_INDEX
-      )
+      return Array.from({ length: totalRows }, (_, i) => i + this.headerRow)
     }
 
     let matchedIndices: Set<number> | null = null
@@ -80,16 +75,15 @@ export class WhereService<RecordType> {
             const expectedValue = condition[
               filterKey as WhereFilterKey
             ] as string
-            const filterFn = whereFilters[filterKey as WhereFilterKey] as (
-              value: string,
-              expected: string
-            ) => boolean
+            const filterFn = whereFilters[
+              filterKey as keyof typeof whereFilters
+            ] as (value: string, expected: string) => boolean
             return filterFn(cell, expectedValue)
           })
         }
         if (isMatch) {
           // Adjust the index with headerRow
-          currentMatched.add(idx + this.headerRow + FIRST_ROW_OFFSET_INDEX)
+          currentMatched.add(idx + this.headerRow)
         }
       })
 

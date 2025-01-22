@@ -3,7 +3,7 @@
  */
 
 import { sheets_v4 } from 'googleapis'
-import { AuthClient } from '@/types/credentials'
+import { AuthClient } from '@/services/google-sheets/types/credentials.type'
 
 /**
  * Retrieves multiple columns from the specified sheet.
@@ -55,6 +55,14 @@ export interface SheetsAdapterService {
    * @returns A promise that resolves with the spreadsheet metadata.
    */
   getSpreadsheet: () => Promise<sheets_v4.Schema$Spreadsheet>
+
+  /**
+   * Gets the ID of the sheet with the specified name.
+   *
+   * @param sheetName - The name of the sheet.
+   * @returns A promise that resolves with the ID of the sheet.
+   */
+  getSheetId: (sheetName: string) => Promise<number>
 
   /**
    * Gets the authentication client used to access the Google Sheets API.

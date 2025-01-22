@@ -1,5 +1,4 @@
-import { HolySheetsCredentials } from '@/types/credentials'
-import { getSheetId } from '@/core/getSheetId/getSheetId'
+import { HolySheetsCredentials } from '@/services/google-sheets/types/credentials.type'
 import { FindSheetOperation } from '@/base-operation/FindOperation'
 import { HeaderService } from '@/services/header/HeaderService'
 import { RecordSchema } from '@/services/base-schema/BaseSchema.types'
@@ -67,24 +66,6 @@ export default class HolySheets<RecordType> {
 
   private setHeaderRow(headerRow: number) {
     this.headerRow = headerRow
-  }
-
-  /**
-   * Retrieves the ID of a sheet within the spreadsheet by its title.
-   *
-   * @param title - The title of the sheet to find.
-   * @param configs - Optional configuration for the operation.
-   * @returns A promise that resolves to the sheet ID.
-   */
-  public async getSheetId(title: string, configs?: OperationConfigs) {
-    return await getSheetId(
-      {
-        spreadsheetId: this.spreadsheetId,
-        sheets: this.sheets,
-        title
-      },
-      configs
-    )
   }
 
   /**

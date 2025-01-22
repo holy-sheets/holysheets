@@ -9,10 +9,10 @@ import {
   HeaderColumn,
   SingleColumn
 } from '@/services/header/HeaderService.types'
-import { InvalidHeaderError } from '@/errors/InvalidHeaderError'
 import { SheetsAdapterService } from '@/types/SheetsAdapterService'
 import { FetchingColumnsError } from '@/errors/FetchingColumnsError'
 import { WhereService } from '@/services/where/WhereService'
+import { InvalidWhereKeyError } from '@/errors/InvalidWhereKey'
 
 export abstract class BaseSheetOperation<RecordType> {
   protected headers: HeaderColumn[] = []
@@ -38,9 +38,13 @@ export abstract class BaseSheetOperation<RecordType> {
 
   public async executeOperation(): Promise<RecordType[]> {
     await this.prepareHeaders()
+    // console.log({ headers: this.headers }) // eslint-disable-line no-console
     const headerColumns = this.prepareWhere()
+    // console.log({ headerColumns }) // eslint-disable-line no-console
     const columns = await this.fetchColumns(headerColumns)
+    // console.log({ columns: JSON.stringify(columns) }) // eslint-disable-line no-console
     const rows = this.filterRows(columns)
+    // console.log({ rows }) // eslint-disable-line no-console
     return await this.performMainAction(rows)
   }
 
@@ -74,9 +78,17 @@ export abstract class BaseSheetOperation<RecordType> {
     const validWhereKeys = this.headers.filter(header =>
       whereKeys.includes(header.header)
     )
-    if (validWhereKeys.length !== whereKeys.length) {
-      throw new InvalidHeaderError(this.sheet)
-    }
+    // eslint-disable-next-line no-console
+    console.log({
+      headers: this.headers,
+      whereKeys,
+      validWhereKeys
+    })
+    whereKeys.forEach(whereKey => {
+      if (!validWhereKeys.find(header => header.header === whereKey)) {
+        throw new InvalidWhereKeyError(whereKey)
+      }
+    })
     return validWhereKeys.map(header => {
       const headerColumnIdx = this.headers.findIndex(
         h => h.header === header.header
