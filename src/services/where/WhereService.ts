@@ -2,7 +2,7 @@ import { InvalidWhereFilterError } from '@/errors/InvalidWhereFilter'
 import { InvalidWhereKeyError } from '@/errors/InvalidWhereKey'
 import whereFilters from '@/services/where/whereFilters'
 import { SingleColumn } from '@/services/header/HeaderService.types'
-import { WhereClause, WhereFilterKey } from '@/types/where'
+import { WhereClause, WhereFilterKey } from '@/services/where/types/where'
 
 export class WhereService<RecordType> {
   private readonly where: WhereClause<RecordType>
