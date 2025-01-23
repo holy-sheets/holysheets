@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { RecordAdapter } from './RecordAdapter'
-import { DataTypes } from '@/services/base-schema/BaseSchema.types'
+import { DataTypes } from '@/types/RecordSchema.types'
 import { SchemaTypeMismatchError } from '@/errors/SchemaTypeMismatchError'
 
 describe('RecordAdapter', () => {

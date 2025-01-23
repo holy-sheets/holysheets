@@ -1,7 +1,7 @@
 import { HolySheetsCredentials } from '@/services/google-sheets/types/credentials.type'
 import { FindSheetOperation } from '@/base-operation/FindOperation'
 import { HeaderService } from '@/services/header/HeaderService'
-import { RecordSchema } from '@/services/base-schema/BaseSchema.types'
+import { RecordSchema } from '@/types/RecordSchema.types'
 import {
   OperationOptions,
   OperationConfigs
@@ -10,7 +10,7 @@ import { HeaderColumn } from './services/header/HeaderService.types'
 import { GoogleSheetsAdapter } from './services/google-sheets/adapter/GoogleSheetsAdapter'
 import { SheetsAdapterService } from './types/SheetsAdapterService'
 import { MultipleRecordsFoundForUniqueError } from './errors/MultipleRecordsFoundForUniqueError'
-import { DataTypes } from './services/base-schema/BaseSchema.types'
+import { DataTypes } from './types/RecordSchema.types'
 
 interface HolySheetsBaseOptions {
   headerRow?: number

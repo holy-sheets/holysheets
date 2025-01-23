@@ -1,8 +1,5 @@
 import { SchemaTypeMismatchError } from '@/errors/SchemaTypeMismatchError'
-import {
-  RecordSchema,
-  DataTypes
-} from '@/services/base-schema/BaseSchema.types'
+import { RecordSchema, DataTypes } from '@/types/RecordSchema.types'
 import { HeaderColumn } from '@/services/header/HeaderService.types'
 
 interface ToRecordOptions<RecordType> {

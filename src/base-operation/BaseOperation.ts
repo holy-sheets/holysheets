@@ -3,7 +3,7 @@ import {
   OperationConfigs,
   OperationOptions
 } from '@/base-operation/types/BaseOperation.types'
-import { RecordSchema } from '@/services/base-schema/BaseSchema.types'
+import { RecordSchema } from '@/types/RecordSchema.types'
 import { HeaderService } from '@/services/header/HeaderService'
 import {
   HeaderColumn,
