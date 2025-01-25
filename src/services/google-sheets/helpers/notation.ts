@@ -1,6 +1,8 @@
+import { InvalidColumnIndexError } from '@/errors/InvalidColumnIndexError'
+
 function indexToA1Notation(index: number): string {
   if (index < 0) {
-    throw new Error('O número da coluna deve ser maior ou igual a 0')
+    throw new InvalidColumnIndexError()
   }
   let column = ''
   while (index >= 0) {

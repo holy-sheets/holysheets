@@ -12,6 +12,7 @@ export default defineConfig({
     environment: 'node', // Sets the test environment, can be 'node' or 'jsdom'
     // reporters: ['html'],
     coverage: {
+      include: ['src/**/*.{ts,js}'],
       provider: 'v8' // For code coverage reports, optional
     }
   }
