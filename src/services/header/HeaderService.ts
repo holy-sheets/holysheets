@@ -9,23 +9,18 @@ import { HeaderColumn } from '@/services/header/HeaderService.types'
 import { SheetsAdapterService } from '@/types/SheetsAdapterService'
 
 /**
- * Representa cada cabeçalho como { header: string, column: number }.
- */
-
-/**
- * HeaderService em modo Singleton NÃO genérico.
- * Retorna uma lista de objetos no formato [{ header: "taskId", column: 0 }, ... ].
+ * HeaderService in non-generic Singleton mode.
+ * Returns a list of objects in the format [{ header: "taskId", column: 0 }, ... ].
  */
 export class HeaderService {
   private static instance: HeaderService
 
-  // Em vez de cachear `Record<string, number>`, cacheamos um array de {header, column}.
   private readonly headerListCache: Map<string, HeaderColumn[]> = new Map()
 
   private constructor(private readonly sheets: SheetsAdapterService) {}
 
   /**
-   * Retorna a instância singleton do HeaderService, sem generics.
+   * Returns the singleton instance of HeaderService, without generics.
    */
   public static getInstance(sheets: SheetsAdapterService): HeaderService {
     if (!HeaderService.instance) {
@@ -35,15 +30,15 @@ export class HeaderService {
   }
 
   /**
-   * Retorna uma lista de objetos { header, column }, onde 'header' é o nome da coluna
-   * e 'column' é o índice (0-based).
+   * Returns a list of objects { header, column }, where 'header' is the column name
+   * and 'column' is the 0-based index.
    *
-   * @param spreadsheetId - O ID da planilha
-   * @param sheet - O nome da folha
-   * @param headerRow - A linha em que se encontram os headers (padrão = 1)
+   * @param spreadsheetId - The ID of the spreadsheet
+   * @param sheet - The name of the sheet
+   * @param headerRow - The row where the headers are located (default = 1)
    * @returns Promise<HeaderColumn[]>
    *
-   * Exemplo:
+   * Example:
    * [
    *   { header: "taskId", column: 0 },
    *   { header: "title", column: 1 },
