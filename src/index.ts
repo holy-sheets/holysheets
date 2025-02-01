@@ -140,11 +140,6 @@ export default class HolySheets<RecordType extends object> {
     options: OperationOptions<RecordType>,
     configs: OperationConfigs
   ): Promise<RecordType[]> {
-    // eslint-disable-next-line
-    console.log('>>> findMany', {
-      where: JSON.stringify(options.where),
-      options: JSON.stringify(options)
-    })
     return await this.runFindOperation(options, configs)
   }
   /**

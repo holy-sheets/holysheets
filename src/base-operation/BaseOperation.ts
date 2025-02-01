@@ -41,17 +41,11 @@ export abstract class BaseSheetOperation<RecordType extends object> {
   public async executeOperation(): Promise<RecordType[]> {
     this.validate()
     await this.prepareHeaders()
-    // console.log({ headers: this.headers }) // eslint-disable-line no-console
     const headerColumns = this.prepareWhere()
-    // console.log({ headerColumns }) // eslint-disable-line no-console
     const columns = await this.fetchColumns(headerColumns)
-    // console.log({ columns: JSON.stringify(columns) }) // eslint-disable-line no-console
     const rows = this.filterRows(columns)
-    // console.log({ rows }) // eslint-disable-line no-console
     const records = await this.performMainAction(rows)
-    const response = this.processResponse(records)
-    // console.log({ response }) // eslint-disable-line no-console
-    return response
+    return this.processResponse(records)
   }
 
   private validate(): void {
@@ -100,25 +94,25 @@ export abstract class BaseSheetOperation<RecordType extends object> {
 
   private prepareWhere(): HeaderColumn[] {
     const where = this.options.where || {}
-    const whereKeys = Object.keys(where || this.headers.map(h => h.header))
+    const whereKeys =
+      Object.keys(where).length > 0
+        ? Object.keys(where)
+        : this.headers.map(h => h.header)
 
     const validWhereKeys = this.headers.filter(header =>
       whereKeys.includes(header.header)
     )
+
     whereKeys.forEach(whereKey => {
       if (!validWhereKeys.find(header => header.header === whereKey)) {
         throw new InvalidWhereKeyError(whereKey)
       }
     })
-    return validWhereKeys.map(header => {
-      const headerColumnIdx = this.headers.findIndex(
-        h => h.header === header.header
-      )
-      return {
-        header: header.header,
-        column: headerColumnIdx
-      }
-    })
+
+    return validWhereKeys.map(header => ({
+      header: header.header,
+      column: this.headers.findIndex(h => h.header === header.header)
+    }))
   }
 
   private async fetchColumns(
