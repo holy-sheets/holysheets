@@ -47,6 +47,18 @@ export class GoogleSheetsAdapter implements SheetsAdapterService {
     const response = await this.sheetService.batchGetValues(notations)
     return response.map(column => column.map(cell => cell[0]))
   }
+
+  async clearMultipleRows(
+    sheetName: string,
+    columnIndexes: number[]
+  ): Promise<void> {
+    const notations = columnIndexes.map(index =>
+      getSingleRowNotation(sheetName, index)
+    )
+    console.log({ notations }) // eslint-disable-line
+    await this.sheetService.batchClearValues(notations)
+  }
+
   async getSpreadsheet(): Promise<sheets_v4.Schema$Spreadsheet> {
     const response = await this.sheets.spreadsheets.get({
       spreadsheetId: this.spreadsheetId

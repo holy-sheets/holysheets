@@ -2,7 +2,7 @@ import { BaseSheetOperation } from '@/base-operation/BaseOperation'
 import { RecordAdapter } from '@/services/record-adapter/RecordAdapter'
 
 export class FindSheetOperation<
-  RecordType
+  RecordType extends object
 > extends BaseSheetOperation<RecordType> {
   protected async performMainAction(rows: number[]): Promise<RecordType[]> {
     const response = await this.sheets.getMultipleRows(

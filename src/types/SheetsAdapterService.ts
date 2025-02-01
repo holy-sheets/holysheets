@@ -50,6 +50,15 @@ export interface SheetsAdapterService {
   ) => Promise<string[][]>
 
   /**
+   * Clear multiple rows from the specified sheet.
+   *
+   * @param sheetName - The name of the sheet from which to retrieve the rows.
+   * @param rowIndexes - An array of indexes of the rows to retrieve.
+   * @returns A promise that resolves to a 2D array of strings representing the rows data.
+   */
+  clearMultipleRows: (sheetName: string, rowIndexes: number[]) => Promise<void>
+
+  /**
    * Gets the complete metadata of the spreadsheet.
    *
    * @returns A promise that resolves with the spreadsheet metadata.

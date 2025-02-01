@@ -11,6 +11,7 @@ import { GoogleSheetsAdapter } from './services/google-sheets/adapter/GoogleShee
 import { SheetsAdapterService } from './types/SheetsAdapterService'
 import { MultipleRecordsFoundForUniqueError } from './errors/MultipleRecordsFoundForUniqueError'
 import { DataTypes } from './types/RecordSchema.types'
+import { ClearSheetOperation } from './base-operation/ClearOperation'
 
 interface HolySheetsBaseOptions {
   headerRow?: number
@@ -20,7 +21,7 @@ enum HolySheetsDefaults {
   HEADER_ROW = 1
 }
 
-export default class HolySheets<RecordType> {
+export default class HolySheets<RecordType extends object> {
   public sheets: SheetsAdapterService
   public sheet: string = ''
   public spreadsheetId: string = ''
@@ -33,7 +34,7 @@ export default class HolySheets<RecordType> {
     this.sheets = new GoogleSheetsAdapter(credentials)
     this.headerService = HeaderService.getInstance(this.sheets)
   }
-  public base<RecordType>(
+  public base<RecordType extends object>(
     table: string,
     options: HolySheetsBaseOptions = {}
   ): HolySheets<RecordType> {
@@ -81,6 +82,29 @@ export default class HolySheets<RecordType> {
     )
   }
 
+  private async runClearOperation(
+    options: OperationOptions<RecordType>,
+    configs: OperationConfigs
+  ): Promise<RecordType[]> {
+    const headers = await this.getHeaders()
+    const clearOperation = new ClearSheetOperation<RecordType>(
+      {
+        sheet: this.sheet,
+        credentials: {
+          spreadsheetId: this.spreadsheetId,
+          auth: this.sheets.getAuth()
+        },
+        sheets: this.sheets,
+        schema: this.schema,
+        headerRow: this.headerRow,
+        headers
+      },
+      options,
+      configs
+    )
+    return clearOperation.executeOperation()
+  }
+
   private async runFindOperation(
     options: OperationOptions<RecordType>,
     configs: OperationConfigs
@@ -116,6 +140,11 @@ export default class HolySheets<RecordType> {
     options: OperationOptions<RecordType>,
     configs: OperationConfigs
   ): Promise<RecordType[]> {
+    // eslint-disable-next-line
+    console.log('>>> findMany', {
+      where: JSON.stringify(options.where),
+      options: JSON.stringify(options)
+    })
     return await this.runFindOperation(options, configs)
   }
   /**
@@ -151,12 +180,27 @@ export default class HolySheets<RecordType> {
     return result[0]
   }
 
+  public async findAll(
+    options: Omit<OperationOptions<RecordType>, 'where'>,
+    configs: OperationConfigs
+  ): Promise<RecordType[]> {
+    return await this.runFindOperation(options, configs)
+  }
+
   public async findLast(
     options: OperationOptions<RecordType>,
     configs: OperationConfigs
   ): Promise<RecordType> {
     const result = await this.runFindOperation(options, configs)
     return result[result.length - 1]
+  }
+
+  public async clearMany(
+    options: OperationOptions<RecordType>,
+    configs: OperationConfigs
+  ): Promise<RecordType[]> {
+    const result = await this.runClearOperation(options, configs)
+    return result
   }
 }
 

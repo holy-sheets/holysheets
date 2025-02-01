@@ -13,8 +13,10 @@ import { SheetsAdapterService } from '@/types/SheetsAdapterService'
 import { FetchingColumnsError } from '@/errors/FetchingColumnsError'
 import { WhereService } from '@/services/where/WhereService'
 import { InvalidWhereKeyError } from '@/errors/InvalidWhereKey'
+import { RecordPostProcessor } from '@/services/record-post-processor/RecordPostProcessor'
+import { SelectOmitConflictError } from '@/errors/SelectOmitConflictError'
 
-export abstract class BaseSheetOperation<RecordType> {
+export abstract class BaseSheetOperation<RecordType extends object> {
   protected headers: HeaderColumn[] = []
   protected sheet: string
   protected sheets: SheetsAdapterService
@@ -37,6 +39,7 @@ export abstract class BaseSheetOperation<RecordType> {
   }
 
   public async executeOperation(): Promise<RecordType[]> {
+    this.validate()
     await this.prepareHeaders()
     // console.log({ headers: this.headers }) // eslint-disable-line no-console
     const headerColumns = this.prepareWhere()
@@ -45,7 +48,32 @@ export abstract class BaseSheetOperation<RecordType> {
     // console.log({ columns: JSON.stringify(columns) }) // eslint-disable-line no-console
     const rows = this.filterRows(columns)
     // console.log({ rows }) // eslint-disable-line no-console
-    return await this.performMainAction(rows)
+    const records = await this.performMainAction(rows)
+    const response = this.processResponse(records)
+    // console.log({ response }) // eslint-disable-line no-console
+    return response
+  }
+
+  private validate(): void {
+    const { select, omit } = this.options
+    if (select && omit) {
+      throw new SelectOmitConflictError()
+    }
+  }
+
+  private processResponse(records: RecordType[]): RecordType[] {
+    const { select, omit } = this.options
+    const processor = new RecordPostProcessor(
+      {
+        records,
+        schema: this.schema
+      },
+      {
+        select,
+        omit
+      }
+    )
+    return processor.process() as RecordType[]
   }
 
   protected abstract performMainAction(rows: number[]): Promise<RecordType[]>
@@ -71,19 +99,12 @@ export abstract class BaseSheetOperation<RecordType> {
   }
 
   private prepareWhere(): HeaderColumn[] {
-    if (!this.options.where) {
-      throw new Error('Where clause is required')
-    }
-    const whereKeys = Object.keys(this.options.where)
+    const where = this.options.where || {}
+    const whereKeys = Object.keys(where || this.headers.map(h => h.header))
+
     const validWhereKeys = this.headers.filter(header =>
       whereKeys.includes(header.header)
     )
-    // eslint-disable-next-line no-console
-    console.log({
-      headers: this.headers,
-      whereKeys,
-      validWhereKeys
-    })
     whereKeys.forEach(whereKey => {
       if (!validWhereKeys.find(header => header.header === whereKey)) {
         throw new InvalidWhereKeyError(whereKey)
@@ -100,7 +121,11 @@ export abstract class BaseSheetOperation<RecordType> {
     })
   }
 
-  private async fetchColumns(columns: HeaderColumn[]): Promise<SingleColumn[]> {
+  private async fetchColumns(
+    userColumns: HeaderColumn[]
+  ): Promise<SingleColumn[]> {
+    const columns = userColumns.length > 0 ? userColumns : this.headers
+
     try {
       const columnsToFetch = columns.map(c => c.column)
       const values = await this.sheets.getMultipleColumns(

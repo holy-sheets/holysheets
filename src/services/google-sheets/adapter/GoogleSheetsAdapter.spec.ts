@@ -47,7 +47,6 @@ describe('GoogleSheetsAdapter', () => {
     mockSheetService.batchGetValues = vi.fn().mockResolvedValue(expectedRows)
 
     const result = await adapter.getMultipleRows(sheetName, rowIndexes)
-    console.log({ result })
     expect(result).toEqual(expectedRows)
     expect(mockSheetService.batchGetValues).toHaveBeenCalledWith([
       `${sheetName}!1:1`,
