@@ -1,7 +1,7 @@
 import { RecordSchema } from '@/types/RecordSchema.types'
 import { HolySheetsCredentials } from '@/services/google-sheets/types/credentials.type'
 import { HeaderColumn } from '@/services/header/HeaderService.types'
-import { WhereClause } from '@/services/where/types/where'
+import { WhereClause } from '@/services/where/types/where.types'
 import { SheetsAdapterService } from '@/types/SheetsAdapterService'
 
 export type OperationConfigs = {

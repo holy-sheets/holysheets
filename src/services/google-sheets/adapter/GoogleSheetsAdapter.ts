@@ -1,4 +1,5 @@
-import { AuthClient, HolySheetsCredentials } from '@/types/credentials'
+import { HolySheetsCredentials } from '@/services/google-sheets/types/credentials.type'
+import { AuthClient } from '@/services/google-sheets/types/credentials.type'
 import { SheetsAdapterService } from '@/types/SheetsAdapterService'
 import { google, sheets_v4 } from 'googleapis'
 import { IGoogleSheetsService } from '../IGoogleSheetsService'
@@ -78,6 +79,6 @@ export class GoogleSheetsAdapter implements SheetsAdapterService {
   }
 
   getAuth(): AuthClient {
-    return this.sheetService.getAuth()
+    return this.sheetService.getAuth() as AuthClient
   }
 }
