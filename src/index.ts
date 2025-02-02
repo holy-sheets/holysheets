@@ -11,7 +11,7 @@ import { GoogleSheetsAdapter } from '@/services/google-sheets/adapter/GoogleShee
 import { SheetsAdapterService } from '@/types/SheetsAdapterService'
 import { MultipleRecordsFoundForUniqueError } from '@/errors/MultipleRecordsFoundForUniqueError'
 import { ClearSheetOperation } from '@/operations/clear/ClearOperation'
-import { RecordNotFoundError } from '@/errors/RecordNotFoundError' // Certifique-se de que esse erro esteja implementado
+import { RecordNotFoundError } from '@/errors/RecordNotFoundError'
 
 interface HolySheetsBaseOptions {
   headerRow?: number

@@ -41,11 +41,11 @@ export abstract class TemplateOperation<RecordType extends object> {
   public async executeOperation(): Promise<RecordType[]> {
     this.validate()
     await this.prepareHeaders()
-    const headerColumns = this.prepareWhere()
-    const columns = await this.fetchColumns(headerColumns)
-    const rows = this.filterRows(columns)
+    const headerColumns = this.filterColumnsByWhere()
+    const columnsValues = await this.retrieveColumnsValues(headerColumns)
+    const rows = this.retrieveFilteredRows(columnsValues)
     const records = await this.performMainAction(rows)
-    return this.processResponse(records)
+    return this.processRecords(records)
   }
 
   private validate(): void {
@@ -55,7 +55,7 @@ export abstract class TemplateOperation<RecordType extends object> {
     }
   }
 
-  private processResponse(records: RecordType[]): RecordType[] {
+  private processRecords(records: RecordType[]): RecordType[] {
     const { select, omit } = this.options
     const processor = new RecordPostProcessor(
       {
@@ -72,7 +72,7 @@ export abstract class TemplateOperation<RecordType extends object> {
 
   protected abstract performMainAction(rows: number[]): Promise<RecordType[]>
 
-  private filterRows(columns: SingleColumn[]): number[] {
+  private retrieveFilteredRows(columns: SingleColumn[]): number[] {
     const whereService = new WhereService(
       this.options.where || {},
       columns,
@@ -92,7 +92,7 @@ export abstract class TemplateOperation<RecordType extends object> {
     }
   }
 
-  private prepareWhere(): HeaderColumn[] {
+  private filterColumnsByWhere(): HeaderColumn[] {
     const where = this.options.where || {}
     const whereKeys =
       Object.keys(where).length > 0
@@ -115,7 +115,7 @@ export abstract class TemplateOperation<RecordType extends object> {
     }))
   }
 
-  private async fetchColumns(
+  private async retrieveColumnsValues(
     userColumns: HeaderColumn[]
   ): Promise<SingleColumn[]> {
     const columns = userColumns.length > 0 ? userColumns : this.headers
