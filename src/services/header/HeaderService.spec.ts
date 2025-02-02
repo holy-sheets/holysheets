@@ -12,14 +12,11 @@ describe('HeaderService', () => {
   let sheetsAdapterServiceMock: SheetsAdapterService
   let headerService: HeaderService
 
-  // Valores usados em vários testes
   const spreadsheetId = 'spreadsheetId'
   const sheet = 'sheet'
   const headerRow = 1
 
   beforeEach(() => {
-    // Resetando o singleton para que cada teste inicie com uma instância nova e cache vazio
-    // OBS.: Isso funciona porque a propriedade "instance" é privada mas acessível via bracket notation.
     HeaderService['instance'] = undefined
 
     sheetsAdapterServiceMock = {
@@ -30,7 +27,7 @@ describe('HeaderService', () => {
 
   it('should return headers from cache if available', async () => {
     const headers = [{ header: 'taskId', column: 0 }]
-    // Gravamos manualmente no cache
+    // Manually set in cache
     headerService['headerListCache'].set(`${spreadsheetId}:${sheet}`, headers)
 
     const result = await headerService.getHeaders(
@@ -42,7 +39,7 @@ describe('HeaderService', () => {
   })
 
   it('should throw NoHeadersError if no headers are found', async () => {
-    // Garantindo que o cache esteja limpo
+    // Ensuring the cache is clear
     headerService['headerListCache'].clear()
     ;(sheetsAdapterServiceMock.getSingleRow as any).mockResolvedValue([])
 

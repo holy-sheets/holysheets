@@ -1,7 +1,7 @@
 import { HolySheetsCredentials } from '@/services/google-sheets/types/credentials.type'
 import { FindSheetOperation } from '@/operations/find/FindOperation'
 import { HeaderService } from '@/services/header/HeaderService'
-import { RecordSchema } from '@/types/RecordSchema.types'
+import { RecordSchema, DataTypes } from '@/types/RecordSchema.types'
 import {
   OperationOptions,
   OperationConfigs
@@ -10,8 +10,8 @@ import { HeaderColumn } from '@/services/header/HeaderService.types'
 import { GoogleSheetsAdapter } from '@/services/google-sheets/adapter/GoogleSheetsAdapter'
 import { SheetsAdapterService } from '@/types/SheetsAdapterService'
 import { MultipleRecordsFoundForUniqueError } from '@/errors/MultipleRecordsFoundForUniqueError'
-import { DataTypes } from '@/types/RecordSchema.types'
 import { ClearSheetOperation } from '@/operations/clear/ClearOperation'
+import { RecordNotFoundError } from '@/errors/RecordNotFoundError' // Certifique-se de que esse erro esteja implementado
 
 interface HolySheetsBaseOptions {
   headerRow?: number
@@ -34,6 +34,7 @@ export default class HolySheets<RecordType extends object> {
     this.sheets = new GoogleSheetsAdapter(credentials)
     this.headerService = HeaderService.getInstance(this.sheets)
   }
+
   public base<RecordType extends object>(
     table: string,
     options: HolySheetsBaseOptions = {}
@@ -125,7 +126,6 @@ export default class HolySheets<RecordType extends object> {
       options,
       configs
     )
-
     return findOperation.executeOperation()
   }
 
@@ -142,6 +142,7 @@ export default class HolySheets<RecordType extends object> {
   ): Promise<RecordType[]> {
     return await this.runFindOperation(options, configs)
   }
+
   /**
    * Finds the first record that matches the given options and configurations.
    *
@@ -156,6 +157,7 @@ export default class HolySheets<RecordType extends object> {
     const result = await this.runFindOperation(options, configs)
     return result[0]
   }
+
   /**
    * Finds a unique record based on the provided options and configurations.
    *
@@ -195,6 +197,74 @@ export default class HolySheets<RecordType extends object> {
     configs: OperationConfigs
   ): Promise<RecordType[]> {
     const result = await this.runClearOperation(options, configs)
+    return result
+  }
+
+  public async findManyOrThrow(
+    options: OperationOptions<RecordType>,
+    configs: OperationConfigs
+  ): Promise<RecordType[]> {
+    const result = await this.findMany(options, configs)
+    if (!result || result.length === 0) {
+      throw new RecordNotFoundError()
+    }
+    return result
+  }
+
+  /**
+   * Finds and returns the first record. Throws RecordNotFoundError if no record is found.
+   */
+  public async findFirstOrThrow(
+    options: OperationOptions<RecordType>,
+    configs: OperationConfigs
+  ): Promise<RecordType> {
+    const result = await this.findFirst(options, configs)
+    if (!result) {
+      throw new RecordNotFoundError()
+    }
+    return result
+  }
+
+  /**
+   * Finds and returns a unique record. Throws RecordNotFoundError if no record is found.
+   * Throws MultipleRecordsFoundForUniqueError if more than one record is found.
+   */
+  public async findUniqueOrThrow(
+    options: OperationOptions<RecordType>,
+    configs: OperationConfigs
+  ): Promise<RecordType> {
+    const result = await this.findUnique(options, configs)
+    if (!result) {
+      throw new RecordNotFoundError()
+    }
+    return result
+  }
+
+  /**
+   * Finds and returns all records. Throws RecordNotFoundError if no records are found.
+   */
+  public async findAllOrThrow(
+    options: Omit<OperationOptions<RecordType>, 'where'>,
+    configs: OperationConfigs
+  ): Promise<RecordType[]> {
+    const result = await this.findAll(options, configs)
+    if (!result || result.length === 0) {
+      throw new RecordNotFoundError()
+    }
+    return result
+  }
+
+  /**
+   * Finds and returns the last record. Throws RecordNotFoundError if no record is found.
+   */
+  public async findLastOrThrow(
+    options: OperationOptions<RecordType>,
+    configs: OperationConfigs
+  ): Promise<RecordType> {
+    const result = await this.findLast(options, configs)
+    if (!result) {
+      throw new RecordNotFoundError()
+    }
     return result
   }
 }

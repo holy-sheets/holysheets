@@ -8,6 +8,7 @@ import type {
   OperationConfigs
 } from '@/operations/types/BaseOperation.types'
 import type { RecordSchema, DataTypes } from '@/types/RecordSchema.types'
+import { RecordNotFoundError } from '@/errors/RecordNotFoundError'
 
 // Test record type
 interface DummyRecord {
@@ -143,6 +144,151 @@ describe('HolySheets', () => {
       const result = await instance.clearMany(dummyOptions, dummyConfigs)
       expect(mockExecute).toHaveBeenCalled()
       expect(result).toEqual([{ id: 1 }, { id: 2 }])
+    })
+  })
+})
+
+describe('HolySheets OrThrow find operations', () => {
+  let instance: HolySheets<DummyRecord>
+  const dummyOptions: OperationOptions<DummyRecord> = {}
+  const dummyConfigs: OperationConfigs = {}
+
+  beforeEach(() => {
+    instance = setupTestEnvironment()
+  })
+
+  describe('findManyOrThrow', () => {
+    let mockExecute: ReturnType<typeof vi.fn>
+
+    beforeEach(() => {
+      mockExecute = vi.fn()
+      ;(FindSheetOperation as vi.Mock).mockImplementation(() => ({
+        executeOperation: mockExecute
+      }))
+    })
+
+    it('should return an array of records when records are found', async () => {
+      mockExecute.mockResolvedValue([{ id: 1 }, { id: 2 }])
+      const result = await instance.findManyOrThrow(dummyOptions, dummyConfigs)
+      expect(mockExecute).toHaveBeenCalled()
+      expect(result).toEqual([{ id: 1 }, { id: 2 }])
+    })
+
+    it('should throw RecordNotFoundError when no records are found', async () => {
+      mockExecute.mockResolvedValue([])
+      await expect(
+        instance.findManyOrThrow(dummyOptions, dummyConfigs)
+      ).rejects.toBeInstanceOf(RecordNotFoundError)
+    })
+  })
+
+  describe('findFirstOrThrow', () => {
+    let mockExecute: ReturnType<typeof vi.fn>
+
+    beforeEach(() => {
+      mockExecute = vi.fn()
+      ;(FindSheetOperation as vi.Mock).mockImplementation(() => ({
+        executeOperation: mockExecute
+      }))
+    })
+
+    it('should return the first record when records are found', async () => {
+      mockExecute.mockResolvedValue([{ id: 1 }, { id: 2 }])
+      const result = await instance.findFirstOrThrow(dummyOptions, dummyConfigs)
+      expect(mockExecute).toHaveBeenCalled()
+      expect(result).toEqual({ id: 1 })
+    })
+
+    it('should throw RecordNotFoundError when no record is found', async () => {
+      mockExecute.mockResolvedValue([])
+      await expect(
+        instance.findFirstOrThrow(dummyOptions, dummyConfigs)
+      ).rejects.toBeInstanceOf(RecordNotFoundError)
+    })
+  })
+
+  describe('findUniqueOrThrow', () => {
+    let mockExecute: ReturnType<typeof vi.fn>
+
+    beforeEach(() => {
+      mockExecute = vi.fn()
+      ;(FindSheetOperation as vi.Mock).mockImplementation(() => ({
+        executeOperation: mockExecute
+      }))
+    })
+
+    it('should return the unique record when exactly one record is found', async () => {
+      mockExecute.mockResolvedValue([{ id: 1 }])
+      const result = await instance.findUniqueOrThrow(
+        dummyOptions,
+        dummyConfigs
+      )
+      expect(mockExecute).toHaveBeenCalled()
+      expect(result).toEqual({ id: 1 })
+    })
+
+    it('should throw MultipleRecordsFoundForUniqueError when multiple records are found', async () => {
+      mockExecute.mockResolvedValue([{ id: 1 }, { id: 2 }])
+      await expect(
+        instance.findUniqueOrThrow(dummyOptions, dummyConfigs)
+      ).rejects.toBeInstanceOf(MultipleRecordsFoundForUniqueError)
+    })
+
+    it('should throw RecordNotFoundError when no records are found', async () => {
+      mockExecute.mockResolvedValue([])
+      await expect(
+        instance.findUniqueOrThrow(dummyOptions, dummyConfigs)
+      ).rejects.toBeInstanceOf(RecordNotFoundError)
+    })
+  })
+
+  describe('findAllOrThrow', () => {
+    let mockExecute: ReturnType<typeof vi.fn>
+
+    beforeEach(() => {
+      mockExecute = vi.fn()
+      ;(FindSheetOperation as vi.Mock).mockImplementation(() => ({
+        executeOperation: mockExecute
+      }))
+    })
+
+    it('should return all records when records are found', async () => {
+      mockExecute.mockResolvedValue([{ id: 1 }, { id: 2 }])
+      const result = await instance.findAllOrThrow(dummyOptions, dummyConfigs)
+      expect(mockExecute).toHaveBeenCalled()
+      expect(result).toEqual([{ id: 1 }, { id: 2 }])
+    })
+
+    it('should throw RecordNotFoundError when no records are found', async () => {
+      mockExecute.mockResolvedValue([])
+      await expect(
+        instance.findAllOrThrow(dummyOptions, dummyConfigs)
+      ).rejects.toBeInstanceOf(RecordNotFoundError)
+    })
+  })
+
+  describe('findLastOrThrow', () => {
+    let mockExecute: ReturnType<typeof vi.fn>
+
+    beforeEach(() => {
+      mockExecute = vi.fn()
+      ;(FindSheetOperation as vi.Mock).mockImplementation(() => ({
+        executeOperation: mockExecute
+      }))
+    })
+
+    it('should return the last record when records are found', async () => {
+      mockExecute.mockResolvedValue([{ id: 1 }, { id: 2 }, { id: 3 }])
+      const result = await instance.findLastOrThrow(dummyOptions, dummyConfigs)
+      expect(mockExecute).toHaveBeenCalled()
+      expect(result).toEqual({ id: 3 })
+    })
+
+    it('should throw RecordNotFoundError when no record is found', async () => {
+      mockExecute.mockResolvedValue([])
+      await expect(
+        instance.findLastOrThrow(dummyOptions, dummyConfigs)
+      ).rejects.toBeInstanceOf(RecordNotFoundError)
     })
   })
 })
