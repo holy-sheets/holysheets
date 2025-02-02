@@ -1,9 +1,9 @@
-import { BaseSheetOperation } from '@/base-operation/BaseOperation'
+import { TemplateOperation } from '@/operations/TemplateOperation'
 // import { RecordAdapter } from '@/services/record-adapter/RecordAdapter'
 
 export class ClearSheetOperation<
-  RecordType
-> extends BaseSheetOperation<RecordType> {
+  RecordType extends object
+> extends TemplateOperation<RecordType> {
   protected async performMainAction(rows: number[]): Promise<RecordType[]> {
     // eslint-disable-next-line
     console.log({

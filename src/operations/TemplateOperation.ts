@@ -2,7 +2,7 @@ import {
   OperationParams,
   OperationConfigs,
   OperationOptions
-} from '@/base-operation/types/BaseOperation.types'
+} from '@/operations/types/BaseOperation.types'
 import { RecordSchema } from '@/types/RecordSchema.types'
 import { HeaderService } from '@/services/header/HeaderService'
 import {
@@ -16,7 +16,7 @@ import { InvalidWhereKeyError } from '@/errors/InvalidWhereKey'
 import { RecordPostProcessor } from '@/services/record-post-processor/RecordPostProcessor'
 import { SelectOmitConflictError } from '@/errors/SelectOmitConflictError'
 
-export abstract class BaseSheetOperation<RecordType extends object> {
+export abstract class TemplateOperation<RecordType extends object> {
   protected headers: HeaderColumn[] = []
   protected sheet: string
   protected sheets: SheetsAdapterService

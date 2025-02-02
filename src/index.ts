@@ -5,13 +5,13 @@ import { RecordSchema } from '@/types/RecordSchema.types'
 import {
   OperationOptions,
   OperationConfigs
-} from '@/base-operation/types/BaseOperation.types'
+} from '@/operations/types/BaseOperation.types'
 import { HeaderColumn } from './services/header/HeaderService.types'
 import { GoogleSheetsAdapter } from './services/google-sheets/adapter/GoogleSheetsAdapter'
 import { SheetsAdapterService } from './types/SheetsAdapterService'
 import { MultipleRecordsFoundForUniqueError } from './errors/MultipleRecordsFoundForUniqueError'
 import { DataTypes } from './types/RecordSchema.types'
-import { ClearSheetOperation } from './base-operation/ClearOperation'
+import { ClearSheetOperation } from './operations/ClearOperation'
 
 interface HolySheetsBaseOptions {
   headerRow?: number

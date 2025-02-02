@@ -1,9 +1,9 @@
-import { BaseSheetOperation } from '@/base-operation/BaseOperation'
+import { TemplateOperation } from '@/operations/TemplateOperation'
 import { RecordAdapter } from '@/services/record-adapter/RecordAdapter'
 
 export class FindSheetOperation<
   RecordType extends object
-> extends BaseSheetOperation<RecordType> {
+> extends TemplateOperation<RecordType> {
   protected async performMainAction(rows: number[]): Promise<RecordType[]> {
     const response = await this.sheets.getMultipleRows(
       this.sheet,

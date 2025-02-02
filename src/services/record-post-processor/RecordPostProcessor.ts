@@ -1,4 +1,4 @@
-import { OperationOptions } from '@/base-operation/types/BaseOperation.types'
+import { OperationOptions } from '@/operations/types/BaseOperation.types'
 import { RecordSchema } from '@/types/RecordSchema.types'
 import { omitKeysFromObject, pickKeysFromObject } from '@/helpers/objectKeys'
 import { SelectOmitConflictError } from '@/errors/SelectOmitConflictError'

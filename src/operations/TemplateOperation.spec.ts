@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { BaseSheetOperation } from './BaseOperation'
+import { TemplateOperation } from './TemplateOperation'
 import { HeaderService } from '@/services/header/HeaderService'
 import { FetchingColumnsError } from '@/errors/FetchingColumnsError'
 import { SheetsAdapterService } from '@/types/SheetsAdapterService'
@@ -12,7 +12,7 @@ interface TestRecord {
 }
 
 // Test operation implementation
-class TestOperation extends BaseSheetOperation<TestRecord> {
+class TestOperation extends TemplateOperation<TestRecord> {
   protected async performMainAction(rows: number[]): Promise<TestRecord[]> {
     return []
   }
@@ -80,7 +80,7 @@ function mockHeaderService(headers: Array<{ header: string; column: number }>) {
   return getHeadersMock
 }
 
-describe('BaseSheetOperation', () => {
+describe('TemplateOperation', () => {
   beforeEach(() => {
     vi.restoreAllMocks()
   })
