@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { FindSheetOperation } from '@/operations/FindOperation'
+import { FindSheetOperation } from '@/operations/find/FindOperation'
 import { SheetsAdapterService } from '@/types/SheetsAdapterService'
 import { RecordAdapter } from '@/services/record-adapter/RecordAdapter'
 import { DataTypes } from '@/types/RecordSchema.types'

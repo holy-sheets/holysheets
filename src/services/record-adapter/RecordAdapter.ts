@@ -77,9 +77,6 @@ function parseValue(
   }
 }
 
-/**
- * parseBoolean: converte "true"/"1" em true, "false"/"0" em false. Senão retorna null.
- */
 function parseBoolean(rawValue: string): boolean | null {
   const lower = rawValue.toLowerCase()
   if (lower === 'true' || rawValue === '1') return true

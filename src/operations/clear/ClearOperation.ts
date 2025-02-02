@@ -5,10 +5,6 @@ export class ClearSheetOperation<
   RecordType extends object
 > extends TemplateOperation<RecordType> {
   protected async performMainAction(rows: number[]): Promise<RecordType[]> {
-    // eslint-disable-next-line
-    console.log({
-      rows
-    })
     await this.sheets.clearMultipleRows(
       this.sheet,
       rows.map(row => row + this.headerRow)

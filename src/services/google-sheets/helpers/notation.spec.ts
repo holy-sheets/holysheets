@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { getSingleColumnNotation, getSingleRowNotation } from './notation'
+import { InvalidColumnIndexError } from '@/errors/InvalidColumnIndexError'
 
 describe('notation', () => {
   it('should getSingleRowNotation corectly', () => {
@@ -17,6 +18,11 @@ describe('notation', () => {
     const biggerColumnIndex = 28
     expect(getSingleColumnNotation(sheetName, biggerColumnIndex)).toBe(
       'other-example!AC2:AC'
+    )
+  })
+  it('should throw InvalidColumnIndexError for negative column index', () => {
+    expect(() => getSingleColumnNotation('example', -1)).toThrowError(
+      InvalidColumnIndexError
     )
   })
 })

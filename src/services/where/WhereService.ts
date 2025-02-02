@@ -15,11 +15,8 @@ export class WhereService<RecordType> {
     headerRow = 1
   ) {
     this.where = where
-    console.log({ where }) // eslint-disable-line
-    this.columns = columns
-    console.log({ columns }) // eslint-disable-line
+    this.columns = [...columns]
     this.headerRow = headerRow
-    console.log({ headerRow }) // eslint-disable-line
     this.validateKeys()
   }
 
@@ -43,14 +40,6 @@ export class WhereService<RecordType> {
 
   public matches(): number[] {
     const conditionKeys = Object.keys(this.where) as (keyof RecordType)[]
-    // If there are no conditions, return all rows
-    // based on the count of values in the first column
-    // (or you can choose another logic)
-    // eslint-disable-next-line
-    console.log({
-      conditionKeys,
-      where: this.where
-    })
     if (conditionKeys.length === 0) {
       // For example, we will use columns[0]?.values.length to know how many rows there are
       const totalRows = this.columns[0]?.values.length ?? 0
@@ -63,13 +52,10 @@ export class WhereService<RecordType> {
       // We find out which column corresponds to this key
       const keyString = String(key)
       const column = this.columns.find(col => col.header === keyString)
-      if (!column) {
-        throw new InvalidWhereKeyError(keyString)
-      }
       const condition = this.where[key]
       const currentMatched = new Set<number>()
 
-      column.values.forEach((cell, idx) => {
+      column?.values.forEach((cell, idx) => {
         let isMatch = false
         if (typeof condition === 'string') {
           // Simple case: if it's a string, we use "equals"

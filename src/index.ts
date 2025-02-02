@@ -1,17 +1,17 @@
 import { HolySheetsCredentials } from '@/services/google-sheets/types/credentials.type'
-import { FindSheetOperation } from '@/operations/FindOperation'
+import { FindSheetOperation } from '@/operations/find/FindOperation'
 import { HeaderService } from '@/services/header/HeaderService'
 import { RecordSchema } from '@/types/RecordSchema.types'
 import {
   OperationOptions,
   OperationConfigs
 } from '@/operations/types/BaseOperation.types'
-import { HeaderColumn } from './services/header/HeaderService.types'
-import { GoogleSheetsAdapter } from './services/google-sheets/adapter/GoogleSheetsAdapter'
-import { SheetsAdapterService } from './types/SheetsAdapterService'
-import { MultipleRecordsFoundForUniqueError } from './errors/MultipleRecordsFoundForUniqueError'
-import { DataTypes } from './types/RecordSchema.types'
-import { ClearSheetOperation } from './operations/ClearOperation'
+import { HeaderColumn } from '@/services/header/HeaderService.types'
+import { GoogleSheetsAdapter } from '@/services/google-sheets/adapter/GoogleSheetsAdapter'
+import { SheetsAdapterService } from '@/types/SheetsAdapterService'
+import { MultipleRecordsFoundForUniqueError } from '@/errors/MultipleRecordsFoundForUniqueError'
+import { DataTypes } from '@/types/RecordSchema.types'
+import { ClearSheetOperation } from '@/operations/clear/ClearOperation'
 
 interface HolySheetsBaseOptions {
   headerRow?: number

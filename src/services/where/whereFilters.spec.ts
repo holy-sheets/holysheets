@@ -67,11 +67,11 @@ describe('whereFilters', () => {
   })
 
   it('contains should return true if expected contains value', () => {
-    expect(whereFilters.contains('test', 'this is a test')).toBe(true)
+    expect(whereFilters.contains('this is a test', 'test')).toBe(true)
   })
 
   it('contains should return false if expected does not contain value', () => {
-    expect(whereFilters.contains('test', 'this is a demo')).toBe(false)
+    expect(whereFilters.contains('this is a demo', 'test')).toBe(false)
   })
 
   it('search should return true if expected matches value regex', () => {
@@ -83,18 +83,18 @@ describe('whereFilters', () => {
   })
 
   it('startsWith should return true if expected starts with value', () => {
-    expect(whereFilters.startsWith('test', 'test this')).toBe(true)
+    expect(whereFilters.startsWith('test this', 'test')).toBe(true)
   })
 
   it('startsWith should return false if expected does not start with value', () => {
-    expect(whereFilters.startsWith('test', 'this is a test')).toBe(false)
+    expect(whereFilters.startsWith('this is a test', 'test')).toBe(false)
   })
 
   it('endsWith should return true if expected ends with value', () => {
-    expect(whereFilters.endsWith('test', 'this is a test')).toBe(true)
+    expect(whereFilters.endsWith('this is a test', 'test')).toBe(true)
   })
 
   it('endsWith should return false if expected does not end with value', () => {
-    expect(whereFilters.endsWith('test', 'test this')).toBe(false)
+    expect(whereFilters.endsWith('test this', 'test')).toBe(false)
   })
 })

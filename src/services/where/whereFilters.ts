@@ -19,14 +19,14 @@ const gt: NumberFilter = (value, expected) => parseFloat(value) > expected
 
 const gte: NumberFilter = (value, expected) => parseFloat(value) >= expected
 
-const contains: StringFilter = (value, expected) => expected.includes(value)
+const contains: StringFilter = (value, expected) => value.includes(expected)
 
 const search: StringFilter = (value, expected) =>
   expected.search(new RegExp(value, 'i')) !== -1
 
-const startsWith: StringFilter = (value, expected) => expected.startsWith(value)
+const startsWith: StringFilter = (value, expected) => value.startsWith(expected)
 
-const endsWith: StringFilter = (value, expected) => expected.endsWith(value)
+const endsWith: StringFilter = (value, expected) => value.endsWith(expected)
 
 export default {
   equals,

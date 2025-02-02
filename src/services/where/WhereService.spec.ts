@@ -1,70 +1,105 @@
-import { describe, it, expect } from 'vitest'
-import { WhereService, WhereClause } from './WhereService'
+import { describe, it, expect, vi } from 'vitest'
+import { WhereService } from './WhereService'
 import { InvalidWhereKeyError } from '@/errors/InvalidWhereKey'
-import { SingleColumn } from '@/services/header/HeaderService.types'
+import { InvalidWhereFilterError } from '@/errors/InvalidWhereFilter'
+import type { SingleColumn } from '@/services/header/HeaderService.types'
 
-interface TestRecord {
+type TestRecord = {
   id: string
   name: string
   age: string
+  active: string
 }
 
-describe('WhereService with SingleColumn[]', () => {
-  // Em vez de string[][], definimos:
-  const columns: SingleColumn[] = [
+describe('WhereService', () => {
+  // Configuração comum para todos os testes
+  const defaultColumns: SingleColumn[] = [
     { header: 'id', values: ['1', '2', '3'] },
     { header: 'name', values: ['Alice', 'Bob', 'Charlie'] },
-    { header: 'age', values: ['30', '25', '35'] }
+    { header: 'age', values: ['30', '25', '35'] },
+    { header: 'active', values: ['true', 'false', 'true'] }
   ]
 
-  it('should initialize correctly with valid where clause', () => {
-    const where: WhereClause<TestRecord> = { name: 'Alice' }
-    const service = new WhereService(where, columns)
-    expect(service).toBeInstanceOf(WhereService)
+  const setup = <T>(where: any, columns = defaultColumns, headerRow = 1) => {
+    return new WhereService<T>(where, columns, headerRow)
+  }
+
+  describe('Validation', () => {
+    it('should throw for invalid keys', () => {
+      expect(() => setup<TestRecord>({ invalid: 'key' })).toThrow(
+        InvalidWhereKeyError
+      )
+    })
   })
 
-  it('should throw InvalidWhereKeyError for invalid where clause key', () => {
-    const where: WhereClause<TestRecord> = { invalidKey: 'value' } as any
-    expect(() => new WhereService(where, columns)).toThrow(InvalidWhereKeyError)
+  describe('Matching logic', () => {
+    it('should return all rows when no conditions', () => {
+      const service = setup<TestRecord>({})
+      expect(service.matches()).toEqual([1, 2, 3])
+    })
+
+    it('should handle empty dataset gracefully', () => {
+      const service = setup<TestRecord>({}, [])
+      expect(service.matches()).toEqual([])
+    })
+
+    it('should apply headerRow offset correctly', () => {
+      const service = setup<TestRecord>({}, defaultColumns, 5)
+      expect(service.matches()).toEqual([5, 6, 7])
+    })
   })
 
-  it('should match rows correctly for simple where clause', () => {
-    const where: WhereClause<TestRecord> = { name: 'Alice' }
-    const service = new WhereService(where, columns)
-    const matches = service.matches()
-    // A "name" column tem ['Alice','Bob','Charlie'], 'Alice' está no idx 0
-    // mas + headerRow(1) => 1
-    expect(matches).toEqual([1])
+  describe('Filter conditions', () => {
+    it('should match simple equality', () => {
+      const service = setup<TestRecord>({ name: 'Alice' })
+      expect(service.matches()).toEqual([1])
+    })
+
+    it('should combine multiple conditions with AND logic', () => {
+      const service = setup<TestRecord>({
+        age: '30',
+        active: 'true'
+      })
+      expect(service.matches()).toEqual([1])
+    })
+
+    it('should handle complex filter objects', () => {
+      const service = setup<TestRecord>({
+        age: {
+          equals: '25',
+          startsWith: '2'
+        }
+      })
+      expect(service.matches()).toEqual([2])
+    })
+
+    it('should throw for invalid filter operators', () => {
+      const service = setup<TestRecord>({
+        age: {
+          invalidOperator: '30'
+        } as any
+      })
+      expect(() => service.matches()).toThrow(InvalidWhereFilterError)
+    })
+
+    it('should handle boolean conversions', () => {
+      const service = setup<TestRecord>({ active: 'true' })
+      expect(service.matches()).toEqual([1, 3])
+    })
   })
 
-  it('should match rows correctly using headerRow option', () => {
-    const where: WhereClause<TestRecord> = { name: 'Alice' }
-    const service = new WhereService(where, columns, 5)
-    const matches = service.matches()
-    // idx 0 + headerRow(5) => 5
-    expect(matches).toEqual([5])
-  })
+  describe('Edge cases', () => {
+    it('should handle empty columns', () => {
+      const service = setup<TestRecord>({ name: 'Alice' }, [
+        { header: 'name', values: [] }
+      ])
+      expect(service.matches()).toEqual([])
+    })
 
-  it('should return empty array if no row matches the condition', () => {
-    const where: WhereClause<TestRecord> = { age: '99' }
-    const service = new WhereService(where, columns)
-    const matches = service.matches()
-    expect(matches).toEqual([])
-  })
-
-  it('should match multiple conditions with intersection', () => {
-    const where: WhereClause<TestRecord> = { name: 'Alice', age: '30' }
-    const service = new WhereService(where, columns)
-    const matches = service.matches()
-    // 'Alice' => idx 0, '30' => idx 0 => interseção => [0 + headerRow(1)]
-    expect(matches).toEqual([1])
-  })
-
-  it('should match all rows if where clause is empty', () => {
-    const where: WhereClause<TestRecord> = {}
-    const service = new WhereService(where, columns)
-    // Com a clause vazia, retornamos todas as linhas => [1, 2, 3]
-    const matches = service.matches()
-    expect(matches).toEqual([1, 2, 3])
+    it('should handle null/undefined values', () => {
+      const columns = [{ header: 'name', values: [undefined, null, ''] as any }]
+      const service = setup<TestRecord>({ name: '' }, columns)
+      expect(service.matches()).toEqual([3]) // headerRow(1) + index 2
+    })
   })
 })
