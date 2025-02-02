@@ -12,7 +12,16 @@ describe('HeaderService', () => {
   let sheetsAdapterServiceMock: SheetsAdapterService
   let headerService: HeaderService
 
+  // Valores usados em vários testes
+  const spreadsheetId = 'spreadsheetId'
+  const sheet = 'sheet'
+  const headerRow = 1
+
   beforeEach(() => {
+    // Resetando o singleton para que cada teste inicie com uma instância nova e cache vazio
+    // OBS.: Isso funciona porque a propriedade "instance" é privada mas acessível via bracket notation.
+    HeaderService['instance'] = undefined
+
     sheetsAdapterServiceMock = {
       getSingleRow: vi.fn()
     } as unknown as SheetsAdapterService
@@ -20,10 +29,8 @@ describe('HeaderService', () => {
   })
 
   it('should return headers from cache if available', async () => {
-    const spreadsheetId = 'spreadsheetId'
-    const sheet = 'sheet'
-    const headerRow = 1
     const headers = [{ header: 'taskId', column: 0 }]
+    // Gravamos manualmente no cache
     headerService['headerListCache'].set(`${spreadsheetId}:${sheet}`, headers)
 
     const result = await headerService.getHeaders(
@@ -35,92 +42,109 @@ describe('HeaderService', () => {
   })
 
   it('should throw NoHeadersError if no headers are found', async () => {
+    // Garantindo que o cache esteja limpo
     headerService['headerListCache'].clear()
-    sheetsAdapterServiceMock.getSingleRow = vi.fn().mockResolvedValue([])
+    ;(sheetsAdapterServiceMock.getSingleRow as any).mockResolvedValue([])
 
     await expect(
-      headerService.getHeaders('spreadsheetId', 'sheet')
+      headerService.getHeaders(spreadsheetId, sheet, headerRow)
     ).rejects.toThrow(NoHeadersError)
   })
 
-  it.skip('should throw InvalidHeaderError if any header is empty', async () => {
-    sheetsAdapterServiceMock.getSingleRow = vi
-      .fn()
-      .mockResolvedValue(['header1', ''])
+  it('should throw InvalidHeaderError if any header is empty', async () => {
+    headerService['headerListCache'].clear()
+    ;(sheetsAdapterServiceMock.getSingleRow as any).mockResolvedValue([
+      'header1',
+      ''
+    ])
 
     await expect(
-      headerService.getHeaders('spreadsheetId', 'sheet')
+      headerService.getHeaders(spreadsheetId, sheet, headerRow)
     ).rejects.toThrow(InvalidHeaderError)
   })
 
-  it.skip('should throw DuplicatedHeaderError if any header is duplicated', async () => {
-    sheetsAdapterServiceMock.getSingleRow = vi
-      .fn()
-      .mockResolvedValue(['header1', 'header1'])
+  it('should throw DuplicatedHeaderError if any header is duplicated', async () => {
+    headerService['headerListCache'].clear()
+    ;(sheetsAdapterServiceMock.getSingleRow as any).mockResolvedValue([
+      'header1',
+      'header1'
+    ])
 
     await expect(
-      headerService.getHeaders('spreadsheetId', 'sheet')
+      headerService.getHeaders(spreadsheetId, sheet, headerRow)
     ).rejects.toThrow(DuplicatedHeaderError)
   })
 
-  it.skip('should return headers if valid headers are found', async () => {
-    sheetsAdapterServiceMock.getSingleRow = vi
-      .fn()
-      .mockResolvedValue(['header1', 'header2'])
+  it('should return headers if valid headers are found', async () => {
+    headerService['headerListCache'].clear()
+    ;(sheetsAdapterServiceMock.getSingleRow as any).mockResolvedValue([
+      'header1',
+      'header2'
+    ])
 
-    const result = await headerService.getHeaders('spreadsheetId', 'sheet')
+    const result = await headerService.getHeaders(
+      spreadsheetId,
+      sheet,
+      headerRow
+    )
     expect(result).toEqual([
       { header: 'header1', column: 0 },
       { header: 'header2', column: 1 }
     ])
   })
 
-  it.skip('should throw SheetNotFoundError if sheet is not found', async () => {
-    sheetsAdapterServiceMock.getSingleRow = vi
-      .fn()
-      .mockRejectedValue(new SheetNotFoundError('sheet'))
+  it('should throw SheetNotFoundError if sheet is not found', async () => {
+    headerService['headerListCache'].clear()
+    ;(sheetsAdapterServiceMock.getSingleRow as any).mockRejectedValue(
+      new SheetNotFoundError(sheet)
+    )
 
     await expect(
-      headerService.getHeaders('spreadsheetId', 'sheet')
+      headerService.getHeaders(spreadsheetId, sheet, headerRow)
     ).rejects.toThrow(SheetNotFoundError)
   })
 
-  it.skip('should throw AuthenticationError if authentication fails', async () => {
-    sheetsAdapterServiceMock.getSingleRow = vi
-      .fn()
-      .mockRejectedValue(new AuthenticationError(''))
+  it('should throw AuthenticationError if authentication fails', async () => {
+    headerService['headerListCache'].clear()
+    ;(sheetsAdapterServiceMock.getSingleRow as any).mockRejectedValue(
+      new AuthenticationError('')
+    )
 
     await expect(
-      headerService.getHeaders('spreadsheetId', 'sheet')
+      headerService.getHeaders(spreadsheetId, sheet, headerRow)
     ).rejects.toThrow(AuthenticationError)
   })
 
-  it.skip('should throw HolySheetsError for unknown errors', async () => {
-    sheetsAdapterServiceMock.getSingleRow = vi
-      .fn()
-      .mockRejectedValue(new Error('Unknown error'))
+  it('should throw HolySheetsError for unknown errors', async () => {
+    headerService['headerListCache'].clear()
+    ;(sheetsAdapterServiceMock.getSingleRow as any).mockRejectedValue(
+      new Error('Unknown error')
+    )
 
     await expect(
-      headerService.getHeaders('spreadsheetId', 'sheet')
+      headerService.getHeaders(spreadsheetId, sheet, headerRow)
     ).rejects.toThrow(HolySheetsError)
   })
 
-  it.skip('should return header names as array of strings', async () => {
-    sheetsAdapterServiceMock.getSingleRow = vi
-      .fn()
-      .mockResolvedValue(['header1', 'header2'])
+  it('should return header names as array of strings', async () => {
+    headerService['headerListCache'].clear()
+    ;(sheetsAdapterServiceMock.getSingleRow as any).mockResolvedValue([
+      'header1',
+      'header2'
+    ])
 
-    const result = await headerService.getHeadersArray('spreadsheetId', 'sheet')
+    const result = await headerService.getHeadersArray(
+      spreadsheetId,
+      sheet,
+      headerRow
+    )
     expect(result).toEqual(['header1', 'header2'])
   })
 
-  it.skip('should clear cache for specific spreadsheet and sheet', () => {
-    const spreadsheetId = 'spreadsheetId'
-    const sheet = 'sheet'
+  it('should clear cache for specific spreadsheet and sheet', () => {
     headerService['headerListCache'].set(`${spreadsheetId}:${sheet}`, [
       { header: 'taskId', column: 0 }
     ])
-
     headerService.clearCache(spreadsheetId, sheet)
     expect(
       headerService['headerListCache'].has(`${spreadsheetId}:${sheet}`)
