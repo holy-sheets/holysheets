@@ -1,5 +1,5 @@
 import { HolySheetsCredentials } from '@/services/google-sheets/types/credentials.type'
-import { FindSheetOperation } from '@/base-operation/FindOperation'
+import { FindSheetOperation } from '@/operations/FindOperation'
 import { HeaderService } from '@/services/header/HeaderService'
 import { RecordSchema } from '@/types/RecordSchema.types'
 import {
