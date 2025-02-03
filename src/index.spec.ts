@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import HolySheets from './index'
-import { FindSheetOperation } from '@/operations/find/FindOperation'
+import { FindOperation } from '@/operations/find/FindOperation'
 import { ClearSheetOperation } from '@/operations/clear/ClearOperation'
 import { MultipleRecordsFoundForUniqueError } from '@/errors/MultipleRecordsFoundForUniqueError'
 import type {
@@ -30,7 +30,7 @@ const dummyHeaders = [{ header: 'A', column: 0 }]
 vi.mock('@/operations/find/FindOperation', () => {
   const mockExecute = vi.fn().mockResolvedValue([{ id: 1 }, { id: 2 }])
   return {
-    FindSheetOperation: vi.fn().mockImplementation(() => ({
+    FindOperation: vi.fn().mockImplementation(() => ({
       executeOperation: mockExecute
     }))
   }
@@ -86,7 +86,7 @@ describe('HolySheets', () => {
 
     beforeEach(() => {
       mockExecute = vi.fn().mockResolvedValue([{ id: 1 }, { id: 2 }])
-      ;(FindSheetOperation as vi.Mock).mockImplementation(() => ({
+      ;(FindOperation as vi.Mock).mockImplementation(() => ({
         executeOperation: mockExecute
       }))
     })
@@ -162,7 +162,7 @@ describe('HolySheets OrThrow find operations', () => {
 
     beforeEach(() => {
       mockExecute = vi.fn()
-      ;(FindSheetOperation as vi.Mock).mockImplementation(() => ({
+      ;(FindOperation as vi.Mock).mockImplementation(() => ({
         executeOperation: mockExecute
       }))
     })
@@ -187,7 +187,7 @@ describe('HolySheets OrThrow find operations', () => {
 
     beforeEach(() => {
       mockExecute = vi.fn()
-      ;(FindSheetOperation as vi.Mock).mockImplementation(() => ({
+      ;(FindOperation as vi.Mock).mockImplementation(() => ({
         executeOperation: mockExecute
       }))
     })
@@ -212,7 +212,7 @@ describe('HolySheets OrThrow find operations', () => {
 
     beforeEach(() => {
       mockExecute = vi.fn()
-      ;(FindSheetOperation as vi.Mock).mockImplementation(() => ({
+      ;(FindOperation as vi.Mock).mockImplementation(() => ({
         executeOperation: mockExecute
       }))
     })
@@ -247,7 +247,7 @@ describe('HolySheets OrThrow find operations', () => {
 
     beforeEach(() => {
       mockExecute = vi.fn()
-      ;(FindSheetOperation as vi.Mock).mockImplementation(() => ({
+      ;(FindOperation as vi.Mock).mockImplementation(() => ({
         executeOperation: mockExecute
       }))
     })
@@ -272,7 +272,7 @@ describe('HolySheets OrThrow find operations', () => {
 
     beforeEach(() => {
       mockExecute = vi.fn()
-      ;(FindSheetOperation as vi.Mock).mockImplementation(() => ({
+      ;(FindOperation as vi.Mock).mockImplementation(() => ({
         executeOperation: mockExecute
       }))
     })

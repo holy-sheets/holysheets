@@ -6,6 +6,7 @@ import { SheetsAdapterService } from '@/types/SheetsAdapterService'
 
 export type OperationConfigs = {
   includeMetadata: boolean
+  returnRecords?: boolean
 }
 
 /**

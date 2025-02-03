@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { FindSheetOperation } from '@/operations/find/FindOperation'
+import { FindOperation } from '@/operations/find/FindOperation'
 import { SheetsAdapterService } from '@/types/SheetsAdapterService'
 import { RecordAdapter } from '@/services/record-adapter/RecordAdapter'
 import { DataTypes } from '@/types/RecordSchema.types'
 
-describe('FindSheetOperation', () => {
+describe('FindOperation', () => {
   const mockSheets = (rows: any[][] = []): SheetsAdapterService =>
     ({
       getMultipleRows: vi.fn().mockResolvedValue(rows)
@@ -36,7 +36,7 @@ describe('FindSheetOperation', () => {
       ['Doe', '25']
     ]
     const sheets = mockSheets(testRows)
-    const operation = new FindSheetOperation({ ...baseParams, sheets }, {}, {})
+    const operation = new FindOperation({ ...baseParams, sheets }, {}, {})
 
     vi.spyOn(RecordAdapter, 'toRecord').mockImplementation(data => ({
       name: data[0],
@@ -58,7 +58,7 @@ describe('FindSheetOperation', () => {
   it('should handle empty results from sheets service', async () => {
     // Arrange
     const sheets = mockSheets([])
-    const operation = new FindSheetOperation({ ...baseParams, sheets }, {}, {})
+    const operation = new FindOperation({ ...baseParams, sheets }, {}, {})
 
     // Act
     const result = await (operation as any).performMainAction([0])
@@ -73,7 +73,7 @@ describe('FindSheetOperation', () => {
       getMultipleRows: vi.fn().mockRejectedValue(new Error('Sheets API error'))
     } as unknown as SheetsAdapterService
 
-    const operation = new FindSheetOperation({ ...baseParams, sheets }, {}, {})
+    const operation = new FindOperation({ ...baseParams, sheets }, {}, {})
 
     // Act & Assert
     await expect((operation as any).performMainAction([0])).rejects.toThrow(
@@ -85,7 +85,7 @@ describe('FindSheetOperation', () => {
     // Arrange
     const testRows = [['John', '30']]
     const sheets = mockSheets(testRows)
-    const operation = new FindSheetOperation({ ...baseParams, sheets }, {}, {})
+    const operation = new FindOperation({ ...baseParams, sheets }, {}, {})
 
     vi.spyOn(RecordAdapter, 'toRecord').mockReturnValue({
       userAge: 30
@@ -106,7 +106,7 @@ describe('FindSheetOperation', () => {
     // Arrange
     const testRows = [['John', '30']]
     const sheets = mockSheets(testRows)
-    const operation = new FindSheetOperation(
+    const operation = new FindOperation(
       { ...baseParams, schema: null, sheets },
       {},
       {}

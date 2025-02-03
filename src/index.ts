@@ -1,5 +1,5 @@
 import { HolySheetsCredentials } from '@/services/google-sheets/types/credentials.type'
-import { FindSheetOperation } from '@/operations/find/FindOperation'
+import { FindOperation } from '@/operations/find/FindOperation'
 import { HeaderService } from '@/services/header/HeaderService'
 import { RecordSchema, DataTypes } from '@/types/RecordSchema.types'
 import {
@@ -111,7 +111,7 @@ export default class HolySheets<RecordType extends object> {
     configs: OperationConfigs
   ): Promise<RecordType[]> {
     const headers = await this.getHeaders()
-    const findOperation = new FindSheetOperation<RecordType>(
+    const findOperation = new FindOperation<RecordType>(
       {
         sheet: this.sheet,
         credentials: {
