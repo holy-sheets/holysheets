@@ -11,9 +11,8 @@ export class ClearSheetOperation<
       const response = await this.sheets.getMultipleRows(this.sheet, offsetRows)
       await this.sheets.clearMultipleRows(this.sheet, offsetRows)
       return parseRecords<RecordType>(response, this.headers, this.schema || [])
-    } else {
-      await this.sheets.clearMultipleRows(this.sheet, offsetRows)
     }
+    await this.sheets.clearMultipleRows(this.sheet, offsetRows)
     return []
   }
 }
