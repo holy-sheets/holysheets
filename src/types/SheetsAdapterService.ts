@@ -58,6 +58,11 @@ export interface SheetsAdapterService {
    */
   clearMultipleRows: (sheetName: string, rowIndexes: number[]) => Promise<void>
 
+  appendMultipleRows: (
+    sheetName: string,
+    rows: (string | null)[][]
+  ) => Promise<void>
+
   /**
    * Gets the complete metadata of the spreadsheet.
    *

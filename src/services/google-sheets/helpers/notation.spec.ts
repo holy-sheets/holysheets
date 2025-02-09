@@ -1,5 +1,9 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { getSingleColumnNotation, getSingleRowNotation } from './notation'
+import {
+  getFirstColumnNotation,
+  getSingleColumnNotation,
+  getSingleRowNotation
+} from './notation'
 import { InvalidColumnIndexError } from '@/errors/InvalidColumnIndexError'
 
 describe('notation', () => {
@@ -24,5 +28,9 @@ describe('notation', () => {
     expect(() => getSingleColumnNotation('example', -1)).toThrowError(
       InvalidColumnIndexError
     )
+  })
+  it('should getFirstColumnNotation correctly', () => {
+    const sheetName = 'example'
+    expect(getFirstColumnNotation(sheetName)).toBe('example!A:A')
   })
 })

@@ -42,3 +42,7 @@ export interface OperationOptions<RecordType> {
   select?: (keyof RecordType)[]
   omit?: (keyof RecordType)[]
 }
+
+export interface InsertOperationOptions<RecordType> {
+  data: RecordType[]
+}

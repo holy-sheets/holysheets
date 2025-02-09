@@ -26,3 +26,7 @@ export function getSingleColumnNotation(
   const column = indexToA1Notation(columnIndex)
   return `${sheet}!${column}${headerRow + 1}:${column}`
 }
+
+export function getFirstColumnNotation(sheet: string): string {
+  return `${sheet}!A:A`
+}

@@ -38,6 +38,13 @@ export class GoogleSheetsAdapter implements SheetsAdapterService {
     return response.map(row => row[0])
   }
 
+  async appendMultipleRows(
+    sheetName: string,
+    rows: (string | null)[][]
+  ): Promise<void> {
+    await this.sheetService.appendValues(sheetName, rows)
+  }
+
   async getMultipleColumns(
     sheetName: string,
     columnIndexes: number[]
@@ -56,7 +63,6 @@ export class GoogleSheetsAdapter implements SheetsAdapterService {
     const notations = columnIndexes.map(index =>
       getSingleRowNotation(sheetName, index)
     )
-    console.log({ notations }) // eslint-disable-line
     await this.sheetService.batchClearValues(notations)
   }
 

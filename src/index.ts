@@ -4,7 +4,8 @@ import { HeaderService } from '@/services/header/HeaderService'
 import { RecordSchema, DataTypes } from '@/types/RecordSchema.types'
 import {
   OperationOptions,
-  OperationConfigs
+  OperationConfigs,
+  InsertOperationOptions
 } from '@/operations/types/BaseOperation.types'
 import { HeaderColumn } from '@/services/header/HeaderService.types'
 import { GoogleSheetsAdapter } from '@/services/google-sheets/adapter/GoogleSheetsAdapter'
@@ -12,6 +13,7 @@ import { SheetsAdapterService } from '@/types/SheetsAdapterService'
 import { MultipleRecordsFoundForUniqueError } from '@/errors/MultipleRecordsFoundForUniqueError'
 import { ClearSheetOperation } from '@/operations/clear/ClearOperation'
 import { RecordNotFoundError } from '@/errors/RecordNotFoundError'
+import InsertOperation from './operations/insert/InsertOperation'
 
 interface HolySheetsBaseOptions {
   headerRow?: number
@@ -266,6 +268,28 @@ export default class HolySheets<RecordType extends object> {
       throw new RecordNotFoundError()
     }
     return result
+  }
+
+  public async insert(
+    options: InsertOperationOptions<Partial<RecordType>>
+  ): Promise<RecordType[]> {
+    const headers = await this.getHeaders()
+    const insertOperation = new InsertOperation<Partial<RecordType>>(
+      {
+        sheet: this.sheet,
+        credentials: {
+          spreadsheetId: this.spreadsheetId,
+          auth: this.sheets.getAuth()
+        },
+        sheets: this.sheets,
+        schema: this.schema,
+        headerRow: this.headerRow,
+        headers
+      },
+      options
+    )
+    await insertOperation.executeOperation()
+    return []
   }
 }
 

@@ -7,6 +7,7 @@ import { SheetNotFoundError } from '@/errors/SheetNotFoundError'
 import { AuthenticationError } from '@/errors/AuthenticationError'
 import { HolySheetsError } from '@/errors/HolySheetsError'
 import { ErrorCodes } from '@/errors/ErrorCodes'
+import { getFirstColumnNotation } from './helpers/notation'
 
 export class GoogleSheetsService implements IGoogleSheetsService {
   private readonly sheets: sheets_v4.Sheets
@@ -180,6 +181,28 @@ export class GoogleSheetsService implements IGoogleSheetsService {
         throw new Error(`Error performing batch clear: ${error.message}`)
       }
       throw new Error('An unknown error occurred during batch clear.')
+    }
+  }
+
+  async appendValues(
+    sheetName: string,
+    values: string[][] = [[]]
+  ): Promise<void> {
+    try {
+      await this.sheets.spreadsheets.values.append({
+        spreadsheetId: this.spreadsheetId,
+        range: getFirstColumnNotation(sheetName),
+        valueInputOption: 'RAW',
+        insertDataOption: 'INSERT_ROWS',
+        requestBody: {
+          values: values
+        }
+      })
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        throw new Error(`Error appending values: ${error.message}`)
+      }
+      throw new Error('An unknown error occurred while appending values.')
     }
   }
 

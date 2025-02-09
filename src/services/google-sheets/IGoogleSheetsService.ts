@@ -30,11 +30,7 @@ export interface IGoogleSheetsService {
    * @param valueInputOption - How the input data should be interpreted ('RAW' or 'USER_ENTERED').
    * @returns A promise that resolves when the update is complete.
    */
-  updateValues: (
-    range: string,
-    values: CellValue[][],
-    valueInputOption?: 'RAW' | 'USER_ENTERED'
-  ) => Promise<void>
+  updateValues: (range: string, values: CellValue[][]) => Promise<void>
 
   /**
    * Performs a batch update on multiple ranges in the spreadsheet.
@@ -63,6 +59,18 @@ export interface IGoogleSheetsService {
    * @returns A promise that resolves when all clear operations are complete.
    */
   batchClearValues: (ranges: string[]) => Promise<void>
+
+  /**
+   * Appends values to the end of a specific sheet.
+   *
+   * @param sheetName - The name of the sheet to append values to.
+   * @param values - The values to append.
+   * @returns A promise that resolves when the append operation is complete.
+   */
+  appendValues: (
+    sheetName: string,
+    values: (string | null)[][]
+  ) => Promise<void>
 
   /**
    * Deletes a range of rows in the spreadsheet.
