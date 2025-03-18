@@ -1,7 +1,7 @@
 import { parseRecords } from '@/helpers/parseRecords'
 import { TemplateOperation } from '@/operations/TemplateOperation'
 
-export class ClearSheetOperation<
+export class ClearOperation<
   RecordType extends object
 > extends TemplateOperation<RecordType> {
   protected async performMainAction(rows: number[]): Promise<RecordType[]> {

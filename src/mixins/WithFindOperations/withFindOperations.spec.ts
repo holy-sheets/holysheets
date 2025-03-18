@@ -57,7 +57,7 @@ describe('WithFindOperations', () => {
 
   it('findUnique should return a unique record if there is only one', async () => {
     // Change the mock to return only one record
-    ;(FindOperation as vi.Mock).mockImplementationOnce(() => ({
+    ;(FindOperation as ReturnType<typeof vi.fn>).mockImplementationOnce(() => ({
       executeOperation: vi.fn().mockResolvedValue([{ id: 1 }])
     }))
     const result = await instance.findUnique(dummyOptions, dummyConfigs)
@@ -71,7 +71,7 @@ describe('WithFindOperations', () => {
   })
 
   it('findLast should return the last record', async () => {
-    ;(FindOperation as vi.Mock).mockImplementationOnce(() => ({
+    ;(FindOperation as ReturnType<typeof vi.fn>).mockImplementationOnce(() => ({
       executeOperation: vi
         .fn()
         .mockResolvedValue([{ id: 1 }, { id: 2 }, { id: 3 }])

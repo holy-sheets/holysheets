@@ -43,6 +43,11 @@ export interface OperationOptions<RecordType> {
   omit?: (keyof RecordType)[]
 }
 
+export interface OperationOptionsWithSlice<RecordType>
+  extends OperationOptions<RecordType> {
+  slice: [start: number, end?: number]
+}
+
 export interface InsertOperationOptions<RecordType> {
   data: RecordType[]
 }

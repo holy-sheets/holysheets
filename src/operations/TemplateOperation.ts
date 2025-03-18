@@ -1,7 +1,7 @@
 import {
   OperationParams,
   OperationConfigs,
-  OperationOptions
+  OperationOptionsWithSlice
 } from '@/operations/types/BaseOperation.types'
 import { RecordSchema } from '@/types/RecordSchema.types'
 import { HeaderService } from '@/services/header/HeaderService'
@@ -24,10 +24,11 @@ export abstract class TemplateOperation<RecordType extends object> {
   protected headerRow: number
   protected readonly schema: RecordSchema<RecordType> | null
   private headerService?: HeaderService
+  private readonly slice: [start: number, end?: number] = [0]
 
   constructor(
     protected params: OperationParams<RecordType>,
-    protected options: OperationOptions<RecordType>,
+    protected options: OperationOptionsWithSlice<RecordType>,
     protected configs: OperationConfigs
   ) {
     this.sheet = params.sheet
@@ -36,6 +37,7 @@ export abstract class TemplateOperation<RecordType extends object> {
     this.schema = params.schema ?? null
     this.headers = params.headers
     this.sheets = params.sheets
+    this.slice = options.slice ?? this.slice
   }
 
   public async executeOperation(): Promise<RecordType[]> {
@@ -43,7 +45,7 @@ export abstract class TemplateOperation<RecordType extends object> {
     await this.prepareHeaders()
     const headerColumns = this.filterColumnsByWhere()
     const columnsValues = await this.retrieveColumnsValues(headerColumns)
-    const rows = this.retrieveFilteredRows(columnsValues)
+    const rows = this.retrieveFilteredRows(columnsValues).slice(...this.slice)
     const records = await this.performMainAction(rows)
     return this.processRecords(records)
   }
