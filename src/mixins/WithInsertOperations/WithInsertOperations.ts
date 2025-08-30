@@ -26,8 +26,7 @@ export function WithInsertOperations<
         },
         options
       )
-      await insertOperation.executeOperation()
-      return []
+      return insertOperation.executeOperation() as unknown as RecordType[]
     }
   }
 }

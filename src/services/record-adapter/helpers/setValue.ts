@@ -27,17 +27,14 @@ export function setValue<T>({
     if (isNullish(value) && !nullable) {
       throw new NullableError()
     }
-    console.log('>>> 1', { value })
     return value
   }
 
   if (nullable) {
-    console.log('>>> 2', { value })
     return defaultValue !== undefined ? defaultValue : null
   }
 
   if (!nullable && defaultValue !== undefined) {
-    console.log('>>> 3', { value })
     return defaultValue
   }
 

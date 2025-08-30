@@ -12,7 +12,7 @@ import type { HeaderColumn } from '@/services/header/HeaderService.types'
  * @returns An array of records of type RecordType.
  */
 export function parseRecords<RecordType extends object>(
-  rows: string[][] = [[]],
+  rows: (string | null)[][] = [[]],
   headers: HeaderColumn[],
   schema: RecordSchema<RecordType> = []
 ): RecordType[] {

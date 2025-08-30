@@ -1,3 +1,4 @@
+import { parseRecords } from '@/helpers/parseRecords'
 import {
   InsertOperationOptions,
   OperationParams
@@ -27,7 +28,7 @@ export default class InsertOperation<RecordType extends object> {
     this.data = options.data
   }
 
-  public async executeOperation(): Promise<void> {
+  public async executeOperation(): Promise<RecordType[]> {
     const rows = this.data.map(record => {
       return RecordAdapter.fromRecord(record, {
         schema: this.schema,
@@ -35,5 +36,11 @@ export default class InsertOperation<RecordType extends object> {
       })
     })
     await this.sheets.appendMultipleRows(this.sheet, rows)
+    const records = parseRecords(
+      rows,
+      this.headers,
+      this.schema as RecordSchema<RecordType>
+    )
+    return records
   }
 }

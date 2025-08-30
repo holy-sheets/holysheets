@@ -14,7 +14,7 @@ interface RecordAdapterOptions<RecordType> {
 
 export const RecordAdapter = {
   toRecord<RecordType>(
-    data: string[],
+    data: (string | null)[],
     options: RecordAdapterOptions<RecordType>
   ): RecordType {
     const { schema, headerColumns } = options
@@ -38,7 +38,7 @@ export const RecordAdapter = {
       }
 
       // Convert the string to the correct type (existing logic)
-      const parsedValue = stringToValue(header, rawValue, type)
+      const parsedValue = stringToValue(header, rawValue as string, type)
       record[key as keyof RecordType] =
         parsedValue as RecordType[keyof RecordType]
     })
