@@ -59,36 +59,35 @@
   "author": "Teles",
   "license": "MIT",
   "peerDependencies": {
-    "googleapis": "^137.1.0"
+    "googleapis": "137.1.0"
   },
   "devDependencies": {
-    "@babel/preset-env": "^7.24.5",
-    "@semantic-release/changelog": "^6.0.3",
-    "@semantic-release/git": "^10.0.1",
-    "@semantic-release/github": "^11.0.1",
-    "@semantic-release/npm": "^12.0.1",
-    "@types/node": "^20.12.8",
-    "@types/uuid": "^10.0.0",
-    "@typescript-eslint/eslint-plugin": "^6.21.0",
-    "@typescript-eslint/parser": "^6.21.0",
-    "@vitest/coverage-v8": "^2.1.8",
-    "@vitest/ui": "^3.0.4",
-    "commitizen": "^4.3.1",
-    "cz-conventional-changelog": "^3.3.0",
-    "dotenv": "^16.4.5",
-    "eslint": "^8.57.1",
-    "eslint-config-prettier": "^9.1.0",
-    "eslint-config-standard-with-typescript": "^43.0.1",
-    "eslint-plugin-prettier": "^5.2.1",
-    "lcov-badge2": "^1.1.2",
-    "prettier": "^3.3.3",
-    "semantic-release": "^24.2.0",
-    "tsconfig-paths": "^4.2.0",
-    "tsup": "^8.3.5",
-    "typescript": "^5.4.5",
-    "vite-tsconfig-paths": "^5.1.4",
-    "vitepress": "^1.5.0",
-    "vitest": "^2.1.8"
+    "@babel/preset-env": "7.29.2",
+    "@semantic-release/changelog": "6.0.3",
+    "@semantic-release/git": "10.0.1",
+    "@semantic-release/github": "12.0.6",
+    "@semantic-release/npm": "13.1.5",
+    "@types/node": "22.19.15",
+    "@types/uuid": "10.0.0",
+    "@typescript-eslint/eslint-plugin": "6.21.0",
+    "@typescript-eslint/parser": "6.21.0",
+    "@vitest/coverage-v8": "4.1.2",
+    "@vitest/ui": "4.1.2",
+    "commitizen": "4.3.1",
+    "cz-conventional-changelog": "3.3.0",
+    "dotenv": "16.4.7",
+    "eslint": "8.57.1",
+    "eslint-config-prettier": "9.1.0",
+    "eslint-plugin-prettier": "5.5.5",
+    "lcov-badge2": "1.1.4",
+    "prettier": "3.8.1",
+    "semantic-release": "25.0.3",
+    "tsconfig-paths": "4.2.0",
+    "tsup": "8.5.1",
+    "typescript": "5.7.3",
+    "vite-tsconfig-paths": "6.1.1",
+    "vitepress": "1.6.4",
+    "vitest": "4.1.2"
   },
   "config": {
     "commitizen": {
@@ -96,6 +95,6 @@
     }
   },
   "dependencies": {
-    "uuid": "^11.0.3"
+    "uuid": "11.0.5"
   }
 }
