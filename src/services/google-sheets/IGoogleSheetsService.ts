@@ -2,6 +2,9 @@ import type { sheets_v4 } from 'googleapis'
 import { CellValue } from '@/types/cellValue'
 import { AuthClient } from '@/types/credentials'
 
+/**
+ * Interface representing a service for interacting with Google Sheets.
+ */
 export interface IGoogleSheetsService {
   /**
    * Gets values from a specific range in the spreadsheet.
@@ -9,7 +12,7 @@ export interface IGoogleSheetsService {
    * @param range - The range of cells to retrieve (e.g., 'Sheet1!A1:B2').
    * @returns A promise that resolves with the retrieved values.
    */
-  getValues: (range: string) => Promise<CellValue[][]>
+  getValues: (range: string) => Promise<string[][]>
 
   /**
    * Gets values from multiple ranges in the spreadsheet.
@@ -17,9 +20,7 @@ export interface IGoogleSheetsService {
    * @param ranges - An array of cell ranges to retrieve.
    * @returns A promise that resolves with the retrieved values.
    */
-  batchGetValues: (
-    ranges: string[]
-  ) => Promise<{ valueRanges: { range: string; values?: CellValue[][] }[] }>
+  batchGetValues: (ranges: string[]) => Promise<string[][][]>
 
   /**
    * Updates values in a specific range in the spreadsheet.
@@ -29,11 +30,7 @@ export interface IGoogleSheetsService {
    * @param valueInputOption - How the input data should be interpreted ('RAW' or 'USER_ENTERED').
    * @returns A promise that resolves when the update is complete.
    */
-  updateValues: (
-    range: string,
-    values: CellValue[][],
-    valueInputOption?: 'RAW' | 'USER_ENTERED'
-  ) => Promise<void>
+  updateValues: (range: string, values: CellValue[][]) => Promise<void>
 
   /**
    * Performs a batch update on multiple ranges in the spreadsheet.
@@ -62,6 +59,18 @@ export interface IGoogleSheetsService {
    * @returns A promise that resolves when all clear operations are complete.
    */
   batchClearValues: (ranges: string[]) => Promise<void>
+
+  /**
+   * Appends values to the end of a specific sheet.
+   *
+   * @param sheetName - The name of the sheet to append values to.
+   * @param values - The values to append.
+   * @returns A promise that resolves when the append operation is complete.
+   */
+  appendValues: (
+    sheetName: string,
+    values: (string | null)[][]
+  ) => Promise<void>
 
   /**
    * Deletes a range of rows in the spreadsheet.

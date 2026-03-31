@@ -29,3 +29,6 @@ examples/
 .vscode/
 docs/.vitepress/cache
 docs/.vitepress/cache/*
+
+coverage
+html

@@ -1,0 +1,61 @@
+import { RecordSchema } from '@/types/RecordSchema.types'
+import { HolySheetsCredentials } from '@/services/google-sheets/types/credentials.type'
+import { HeaderColumn } from '@/services/header/HeaderService.types'
+import { WhereClause } from '@/services/where/types/where.types'
+import { SheetsAdapterService } from '@/types/SheetsAdapterService'
+
+export type OperationConfigs = {
+  includeMetadata: boolean
+  returnRecords?: boolean
+}
+
+/**
+ * Interface representing the parameters required for an operation.
+ *
+ * @template RecordType - The type of the records being processed.
+ *
+ * @property {SheetsAdapterService} sheets - The service used to interact with Google Sheets.
+ * @property {string} sheet - The name of the sheet to operate on.
+ * @property {number} [headerRow] - The row number of the header in the sheet. Optional.
+ * @property {HolySheetsCredentials} credentials - The credentials used for authentication.
+ * @property {HeaderColumn[]} headers - The headers of the columns in the sheet.
+ * @property {RecordSchema<RecordType>} [schema] - The schema defining the structure of the records. Optional.
+ */
+export interface OperationParams<RecordType> {
+  sheets: SheetsAdapterService
+  sheet: string
+  headerRow?: number
+  credentials: HolySheetsCredentials
+  headers: HeaderColumn[]
+  schema?: RecordSchema<RecordType>
+}
+
+/**
+ * Options for configuring an operation.
+ *
+ * @property {WhereClause<RecordType>} [where] - A filter object to specify conditions for the operation.
+ * @property {string[]} [select] - An array of strings specifying which fields to include in the operation.
+ * @property {string[]} [omit] - An array of strings specifying which fields to exclude from the operation.
+ */
+export interface OperationOptions<RecordType> {
+  where?: WhereClause<RecordType>
+  select?: (keyof RecordType)[]
+  omit?: (keyof RecordType)[]
+}
+
+export interface OperationOptionsWithSlice<RecordType>
+  extends OperationOptions<RecordType> {
+  slice: [start: number, end?: number]
+}
+
+export interface InsertOperationOptions<RecordType> {
+  data: RecordType[]
+}
+
+export interface UpdateOperationOptions<RecordType>
+  extends OperationOptionsWithSlice<RecordType> {
+  data: Partial<RecordType>
+}
+
+export interface DeleteOperationOptions<RecordType>
+  extends OperationOptionsWithSlice<RecordType> {}

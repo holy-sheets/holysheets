@@ -28,10 +28,11 @@ const result = await holySheetsInstance.findFirst({
 
 ### Options
 
-| Option   | Type                       | Default      | Description                                               |
-| -------- | -------------------------- | ------------ | --------------------------------------------------------- |
-| `where`  | `WhereClause<RecordType>`  | `undefined`  | Filters to apply when searching for records.              |
-| `select` | `SelectClause<RecordType>` | `All Fields` | Specifies which fields to include in the returned record. |
+| Option   | Type                       | Default      | Description                                                |
+| -------- | -------------------------- | ------------ | ---------------------------------------------------------- |
+| `where`  | `WhereClause<RecordType>`  | `undefined`  | Filters to apply when searching for records.               |
+| `select` | `SelectClause<RecordType>` | `All Fields` | Specifies which fields to include in the returned record.  |
+| `omit`   | `OmitClause<RecordType>`   | `undefined`  | Specified which fields to exclude in the returned records. |
 
 ### Configs
 
@@ -61,10 +62,11 @@ const results = await holySheetsInstance.findMany({
 
 ### Options
 
-| Option   | Type                       | Default      | Description                                               |
-| -------- | -------------------------- | ------------ | --------------------------------------------------------- |
-| `where`  | `WhereClause<RecordType>`  | `undefined`  | Filters to apply when searching for records.              |
-| `select` | `SelectClause<RecordType>` | `All Fields` | Specifies which fields to include in the returned record. |
+| Option   | Type                       | Default      | Description                                                |
+| -------- | -------------------------- | ------------ | ---------------------------------------------------------- |
+| `where`  | `WhereClause<RecordType>`  | `undefined`  | Filters to apply when searching for records.               |
+| `select` | `SelectClause<RecordType>` | `All Fields` | Specifies which fields to include in the returned record.  |
+| `omit`   | `OmitClause<RecordType>`   | `undefined`  | Specified which fields to exclude in the returned records. |
 
 ### Configs
 
@@ -98,6 +100,7 @@ const allRecords = await holySheetsInstance.findAll({
 | Option             | Type                       | Default      | Description                                                |
 | ------------------ | -------------------------- | ------------ | ---------------------------------------------------------- |
 | `select`           | `SelectClause<RecordType>` | `All Fields` | Specifies which fields to include in the returned records. |
+| `omit`             | `OmitClause<RecordType>`   | `undefined`  | Specified which fields to exclude in the returned records. |
 | `includeEmptyRows` | `boolean`                  | `false`      | Determines whether to include empty rows in the response.  |
 
 ### Configs
@@ -122,7 +125,10 @@ The `options` parameter allows you to customize the data retrieval process. Comm
 
 - **`where`**: Defines the conditions to filter records. It accepts a `WhereClause` object.
 - **`select`**: Specifies which fields to include in the returned records. It accepts a `SelectClause` object.
+- **`omit`**: Specifies which fields to exclude in the returned records. It accepts a `OmitClause` object
 - **`includeEmptyRows`**: Determines whether to include empty rows in the response. Available in `findAll` only.
+
+**Note:** It is not allowed to combine the `select` and `omit` options in the same operation. Use only one of them to avoid errors.
 
 ### Configs
 
