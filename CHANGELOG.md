@@ -1,3 +1,10 @@
+## [2.2.2](https://github.com/holy-sheets/holysheets/compare/v2.2.1...v2.2.2) (2026-03-31)
+
+
+### Bug Fixes
+
+* **ci:** stabilize npm trusted publishing in release workflow ([78d3159](https://github.com/holy-sheets/holysheets/commit/78d3159adde50b7d551dd84051e3ce9d76f6911e))
+
 ## [2.2.1](https://github.com/holy-sheets/holysheets/compare/v2.2.0...v2.2.1) (2026-03-31)
 
 
