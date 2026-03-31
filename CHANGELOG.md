@@ -1,3 +1,10 @@
+# [2.2.0](https://github.com/holy-sheets/holysheets/compare/v2.1.0...v2.2.0) (2026-03-31)
+
+
+### Features
+
+* implement delete/update operations with Template Method refactor ([#26](https://github.com/holy-sheets/holysheets/issues/26)) ([dcda0e5](https://github.com/holy-sheets/holysheets/commit/dcda0e5565ef9e3fd7ea5bbbb70f5af7c23d619a)), closes [#24](https://github.com/holy-sheets/holysheets/issues/24) [#25](https://github.com/holy-sheets/holysheets/issues/25)
+
 # [2.1.0](https://github.com/holy-sheets/holysheets/compare/v2.0.0...v2.1.0) (2024-12-29)
 
 
