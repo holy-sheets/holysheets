@@ -19,11 +19,11 @@ const dummyCredentials = {
 // Dummy headers returned by HeaderService
 const dummyHeaders = [{ header: 'A', column: 0 }]
 
-// Mock ClearSheetOperation
+// Mock ClearOperation
 vi.mock('@/operations/clear/ClearOperation', () => {
   const mockExecute = vi.fn().mockResolvedValue([{ id: 1 }, { id: 2 }])
   return {
-    ClearSheetOperation: vi.fn().mockImplementation(() => ({
+    ClearOperation: vi.fn().mockImplementation(() => ({
       executeOperation: mockExecute
     }))
   }

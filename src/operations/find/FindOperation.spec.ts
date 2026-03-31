@@ -1,130 +1,120 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { FindOperation } from '@/operations/find/FindOperation'
 import { SheetsAdapterService } from '@/types/SheetsAdapterService'
-import { RecordAdapter } from '@/services/record-adapter/RecordAdapter'
-import { DataTypes } from '@/types/RecordSchema.types'
+import { VisualizationQueryService } from '@/services/visualization/VisualizationQueryService'
+import { VisualizationQueryBuilder } from '@/services/visualization/VisualizationQueryBuilder'
+import { parseRecords } from '@/helpers/parseRecords'
+
+vi.mock('@/services/visualization/VisualizationQueryService')
+vi.mock('@/services/visualization/VisualizationQueryBuilder')
+vi.mock('@/helpers/parseRecords', () => ({
+  parseRecords: vi.fn()
+}))
+
+interface TestRecord {
+  name: string
+  age: string
+}
 
 describe('FindOperation', () => {
-  const mockSheets = (rows: any[][] = []): SheetsAdapterService =>
-    ({
-      getMultipleRows: vi.fn().mockResolvedValue(rows)
-    }) as unknown as SheetsAdapterService
+  const mockAuth = {} as any
+  const mockSheets: SheetsAdapterService = {
+    getAuth: vi.fn().mockReturnValue(mockAuth)
+  } as unknown as SheetsAdapterService
 
   const baseParams = {
     sheet: 'TestSheet',
-    credentials: { spreadsheetId: 'test-id' },
+    credentials: { spreadsheetId: 'test-id', auth: mockAuth },
     headerRow: 1,
     headers: [
       { header: 'name', column: 0 },
       { header: 'age', column: 1 }
     ],
-    schema: [
-      { key: 'name', type: DataTypes.STRING },
-      { key: 'age', type: DataTypes.NUMBER, as: 'userAge' }
-    ],
-    sheets: mockSheets()
+    schema: null,
+    sheets: mockSheets
   }
 
   beforeEach(() => {
-    vi.restoreAllMocks()
+    vi.clearAllMocks()
+    ;(VisualizationQueryBuilder as any).mockImplementation(() => ({
+      build: vi.fn().mockReturnValue('SELECT *')
+    }))
+    ;(VisualizationQueryService as any).mockImplementation(() => ({
+      query: vi.fn().mockResolvedValue([
+        ['John', '30'],
+        ['Jane', '25']
+      ])
+    }))
+    ;(parseRecords as any).mockImplementation((rows: any) =>
+      rows.map((r: string[]) => ({ name: r[0], age: r[1] }))
+    )
   })
 
-  it('should fetch rows and convert to records with correct parameters', async () => {
-    // Arrange
-    const testRows = [
-      ['John', '30'],
-      ['Doe', '25']
-    ]
-    const sheets = mockSheets(testRows)
-    const operation = new FindOperation({ ...baseParams, sheets }, {}, {})
+  it('should use VisualizationQueryService to fetch records', async () => {
+    const op = new FindOperation<TestRecord>(baseParams, {}, {})
+    const result = await op.executeOperation()
 
-    vi.spyOn(RecordAdapter, 'toRecord').mockImplementation(data => ({
-      name: data[0],
-      userAge: Number(data[1])
-    }))
-
-    // Act
-    const result = await (operation as any).performMainAction([0, 1])
-
-    // Assert
-    expect(sheets.getMultipleRows).toHaveBeenCalledWith('TestSheet', [1, 2])
-    expect(RecordAdapter.toRecord).toHaveBeenCalledTimes(2)
+    expect(VisualizationQueryBuilder).toHaveBeenCalledWith(
+      {},
+      baseParams.headers
+    )
+    expect(VisualizationQueryService).toHaveBeenCalledWith('test-id', mockAuth)
     expect(result).toEqual([
-      { name: 'John', userAge: 30 },
-      { name: 'Doe', userAge: 25 }
+      { name: 'John', age: '30' },
+      { name: 'Jane', age: '25' }
     ])
   })
 
-  it('should handle empty results from sheets service', async () => {
-    // Arrange
-    const sheets = mockSheets([])
-    const operation = new FindOperation({ ...baseParams, sheets }, {}, {})
+  it('should pass where clause to VisualizationQueryBuilder', async () => {
+    const where = { name: 'John' }
+    const op = new FindOperation<TestRecord>(baseParams, { where }, {})
+    await op.executeOperation()
 
-    // Act
-    const result = await (operation as any).performMainAction([0])
+    expect(VisualizationQueryBuilder).toHaveBeenCalledWith(
+      where,
+      baseParams.headers
+    )
+  })
 
-    // Assert
+  it('should apply slice to results', async () => {
+    ;(VisualizationQueryService as any).mockImplementation(() => ({
+      query: vi.fn().mockResolvedValue([
+        ['John', '30'],
+        ['Jane', '25'],
+        ['Bob', '40']
+      ])
+    }))
+    ;(parseRecords as any).mockImplementation((rows: any) =>
+      rows.map((r: string[]) => ({ name: r[0], age: r[1] }))
+    )
+
+    const op = new FindOperation<TestRecord>(baseParams, { slice: [0, 1] }, {})
+    const result = await op.executeOperation()
+
+    // Should only return first element due to slice [0, 1]
+    expect(result).toEqual([{ name: 'John', age: '30' }])
+  })
+
+  it('should handle empty results', async () => {
+    ;(VisualizationQueryService as any).mockImplementation(() => ({
+      query: vi.fn().mockResolvedValue([])
+    }))
+    ;(parseRecords as any).mockReturnValue([])
+
+    const op = new FindOperation<TestRecord>(baseParams, {}, {})
+    const result = await op.executeOperation()
+
     expect(result).toEqual([])
   })
 
-  it('should propagate errors from sheets service', async () => {
-    // Arrange
-    const sheets = {
-      getMultipleRows: vi.fn().mockRejectedValue(new Error('Sheets API error'))
-    } as unknown as SheetsAdapterService
+  it('should propagate errors from VisualizationQueryService', async () => {
+    ;(VisualizationQueryService as any).mockImplementation(() => ({
+      query: vi.fn().mockRejectedValue(new Error('Visualization API error'))
+    }))
 
-    const operation = new FindOperation({ ...baseParams, sheets }, {}, {})
-
-    // Act & Assert
-    await expect((operation as any).performMainAction([0])).rejects.toThrow(
-      'Sheets API error'
+    const op = new FindOperation<TestRecord>(baseParams, {}, {})
+    await expect(op.executeOperation()).rejects.toThrow(
+      'Visualization API error'
     )
-  })
-
-  it('should use schema aliases when converting records', async () => {
-    // Arrange
-    const testRows = [['John', '30']]
-    const sheets = mockSheets(testRows)
-    const operation = new FindOperation({ ...baseParams, sheets }, {}, {})
-
-    vi.spyOn(RecordAdapter, 'toRecord').mockReturnValue({
-      userAge: 30
-    })
-
-    // Act
-    const result = await (operation as any).performMainAction([0])
-
-    // Assert
-    expect(RecordAdapter.toRecord).toHaveBeenCalledWith(['John', '30'], {
-      headerColumns: baseParams.headers,
-      schema: baseParams.schema
-    })
-    expect(result).toEqual([{ userAge: 30 }])
-  })
-
-  it('should handle missing schema gracefully', async () => {
-    // Arrange
-    const testRows = [['John', '30']]
-    const sheets = mockSheets(testRows)
-    const operation = new FindOperation(
-      { ...baseParams, schema: null, sheets },
-      {},
-      {}
-    )
-
-    vi.spyOn(RecordAdapter, 'toRecord').mockReturnValue({
-      name: 'John',
-      age: '30' // Default to string without schema
-    })
-
-    // Act
-    const result = await (operation as any).performMainAction([0])
-
-    // Assert
-    expect(RecordAdapter.toRecord).toHaveBeenCalledWith(['John', '30'], {
-      headerColumns: baseParams.headers,
-      schema: []
-    })
-    expect(result).toEqual([{ name: 'John', age: '30' }])
   })
 })

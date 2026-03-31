@@ -72,9 +72,7 @@ describe('WithFindOperations', () => {
 
   it('findLast should return the last record', async () => {
     ;(FindOperation as ReturnType<typeof vi.fn>).mockImplementationOnce(() => ({
-      executeOperation: vi
-        .fn()
-        .mockResolvedValue([{ id: 1 }, { id: 2 }, { id: 3 }])
+      executeOperation: vi.fn().mockResolvedValue([{ id: 3 }])
     }))
     const result = await instance.findLast(dummyOptions, dummyConfigs)
     expect(result).toEqual({ id: 3 })

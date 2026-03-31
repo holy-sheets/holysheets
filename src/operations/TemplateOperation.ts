@@ -3,41 +3,24 @@ import {
   OperationConfigs,
   OperationOptionsWithSlice
 } from '@/operations/types/BaseOperation.types'
-import { RecordSchema } from '@/types/RecordSchema.types'
-import { HeaderService } from '@/services/header/HeaderService'
+import { BaseOperation } from '@/operations/BaseOperation'
 import {
   HeaderColumn,
   SingleColumn
 } from '@/services/header/HeaderService.types'
-import { SheetsAdapterService } from '@/types/SheetsAdapterService'
 import { FetchingColumnsError } from '@/errors/FetchingColumnsError'
 import { WhereService } from '@/services/where/WhereService'
 import { InvalidWhereKeyError } from '@/errors/InvalidWhereKey'
-import { RecordPostProcessor } from '@/services/record-post-processor/RecordPostProcessor'
-import { SelectOmitConflictError } from '@/errors/SelectOmitConflictError'
 
-export abstract class TemplateOperation<RecordType extends object> {
-  protected headers: HeaderColumn[] = []
-  protected sheet: string
-  protected sheets: SheetsAdapterService
-  protected spreadsheetId: string
-  protected headerRow: number
-  protected readonly schema: RecordSchema<RecordType> | null
-  private headerService?: HeaderService
-  private readonly slice: [start: number, end?: number] = [0]
-
+export abstract class TemplateOperation<
+  RecordType extends object
+> extends BaseOperation<RecordType> {
   constructor(
-    protected params: OperationParams<RecordType>,
-    protected options: OperationOptionsWithSlice<RecordType>,
-    protected configs: OperationConfigs
+    params: OperationParams<RecordType>,
+    options: OperationOptionsWithSlice<RecordType>,
+    configs: OperationConfigs
   ) {
-    this.sheet = params.sheet
-    this.spreadsheetId = params.credentials.spreadsheetId
-    this.headerRow = params.headerRow ?? 1
-    this.schema = params.schema ?? null
-    this.headers = params.headers
-    this.sheets = params.sheets
-    this.slice = options.slice ?? this.slice
+    super(params, options, configs)
   }
 
   public async executeOperation(): Promise<RecordType[]> {
@@ -50,28 +33,6 @@ export abstract class TemplateOperation<RecordType extends object> {
     return this.processRecords(records)
   }
 
-  private validate(): void {
-    const { select, omit } = this.options
-    if (select && omit) {
-      throw new SelectOmitConflictError()
-    }
-  }
-
-  private processRecords(records: RecordType[]): RecordType[] {
-    const { select, omit } = this.options
-    const processor = new RecordPostProcessor(
-      {
-        records,
-        schema: this.schema
-      },
-      {
-        select,
-        omit
-      }
-    )
-    return processor.process() as RecordType[]
-  }
-
   protected abstract performMainAction(rows: number[]): Promise<RecordType[]>
 
   private retrieveFilteredRows(columns: SingleColumn[]): number[] {
@@ -81,17 +42,6 @@ export abstract class TemplateOperation<RecordType extends object> {
       this.headerRow
     )
     return whereService.matches()
-  }
-
-  private async prepareHeaders(): Promise<void> {
-    if (this.headers.length === 0) {
-      this.headerService = HeaderService.getInstance(this.sheets)
-      this.headers = await this.headerService.getHeaders(
-        this.spreadsheetId,
-        this.sheet,
-        this.headerRow
-      )
-    }
   }
 
   private filterColumnsByWhere(): HeaderColumn[] {

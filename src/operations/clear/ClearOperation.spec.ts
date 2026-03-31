@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { ClearSheetOperation } from '@/operations/clear/ClearOperation'
+import { ClearOperation } from '@/operations/clear/ClearOperation'
 import { parseRecords } from '@/helpers/parseRecords'
 import type {
   OperationParams,
@@ -17,8 +17,8 @@ vi.mock('@/helpers/parseRecords', () => ({
   parseRecords: vi.fn()
 }))
 
-describe('ClearSheetOperation', () => {
-  let op: ClearSheetOperation<DummyRecord>
+describe('ClearOperation', () => {
+  let op: ClearOperation<DummyRecord>
   const mockParams: OperationParams<DummyRecord> = {
     sheet: 'TestSheet',
     credentials: {
@@ -50,7 +50,7 @@ describe('ClearSheetOperation', () => {
 
   describe('when returnRecords is true', () => {
     beforeEach(() => {
-      op = new ClearSheetOperation<DummyRecord>(
+      op = new ClearOperation<DummyRecord>(
         mockParams,
         mockOptions,
         configReturnTrue
@@ -98,7 +98,7 @@ describe('ClearSheetOperation', () => {
 
   describe('when returnRecords is false', () => {
     beforeEach(() => {
-      op = new ClearSheetOperation<DummyRecord>(
+      op = new ClearOperation<DummyRecord>(
         mockParams,
         mockOptions,
         configReturnFalse
@@ -118,7 +118,7 @@ describe('ClearSheetOperation', () => {
 
   describe('when returnRecords is undefined (default behavior)', () => {
     beforeEach(() => {
-      op = new ClearSheetOperation<DummyRecord>(
+      op = new ClearOperation<DummyRecord>(
         mockParams,
         mockOptions,
         configUndefined
@@ -151,7 +151,7 @@ describe('ClearSheetOperation', () => {
           callOrder.push('clearMultipleRows')
         })
 
-      op = new ClearSheetOperation<DummyRecord>(
+      op = new ClearOperation<DummyRecord>(
         mockParams,
         mockOptions,
         configReturnTrue

@@ -88,9 +88,7 @@ describe('WithFindOperations OrThrow', () => {
 
   it('findLastOrThrow should return the last record if found', async () => {
     ;(FindOperation as vi.Mock).mockImplementationOnce(() => ({
-      executeOperation: vi
-        .fn()
-        .mockResolvedValue([{ id: 1 }, { id: 2 }, { id: 3 }])
+      executeOperation: vi.fn().mockResolvedValue([{ id: 3 }])
     }))
     const result = await instance.findLastOrThrow(dummyOptions, dummyConfigs)
     expect(result).toEqual({ id: 3 })

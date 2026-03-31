@@ -1,12 +1,35 @@
 import { parseRecords } from '@/helpers/parseRecords'
-import { TemplateOperation } from '@/operations/TemplateOperation'
+import { BaseOperation } from '@/operations/BaseOperation'
+import { VisualizationQueryBuilder } from '@/services/visualization/VisualizationQueryBuilder'
+import { VisualizationQueryService } from '@/services/visualization/VisualizationQueryService'
 
 export class FindOperation<
   RecordType extends object
-> extends TemplateOperation<RecordType> {
-  protected async performMainAction(rows: number[]): Promise<RecordType[]> {
-    const offsetRows = rows.map(row => row + this.headerRow)
-    const response = await this.sheets.getMultipleRows(this.sheet, offsetRows)
-    return parseRecords<RecordType>(response, this.headers, this.schema || [])
+> extends BaseOperation<RecordType> {
+  public async executeOperation(): Promise<RecordType[]> {
+    this.validate()
+    await this.prepareHeaders()
+
+    const queryBuilder = new VisualizationQueryBuilder<RecordType>(
+      this.options.where || {},
+      this.headers
+    )
+    const gvizQuery = queryBuilder.build()
+
+    const vizService = new VisualizationQueryService(
+      this.spreadsheetId,
+      this.sheets.getAuth()
+    )
+
+    const rows = await vizService.query(this.sheet, gvizQuery, this.headerRow)
+    const slicedRows = rows.slice(...this.slice)
+
+    const records = parseRecords<RecordType>(
+      slicedRows,
+      this.headers,
+      this.schema || []
+    )
+
+    return this.processRecords(records)
   }
 }

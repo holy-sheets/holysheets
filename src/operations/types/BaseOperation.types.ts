@@ -51,3 +51,11 @@ export interface OperationOptionsWithSlice<RecordType>
 export interface InsertOperationOptions<RecordType> {
   data: RecordType[]
 }
+
+export interface UpdateOperationOptions<RecordType>
+  extends OperationOptionsWithSlice<RecordType> {
+  data: Partial<RecordType>
+}
+
+export interface DeleteOperationOptions<RecordType>
+  extends OperationOptionsWithSlice<RecordType> {}

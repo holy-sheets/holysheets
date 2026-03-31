@@ -18,7 +18,7 @@ const dummyHeaders = [{ header: 'A', column: 0 }]
 
 // Mock InsertOperation
 vi.mock('@/operations/insert/InsertOperation', () => {
-  const mockExecute = vi.fn().mockResolvedValue(undefined)
+  const mockExecute = vi.fn().mockResolvedValue([])
   return {
     default: vi.fn().mockImplementation(() => ({
       executeOperation: mockExecute

@@ -66,6 +66,38 @@ export class GoogleSheetsAdapter implements SheetsAdapterService {
     await this.sheetService.batchClearValues(notations)
   }
 
+  async deleteRows(sheetName: string, rowIndexes: number[]): Promise<void> {
+    const sheetId = await this.getSheetId(sheetName)
+    // Sort descending so we delete from bottom to top, avoiding index shifting
+    const sorted = [...rowIndexes].sort((a, b) => b - a)
+    const requests = sorted.map(rowIndex => ({
+      deleteDimension: {
+        range: {
+          sheetId,
+          dimension: 'ROWS' as const,
+          startIndex: rowIndex - 1, // Sheets API uses 0-based index
+          endIndex: rowIndex
+        }
+      }
+    }))
+    await this.sheets.spreadsheets.batchUpdate({
+      spreadsheetId: this.spreadsheetId,
+      requestBody: { requests }
+    })
+  }
+
+  async updateMultipleRows(
+    sheetName: string,
+    rowIndexes: number[],
+    data: (string | null)[][]
+  ): Promise<void> {
+    const batchData = rowIndexes.map((rowIndex, i) => ({
+      range: getSingleRowNotation(sheetName, rowIndex),
+      values: [data[i]]
+    }))
+    await this.sheetService.batchUpdateValues(batchData)
+  }
+
   async getSpreadsheet(): Promise<sheets_v4.Schema$Spreadsheet> {
     const response = await this.sheets.spreadsheets.get({
       spreadsheetId: this.spreadsheetId

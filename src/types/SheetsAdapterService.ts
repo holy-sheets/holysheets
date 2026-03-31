@@ -79,6 +79,29 @@ export interface SheetsAdapterService {
   getSheetId: (sheetName: string) => Promise<number>
 
   /**
+   * Deletes multiple rows from the specified sheet.
+   *
+   * @param sheetName - The name of the sheet from which to delete the rows.
+   * @param rowIndexes - An array of 1-based row indexes to delete.
+   * @returns A promise that resolves when the rows have been deleted.
+   */
+  deleteRows: (sheetName: string, rowIndexes: number[]) => Promise<void>
+
+  /**
+   * Updates multiple rows in the specified sheet.
+   *
+   * @param sheetName - The name of the sheet in which to update the rows.
+   * @param rowIndexes - An array of 1-based row indexes to update.
+   * @param data - A 2D array of values to write to each row.
+   * @returns A promise that resolves when the rows have been updated.
+   */
+  updateMultipleRows: (
+    sheetName: string,
+    rowIndexes: number[],
+    data: (string | null)[][]
+  ) => Promise<void>
+
+  /**
    * Gets the authentication client used to access the Google Sheets API.
    *
    * @returns {AuthClient} The authentication client.
