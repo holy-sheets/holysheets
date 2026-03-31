@@ -6,7 +6,9 @@ import {
 
 const GVIZ_BASE_URL = 'https://docs.google.com/spreadsheets/d'
 
-function parseVisualizationResponse(body: string): VisualizationResponse {
+export function parseVisualizationResponse(
+  body: string
+): VisualizationResponse {
   // The response may be wrapped in: google.visualization.Query.setResponse({...});
   // Or it may be pure JSON (with tqx=out:json)
   let jsonString = body.trim()
@@ -28,7 +30,7 @@ function parseVisualizationResponse(body: string): VisualizationResponse {
   return JSON.parse(jsonString)
 }
 
-function rowToStringArray(
+export function rowToStringArray(
   row: VisualizationRow,
   columnCount: number
 ): (string | null)[] {
@@ -50,6 +52,33 @@ function rowToStringArray(
   return result
 }
 
+export function buildGvizUrl(
+  spreadsheetId: string,
+  sheetName: string,
+  gvizQuery: string,
+  headerCount: number = 1
+): string {
+  const url = `${GVIZ_BASE_URL}/${encodeURIComponent(spreadsheetId)}/gviz/tq`
+  const params = new URLSearchParams({
+    tq: gvizQuery,
+    sheet: sheetName,
+    headers: String(headerCount),
+    tqx: 'out:json'
+  })
+  return `${url}?${params.toString()}`
+}
+
+export function parseGvizResponseBody(
+  response: VisualizationResponse
+): (string | null)[][] {
+  if (response.status === 'error') {
+    const msg = response.errors?.map(e => e.detailed_message).join('; ')
+    throw new Error(`Visualization API error: ${msg || 'unknown error'}`)
+  }
+  const columnCount = response.table.cols.length
+  return response.table.rows.map(row => rowToStringArray(row, columnCount))
+}
+
 export class VisualizationQueryService {
   private readonly spreadsheetId: string
   private readonly auth: AuthClient
@@ -64,15 +93,12 @@ export class VisualizationQueryService {
     gvizQuery: string,
     headerCount: number = 1
   ): Promise<(string | null)[][]> {
-    const url = `${GVIZ_BASE_URL}/${encodeURIComponent(this.spreadsheetId)}/gviz/tq`
-    const params = new URLSearchParams({
-      tq: gvizQuery,
-      sheet: sheetName,
-      headers: String(headerCount),
-      tqx: 'out:json'
-    })
-
-    const fullUrl = `${url}?${params.toString()}`
+    const fullUrl = buildGvizUrl(
+      this.spreadsheetId,
+      sheetName,
+      gvizQuery,
+      headerCount
+    )
 
     const response = await (this.auth as any).request({ url: fullUrl })
     const body =
@@ -81,13 +107,37 @@ export class VisualizationQueryService {
         : JSON.stringify(response.data)
 
     const parsed = parseVisualizationResponse(body)
+    return parseGvizResponseBody(parsed)
+  }
+}
 
-    if (parsed.status === 'error') {
-      const msg = parsed.errors?.map(e => e.detailed_message).join('; ')
-      throw new Error(`Visualization API error: ${msg || 'unknown error'}`)
+export class PublicVisualizationQueryService {
+  private readonly spreadsheetId: string
+
+  constructor(spreadsheetId: string) {
+    this.spreadsheetId = spreadsheetId
+  }
+
+  public async query(
+    sheetName: string,
+    gvizQuery: string,
+    headerCount: number = 1
+  ): Promise<(string | null)[][]> {
+    const fullUrl = buildGvizUrl(
+      this.spreadsheetId,
+      sheetName,
+      gvizQuery,
+      headerCount
+    )
+
+    const response = await fetch(fullUrl)
+    if (!response.ok) {
+      throw new Error(
+        `Visualization API HTTP error: ${response.status} ${response.statusText}`
+      )
     }
-
-    const columnCount = parsed.table.cols.length
-    return parsed.table.rows.map(row => rowToStringArray(row, columnCount))
+    const body = await response.text()
+    const parsed = parseVisualizationResponse(body)
+    return parseGvizResponseBody(parsed)
   }
 }

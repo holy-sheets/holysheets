@@ -6,8 +6,13 @@ import { WithDeleteOperations } from '@/mixins/WithDeleteOperations/WithDeleteOp
 import { WithUpdateOperations } from '@/mixins/WithUpdateOperations/WithUpdateOperations'
 import { composeMixins } from '@/mixins/composeMixins/composeMixins'
 import { DataTypes } from '@/types/RecordSchema.types'
+import {
+  HolySheetsPublicBase,
+  HolySheetsPublicCredentials
+} from '@/mixins/HolySheetsPublicBase/HolySheetsPublicBase'
+import { WithPublicFindOperations } from '@/mixins/WithPublicFindOperations/WithPublicFindOperations'
 
-const HolySheets = composeMixins(
+const HolySheetsComposed = composeMixins(
   HolySheetsBase,
   WithFindOperations,
   WithInsertOperations,
@@ -16,5 +21,16 @@ const HolySheets = composeMixins(
   WithUpdateOperations
 )
 
+const HolySheetsPublicComposed = composeMixins(
+  HolySheetsPublicBase,
+  WithPublicFindOperations
+)
+
+const HolySheets = Object.assign(HolySheetsComposed, {
+  public: (credentials: HolySheetsPublicCredentials) =>
+    new HolySheetsPublicComposed(credentials)
+})
+
 export default HolySheets
 export { DataTypes }
+export type { HolySheetsPublicCredentials }
