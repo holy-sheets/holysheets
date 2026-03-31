@@ -1,3 +1,10 @@
+## [2.2.1](https://github.com/holy-sheets/holysheets/compare/v2.2.0...v2.2.1) (2026-03-31)
+
+
+### Bug Fixes
+
+* **ci:** use trusted publishing auth flow for npm release ([2be2617](https://github.com/holy-sheets/holysheets/commit/2be2617f3730b90290ed752bb79b6d55d372328c))
+
 # [2.2.0](https://github.com/holy-sheets/holysheets/compare/v2.1.0...v2.2.0) (2026-03-31)
 
 
