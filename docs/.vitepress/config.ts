@@ -43,6 +43,7 @@ export default defineConfig({
         {
           text: 'Guides',
           items: [
+            { text: 'Public Mode', link: '/en/guides/public-mode' },
             { text: 'Inserting Data', link: '/en/guides/inserting-data' },
             { text: 'Finding Data', link: '/en/guides/finding-data' },
             { text: 'Updating Data', link: '/en/guides/updating-data' },

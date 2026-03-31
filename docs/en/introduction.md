@@ -7,5 +7,6 @@ Key features:
 - No need to manage A1 ranges directly.
 - CRUD-like operations (find, insert, update, delete, clear).
 - Flexible querying with filters like `contains`, `startsWith`, `gt`, `in`, etc.
+- **Public read-only mode** — query public Google Sheets without authentication.
 - Optional metadata for each operation.
 - Fully typed and IntelliSense-friendly in Typescript.
