@@ -16,18 +16,19 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '22'
-          registry-url: 'https://registry.npmjs.org'
+        uses: actions/checkout@v4
 
       - name: Set up pnpm
-        uses: pnpm/action-setup@v2
+        uses: pnpm/action-setup@v4
         with:
-          version: 9
+          version: 10
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          registry-url: "https://registry.npmjs.org"
+          cache: "pnpm"
 
       - name: Install dependencies
         run: pnpm install
@@ -46,7 +47,7 @@ jobs:
         run: pnpm run docs:build # Ensure this command correctly generates the static files
 
       - name: Checkout documentation repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: holy-sheets/holy-sheets.github.io
           token: ${{ secrets.DOCS_GH_TOKEN }}
