@@ -5,7 +5,6 @@ import {
   OperationConfigs,
   UpdateOperationOptions
 } from '@/operations/types/BaseOperation.types'
-import { RecordAdapter } from '@/services/record-adapter/RecordAdapter'
 
 export class UpdateOperation<
   RecordType extends object
@@ -30,20 +29,22 @@ export class UpdateOperation<
       offsetRows
     )
 
-    // Merge current data with update data for each row
+    // Apply updates directly on the raw row arrays to avoid
+    // toRecord/fromRecord round-trip issues with schema aliases
     const updatedRows = currentRows.map(row => {
-      const currentRecord = RecordAdapter.toRecord<RecordType>(row, {
-        headerColumns: this.headers,
-        schema: this.schema
-      })
-      const mergedRecord = { ...currentRecord, ...this.data }
-      return RecordAdapter.fromRecord<RecordType>(mergedRecord, {
-        headerColumns: this.headers,
-        schema: this.schema
-      })
+      const updated = [...row]
+      const dataEntries = Object.entries(this.data as Record<string, unknown>)
+      for (const [key, value] of dataEntries) {
+        const colIdx = this.headers.findIndex(h => h.header === key)
+        if (colIdx !== -1) {
+          while (updated.length <= colIdx) updated.push('')
+          updated[colIdx] = value != null ? String(value) : ''
+        }
+      }
+      return updated
     })
 
-    // Write merged rows back to the sheet
+    // Write updated rows back to the sheet
     await this.sheets.updateMultipleRows(this.sheet, offsetRows, updatedRows)
 
     return parseRecords<RecordType>(

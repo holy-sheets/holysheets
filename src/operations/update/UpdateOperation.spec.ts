@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { UpdateOperation } from '@/operations/update/UpdateOperation'
 import { SheetsAdapterService } from '@/types/SheetsAdapterService'
-import { RecordAdapter } from '@/services/record-adapter/RecordAdapter'
 import { parseRecords } from '@/helpers/parseRecords'
 
 vi.mock('@/helpers/parseRecords', () => ({
@@ -35,10 +34,10 @@ describe('UpdateOperation', () => {
   }
 
   beforeEach(() => {
-    vi.restoreAllMocks()
+    vi.clearAllMocks()
   })
 
-  it('should fetch current rows, merge with update data, and write back', async () => {
+  it('should update the target column directly in the raw row array', async () => {
     const sheets = makeSheets()
     const op = new UpdateOperation<DummyRecord>(
       { ...baseParams, sheets },
@@ -46,30 +45,37 @@ describe('UpdateOperation', () => {
       {}
     )
 
-    vi.spyOn(RecordAdapter, 'toRecord').mockReturnValue({
-      name: 'John',
-      age: '30'
-    })
-    vi.spyOn(RecordAdapter, 'fromRecord').mockReturnValue(['John', '31'])
     ;(parseRecords as any).mockReturnValue([{ name: 'John', age: '31' }])
 
     const result = await op['performMainAction']([0])
 
     expect(sheets.getMultipleRows).toHaveBeenCalledWith('TestSheet', [1])
-    expect(RecordAdapter.toRecord).toHaveBeenCalledWith(['John', '30'], {
-      headerColumns: headers,
-      schema: null
-    })
-    expect(RecordAdapter.fromRecord).toHaveBeenCalledWith(
-      { name: 'John', age: '31' },
-      { headerColumns: headers, schema: null }
-    )
     expect(sheets.updateMultipleRows).toHaveBeenCalledWith(
       'TestSheet',
       [1],
       [['John', '31']]
     )
     expect(result).toEqual([{ name: 'John', age: '31' }])
+  })
+
+  it('should preserve unchanged columns when updating', async () => {
+    const sheets = makeSheets()
+    const op = new UpdateOperation<DummyRecord>(
+      { ...baseParams, sheets },
+      { data: { age: '99' }, slice: [0] },
+      {}
+    )
+
+    ;(parseRecords as any).mockReturnValue([{ name: 'John', age: '99' }])
+
+    await op['performMainAction']([0])
+
+    // name column (index 0) should be preserved as 'John'
+    expect(sheets.updateMultipleRows).toHaveBeenCalledWith(
+      'TestSheet',
+      [1],
+      [['John', '99']]
+    )
   })
 
   it('should update multiple rows', async () => {
@@ -87,12 +93,6 @@ describe('UpdateOperation', () => {
       {}
     )
 
-    vi.spyOn(RecordAdapter, 'toRecord')
-      .mockReturnValueOnce({ name: 'John', age: '30' })
-      .mockReturnValueOnce({ name: 'Jane', age: '25' })
-    vi.spyOn(RecordAdapter, 'fromRecord')
-      .mockReturnValueOnce(['John', '99'])
-      .mockReturnValueOnce(['Jane', '99'])
     ;(parseRecords as any).mockReturnValue([
       { name: 'John', age: '99' },
       { name: 'Jane', age: '99' }
@@ -109,6 +109,25 @@ describe('UpdateOperation', () => {
       ]
     )
     expect(result).toHaveLength(2)
+  })
+
+  it('should convert null values to empty strings', async () => {
+    const sheets = makeSheets()
+    const op = new UpdateOperation<DummyRecord>(
+      { ...baseParams, sheets },
+      { data: { age: null as any }, slice: [0] },
+      {}
+    )
+
+    ;(parseRecords as any).mockReturnValue([{ name: 'John', age: '' }])
+
+    await op['performMainAction']([0])
+
+    expect(sheets.updateMultipleRows).toHaveBeenCalledWith(
+      'TestSheet',
+      [1],
+      [['John', '']]
+    )
   })
 
   it('should propagate errors from sheets service', async () => {
