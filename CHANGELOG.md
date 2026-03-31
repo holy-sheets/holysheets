@@ -1,3 +1,10 @@
+# [2.3.0](https://github.com/holy-sheets/holysheets/compare/v2.2.2...v2.3.0) (2026-03-31)
+
+
+### Features
+
+* add public read-only mode via Google Visualization API ([b171dbe](https://github.com/holy-sheets/holysheets/commit/b171dbe842dec6ea9777003dd9baaf691882c3bc)), closes [#27](https://github.com/holy-sheets/holysheets/issues/27)
+
 ## [2.2.2](https://github.com/holy-sheets/holysheets/compare/v2.2.1...v2.2.2) (2026-03-31)
 
 
