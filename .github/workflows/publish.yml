@@ -50,31 +50,6 @@ jobs:
           NPM_CONFIG_ACCESS: public
         run: npx semantic-release
 
-      # Additional steps to build and publish the documentation
-      - name: Build documentation
-        run: pnpm run docs:build # Ensure this command correctly generates the static files
-
-      - name: Checkout documentation repo
-        uses: actions/checkout@v4
-        with:
-          repository: holy-sheets/holy-sheets.github.io
-          token: ${{ secrets.DOCS_GH_TOKEN }}
-          path: docs-site # Directory where the repository will be cloned
-
-      - name: Copy generated docs to docs repo
-        run: |
-          rm -rf docs-site/*  # Remove old files
-          cp -R docs/.vitepress/dist/* docs-site/  # Adjust the path according to your build structure
-
-      - name: Commit and Push changes
-        run: |
-          cd docs-site
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add .
-          git commit -m "docs: update site from main repo" || echo "No changes to commit"
-          git push origin main  # Push to the main branch
-
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v5
         with:
