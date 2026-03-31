@@ -18,7 +18,7 @@ interface RunParams {
 async function runFindOperation<RecordType extends object>(
   holysheets: IHolySheets<RecordType>,
   options: OperationOptions<RecordType>,
-  configs: OperationConfigs,
+  configs: OperationConfigs = { includeMetadata: false },
   params?: RunParams
 ): Promise<RecordType[]> {
   const headers = await holysheets.getHeaders()
@@ -59,7 +59,7 @@ export function WithFindOperations<
   return class extends Base {
     public async findSlice(
       options: OperationOptionsWithSlice<RecordType>,
-      configs: OperationConfigs
+      configs: OperationConfigs = { includeMetadata: false }
     ): Promise<RecordType[]> {
       return await runFindOperation(this, options, configs, {
         slice: options.slice
@@ -68,14 +68,14 @@ export function WithFindOperations<
 
     public async findMany(
       options: OperationOptions<RecordType>,
-      configs: OperationConfigs
+      configs: OperationConfigs = { includeMetadata: false }
     ): Promise<RecordType[]> {
       return await runFindOperation(this, options, configs)
     }
 
     public async findFirst(
       options: OperationOptions<RecordType>,
-      configs: OperationConfigs
+      configs: OperationConfigs = { includeMetadata: false }
     ): Promise<RecordType> {
       const result = await runFindOperation(this, options, configs, {
         throwRecordNotFoundError: false,
@@ -86,7 +86,7 @@ export function WithFindOperations<
 
     public async findUnique(
       options: OperationOptions<RecordType>,
-      configs: OperationConfigs
+      configs: OperationConfigs = { includeMetadata: false }
     ): Promise<RecordType> {
       const result = await runFindOperation(this, options, configs, {
         throwRecordNotFoundError: false,
@@ -98,7 +98,7 @@ export function WithFindOperations<
 
     public async findLast(
       options: OperationOptions<RecordType>,
-      configs: OperationConfigs
+      configs: OperationConfigs = { includeMetadata: false }
     ): Promise<RecordType> {
       const result = await runFindOperation(this, options, configs, {
         throwRecordNotFoundError: false,
@@ -116,7 +116,7 @@ export function WithFindOperations<
 
     public async findSliceOrThrow(
       options: OperationOptionsWithSlice<RecordType>,
-      configs: OperationConfigs
+      configs: OperationConfigs = { includeMetadata: false }
     ): Promise<RecordType[]> {
       return await runFindOperation(this, options, configs, {
         throwRecordNotFoundError: true
@@ -125,7 +125,7 @@ export function WithFindOperations<
 
     public async findManyOrThrow(
       options: OperationOptions<RecordType>,
-      configs: OperationConfigs
+      configs: OperationConfigs = { includeMetadata: false }
     ): Promise<RecordType[]> {
       return await runFindOperation(this, options, configs, {
         throwRecordNotFoundError: true
@@ -134,7 +134,7 @@ export function WithFindOperations<
 
     public async findFirstOrThrow(
       options: OperationOptions<RecordType>,
-      configs: OperationConfigs
+      configs: OperationConfigs = { includeMetadata: false }
     ): Promise<RecordType> {
       const result = await runFindOperation(this, options, configs, {
         throwRecordNotFoundError: true,
@@ -145,7 +145,7 @@ export function WithFindOperations<
 
     public async findUniqueOrThrow(
       options: OperationOptions<RecordType>,
-      configs: OperationConfigs
+      configs: OperationConfigs = { includeMetadata: false }
     ): Promise<RecordType> {
       const result = await runFindOperation(this, options, configs, {
         throwRecordNotFoundError: true,
@@ -157,7 +157,7 @@ export function WithFindOperations<
 
     public async findLastOrThrow(
       options: OperationOptions<RecordType>,
-      configs: OperationConfigs
+      configs: OperationConfigs = { includeMetadata: false }
     ): Promise<RecordType> {
       const result = await runFindOperation(this, options, configs, {
         throwRecordNotFoundError: true,
@@ -168,7 +168,7 @@ export function WithFindOperations<
 
     public async findAllOrThrow(
       options: OperationOptions<RecordType>,
-      configs: OperationConfigs
+      configs: OperationConfigs = { includeMetadata: false }
     ): Promise<RecordType[]> {
       return await runFindOperation(this, options, configs, {
         throwRecordNotFoundError: true

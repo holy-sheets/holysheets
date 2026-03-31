@@ -1,120 +1,52 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { FindOperation } from '@/operations/find/FindOperation'
 import { SheetsAdapterService } from '@/types/SheetsAdapterService'
-import { VisualizationQueryService } from '@/services/visualization/VisualizationQueryService'
-import { VisualizationQueryBuilder } from '@/services/visualization/VisualizationQueryBuilder'
 import { parseRecords } from '@/helpers/parseRecords'
 
-vi.mock('@/services/visualization/VisualizationQueryService')
-vi.mock('@/services/visualization/VisualizationQueryBuilder')
-vi.mock('@/helpers/parseRecords', () => ({
-  parseRecords: vi.fn()
-}))
+vi.mock('@/helpers/parseRecords', () => ({ parseRecords: vi.fn() }))
 
-interface TestRecord {
-  name: string
-  age: string
-}
+interface TestRecord { name: string; age: string }
 
 describe('FindOperation', () => {
-  const mockAuth = {} as any
-  const mockSheets: SheetsAdapterService = {
-    getAuth: vi.fn().mockReturnValue(mockAuth)
-  } as unknown as SheetsAdapterService
-
-  const baseParams = {
-    sheet: 'TestSheet',
-    credentials: { spreadsheetId: 'test-id', auth: mockAuth },
-    headerRow: 1,
-    headers: [
-      { header: 'name', column: 0 },
-      { header: 'age', column: 1 }
-    ],
-    schema: null,
-    sheets: mockSheets
+  const mockSheets = {
+    getMultipleRows: vi.fn().mockResolvedValue([['John','30'],['Jane','25']])
   }
+  const mockParams = {
+    sheet: 'TestSheet',
+    credentials: { spreadsheetId: 'test-id', auth: {} },
+    sheets: mockSheets as unknown as SheetsAdapterService,
+    headerRow: 1,
+    headers: [{ header: 'name', column: 0 }, { header: 'age', column: 1 }],
+    schema: []
+  }
+  beforeEach(() => { vi.clearAllMocks() })
 
-  beforeEach(() => {
-    vi.clearAllMocks()
-    ;(VisualizationQueryBuilder as any).mockImplementation(() => ({
-      build: vi.fn().mockReturnValue('SELECT *')
-    }))
-    ;(VisualizationQueryService as any).mockImplementation(() => ({
-      query: vi.fn().mockResolvedValue([
-        ['John', '30'],
-        ['Jane', '25']
-      ])
-    }))
-    ;(parseRecords as any).mockImplementation((rows: any) =>
-      rows.map((r: string[]) => ({ name: r[0], age: r[1] }))
-    )
+  it('should call getMultipleRows with row + headerRow offset', async () => {
+    const op = new FindOperation(mockParams, {}, {})
+    ;(parseRecords as any).mockReturnValue([{ name: 'John', age: '30' }])
+    await op['performMainAction']([1, 3])
+    expect(mockSheets.getMultipleRows).toHaveBeenCalledWith('TestSheet', [2, 4])
   })
 
-  it('should use VisualizationQueryService to fetch records', async () => {
-    const op = new FindOperation<TestRecord>(baseParams, {}, {})
-    const result = await op.executeOperation()
-
-    expect(VisualizationQueryBuilder).toHaveBeenCalledWith(
-      {},
-      baseParams.headers
-    )
-    expect(VisualizationQueryService).toHaveBeenCalledWith('test-id', mockAuth)
-    expect(result).toEqual([
-      { name: 'John', age: '30' },
-      { name: 'Jane', age: '25' }
-    ])
+  it('should return parsed records', async () => {
+    const op = new FindOperation(mockParams, {}, {})
+    ;(parseRecords as any).mockReturnValue([{ name: 'John', age: '30' }, { name: 'Jane', age: '25' }])
+    const result = await op['performMainAction']([1, 3])
+    expect(parseRecords).toHaveBeenCalledWith([['John','30'],['Jane','25']], mockParams.headers, mockParams.schema)
+    expect(result).toEqual([{ name: 'John', age: '30' }, { name: 'Jane', age: '25' }])
   })
 
-  it('should pass where clause to VisualizationQueryBuilder', async () => {
-    const where = { name: 'John' }
-    const op = new FindOperation<TestRecord>(baseParams, { where }, {})
-    await op.executeOperation()
-
-    expect(VisualizationQueryBuilder).toHaveBeenCalledWith(
-      where,
-      baseParams.headers
-    )
-  })
-
-  it('should apply slice to results', async () => {
-    ;(VisualizationQueryService as any).mockImplementation(() => ({
-      query: vi.fn().mockResolvedValue([
-        ['John', '30'],
-        ['Jane', '25'],
-        ['Bob', '40']
-      ])
-    }))
-    ;(parseRecords as any).mockImplementation((rows: any) =>
-      rows.map((r: string[]) => ({ name: r[0], age: r[1] }))
-    )
-
-    const op = new FindOperation<TestRecord>(baseParams, { slice: [0, 1] }, {})
-    const result = await op.executeOperation()
-
-    // Should only return first element due to slice [0, 1]
-    expect(result).toEqual([{ name: 'John', age: '30' }])
-  })
-
-  it('should handle empty results', async () => {
-    ;(VisualizationQueryService as any).mockImplementation(() => ({
-      query: vi.fn().mockResolvedValue([])
-    }))
+  it('should return empty array for empty input', async () => {
+    ;(mockSheets.getMultipleRows as any).mockResolvedValue([])
     ;(parseRecords as any).mockReturnValue([])
-
-    const op = new FindOperation<TestRecord>(baseParams, {}, {})
-    const result = await op.executeOperation()
-
-    expect(result).toEqual([])
+    const op = new FindOperation(mockParams, {}, {})
+    expect(await op['performMainAction']([])).toEqual([])
   })
 
-  it('should propagate errors from VisualizationQueryService', async () => {
-    ;(VisualizationQueryService as any).mockImplementation(() => ({
-      query: vi.fn().mockRejectedValue(new Error('Visualization API error'))
-    }))
-
-    const op = new FindOperation<TestRecord>(baseParams, {}, {})
-    await expect(op.executeOperation()).rejects.toThrow(
-      'Visualization API error'
-    )
+  it('should respect custom headerRow', async () => {
+    const op = new FindOperation({ ...mockParams, headerRow: 3 }, {}, {})
+    ;(parseRecords as any).mockReturnValue([])
+    await op['performMainAction']([0, 2])
+    expect(mockSheets.getMultipleRows).toHaveBeenCalledWith('TestSheet', [3, 5])
   })
 })

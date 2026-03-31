@@ -25,7 +25,7 @@ interface RunParams {
 async function runUpdateOperation<RecordType extends object>(
   holysheets: IHolySheets<RecordType>,
   options: UpdateOptions<RecordType>,
-  configs: OperationConfigs,
+  configs: OperationConfigs = { includeMetadata: false },
   params?: RunParams
 ): Promise<RecordType[]> {
   const headers = await holysheets.getHeaders()
@@ -66,14 +66,14 @@ export function WithUpdateOperations<
   return class extends Base {
     public async updateMany(
       options: UpdateOptions<RecordType>,
-      configs: OperationConfigs
+      configs: OperationConfigs = { includeMetadata: false }
     ): Promise<RecordType[]> {
       return await runUpdateOperation(this, options, configs)
     }
 
     public async updateFirst(
       options: UpdateOptions<RecordType>,
-      configs: OperationConfigs
+      configs: OperationConfigs = { includeMetadata: false }
     ): Promise<RecordType> {
       const result = await runUpdateOperation(this, options, configs, {
         throwRecordNotFoundError: false,
@@ -84,7 +84,7 @@ export function WithUpdateOperations<
 
     public async updateUnique(
       options: UpdateOptions<RecordType>,
-      configs: OperationConfigs
+      configs: OperationConfigs = { includeMetadata: false }
     ): Promise<RecordType> {
       const result = await runUpdateOperation(this, options, configs, {
         throwRecordNotFoundError: false,
@@ -96,7 +96,7 @@ export function WithUpdateOperations<
 
     public async updateLast(
       options: UpdateOptions<RecordType>,
-      configs: OperationConfigs
+      configs: OperationConfigs = { includeMetadata: false }
     ): Promise<RecordType> {
       const result = await runUpdateOperation(this, options, configs, {
         throwRecordNotFoundError: false,
@@ -107,7 +107,7 @@ export function WithUpdateOperations<
 
     public async updateManyOrThrow(
       options: UpdateOptions<RecordType>,
-      configs: OperationConfigs
+      configs: OperationConfigs = { includeMetadata: false }
     ): Promise<RecordType[]> {
       return await runUpdateOperation(this, options, configs, {
         throwRecordNotFoundError: true
@@ -116,7 +116,7 @@ export function WithUpdateOperations<
 
     public async updateFirstOrThrow(
       options: UpdateOptions<RecordType>,
-      configs: OperationConfigs
+      configs: OperationConfigs = { includeMetadata: false }
     ): Promise<RecordType> {
       const result = await runUpdateOperation(this, options, configs, {
         throwRecordNotFoundError: true,
@@ -127,7 +127,7 @@ export function WithUpdateOperations<
 
     public async updateUniqueOrThrow(
       options: UpdateOptions<RecordType>,
-      configs: OperationConfigs
+      configs: OperationConfigs = { includeMetadata: false }
     ): Promise<RecordType> {
       const result = await runUpdateOperation(this, options, configs, {
         throwRecordNotFoundError: true,
@@ -139,7 +139,7 @@ export function WithUpdateOperations<
 
     public async updateLastOrThrow(
       options: UpdateOptions<RecordType>,
-      configs: OperationConfigs
+      configs: OperationConfigs = { includeMetadata: false }
     ): Promise<RecordType> {
       const result = await runUpdateOperation(this, options, configs, {
         throwRecordNotFoundError: true,

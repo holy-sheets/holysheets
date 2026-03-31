@@ -18,7 +18,7 @@ interface RunParams {
 async function runDeleteOperation<RecordType extends object>(
   holysheets: IHolySheets<RecordType>,
   options: OperationOptions<RecordType>,
-  configs: OperationConfigs,
+  configs: OperationConfigs = { includeMetadata: false },
   params?: RunParams
 ): Promise<RecordType[]> {
   const headers = await holysheets.getHeaders()
@@ -59,7 +59,7 @@ export function WithDeleteOperations<
   return class extends Base {
     public async deleteSlice(
       options: OperationOptionsWithSlice<RecordType>,
-      configs: OperationConfigs
+      configs: OperationConfigs = { includeMetadata: false }
     ): Promise<RecordType[]> {
       return await runDeleteOperation(this, options, configs, {
         slice: options.slice
@@ -68,14 +68,14 @@ export function WithDeleteOperations<
 
     public async deleteMany(
       options: OperationOptions<RecordType>,
-      configs: OperationConfigs
+      configs: OperationConfigs = { includeMetadata: false }
     ): Promise<RecordType[]> {
       return await runDeleteOperation(this, options, configs)
     }
 
     public async deleteFirst(
       options: OperationOptions<RecordType>,
-      configs: OperationConfigs
+      configs: OperationConfigs = { includeMetadata: false }
     ): Promise<RecordType> {
       const result = await runDeleteOperation(this, options, configs, {
         throwRecordNotFoundError: false,
@@ -86,7 +86,7 @@ export function WithDeleteOperations<
 
     public async deleteUnique(
       options: OperationOptions<RecordType>,
-      configs: OperationConfigs
+      configs: OperationConfigs = { includeMetadata: false }
     ): Promise<RecordType> {
       const result = await runDeleteOperation(this, options, configs, {
         throwRecordNotFoundError: false,
@@ -98,7 +98,7 @@ export function WithDeleteOperations<
 
     public async deleteLast(
       options: OperationOptions<RecordType>,
-      configs: OperationConfigs
+      configs: OperationConfigs = { includeMetadata: false }
     ): Promise<RecordType> {
       const result = await runDeleteOperation(this, options, configs, {
         throwRecordNotFoundError: false,
@@ -116,7 +116,7 @@ export function WithDeleteOperations<
 
     public async deleteSliceOrThrow(
       options: OperationOptionsWithSlice<RecordType>,
-      configs: OperationConfigs
+      configs: OperationConfigs = { includeMetadata: false }
     ): Promise<RecordType[]> {
       return await runDeleteOperation(this, options, configs, {
         throwRecordNotFoundError: true,
@@ -126,7 +126,7 @@ export function WithDeleteOperations<
 
     public async deleteManyOrThrow(
       options: OperationOptions<RecordType>,
-      configs: OperationConfigs
+      configs: OperationConfigs = { includeMetadata: false }
     ): Promise<RecordType[]> {
       return await runDeleteOperation(this, options, configs, {
         throwRecordNotFoundError: true
@@ -135,7 +135,7 @@ export function WithDeleteOperations<
 
     public async deleteFirstOrThrow(
       options: OperationOptions<RecordType>,
-      configs: OperationConfigs
+      configs: OperationConfigs = { includeMetadata: false }
     ): Promise<RecordType> {
       const result = await runDeleteOperation(this, options, configs, {
         throwRecordNotFoundError: true,
@@ -146,7 +146,7 @@ export function WithDeleteOperations<
 
     public async deleteUniqueOrThrow(
       options: OperationOptions<RecordType>,
-      configs: OperationConfigs
+      configs: OperationConfigs = { includeMetadata: false }
     ): Promise<RecordType> {
       const result = await runDeleteOperation(this, options, configs, {
         throwRecordNotFoundError: true,
@@ -158,7 +158,7 @@ export function WithDeleteOperations<
 
     public async deleteLastOrThrow(
       options: OperationOptions<RecordType>,
-      configs: OperationConfigs
+      configs: OperationConfigs = { includeMetadata: false }
     ): Promise<RecordType> {
       const result = await runDeleteOperation(this, options, configs, {
         throwRecordNotFoundError: true,
@@ -169,7 +169,7 @@ export function WithDeleteOperations<
 
     public async deleteAllOrThrow(
       options: OperationOptions<RecordType>,
-      configs: OperationConfigs
+      configs: OperationConfigs = { includeMetadata: false }
     ): Promise<RecordType[]> {
       return await runDeleteOperation(this, options, configs, {
         throwRecordNotFoundError: true

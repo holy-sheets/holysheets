@@ -18,7 +18,7 @@ interface RunParams {
 async function runClearOperation<RecordType extends object>(
   holysheets: IHolySheets<RecordType>,
   options: OperationOptions<RecordType>,
-  configs: OperationConfigs,
+  configs: OperationConfigs = { includeMetadata: false },
   params?: RunParams
 ): Promise<RecordType[]> {
   const headers = await holysheets.getHeaders()
@@ -59,7 +59,7 @@ export function WithClearOperations<
   return class extends Base {
     public async clearSlice(
       options: OperationOptionsWithSlice<RecordType>,
-      configs: OperationConfigs
+      configs: OperationConfigs = { includeMetadata: false }
     ): Promise<RecordType[]> {
       return await runClearOperation(this, options, configs, {
         slice: options.slice
@@ -68,14 +68,14 @@ export function WithClearOperations<
 
     public async clearMany(
       options: OperationOptions<RecordType>,
-      configs: OperationConfigs
+      configs: OperationConfigs = { includeMetadata: false }
     ): Promise<RecordType[]> {
       return await runClearOperation(this, options, configs)
     }
 
     public async clearFirst(
       options: OperationOptions<RecordType>,
-      configs: OperationConfigs
+      configs: OperationConfigs = { includeMetadata: false }
     ): Promise<RecordType> {
       const result = await runClearOperation(this, options, configs, {
         throwRecordNotFoundError: false,
@@ -86,7 +86,7 @@ export function WithClearOperations<
 
     public async clearUnique(
       options: OperationOptions<RecordType>,
-      configs: OperationConfigs
+      configs: OperationConfigs = { includeMetadata: false }
     ): Promise<RecordType> {
       const result = await runClearOperation(this, options, configs, {
         throwRecordNotFoundError: false,
@@ -98,7 +98,7 @@ export function WithClearOperations<
 
     public async clearLast(
       options: OperationOptions<RecordType>,
-      configs: OperationConfigs
+      configs: OperationConfigs = { includeMetadata: false }
     ): Promise<RecordType> {
       const result = await runClearOperation(this, options, configs, {
         throwRecordNotFoundError: false,
@@ -116,7 +116,7 @@ export function WithClearOperations<
 
     public async clearSliceOrThrow(
       options: OperationOptionsWithSlice<RecordType>,
-      configs: OperationConfigs
+      configs: OperationConfigs = { includeMetadata: false }
     ): Promise<RecordType[]> {
       return await runClearOperation(this, options, configs, {
         throwRecordNotFoundError: true
@@ -125,7 +125,7 @@ export function WithClearOperations<
 
     public async clearManyOrThrow(
       options: OperationOptions<RecordType>,
-      configs: OperationConfigs
+      configs: OperationConfigs = { includeMetadata: false }
     ): Promise<RecordType[]> {
       return await runClearOperation(this, options, configs, {
         throwRecordNotFoundError: true
@@ -134,7 +134,7 @@ export function WithClearOperations<
 
     public async clearFirstOrThrow(
       options: OperationOptions<RecordType>,
-      configs: OperationConfigs
+      configs: OperationConfigs = { includeMetadata: false }
     ): Promise<RecordType> {
       const result = await runClearOperation(this, options, configs, {
         throwRecordNotFoundError: true,
@@ -145,7 +145,7 @@ export function WithClearOperations<
 
     public async clearUniqueOrThrow(
       options: OperationOptions<RecordType>,
-      configs: OperationConfigs
+      configs: OperationConfigs = { includeMetadata: false }
     ): Promise<RecordType> {
       const result = await runClearOperation(this, options, configs, {
         throwRecordNotFoundError: true,
@@ -157,7 +157,7 @@ export function WithClearOperations<
 
     public async clearLastOrThrow(
       options: OperationOptions<RecordType>,
-      configs: OperationConfigs
+      configs: OperationConfigs = { includeMetadata: false }
     ): Promise<RecordType> {
       const result = await runClearOperation(this, options, configs, {
         throwRecordNotFoundError: true,
@@ -168,7 +168,7 @@ export function WithClearOperations<
 
     public async clearAllOrThrow(
       options: OperationOptions<RecordType>,
-      configs: OperationConfigs
+      configs: OperationConfigs = { includeMetadata: false }
     ): Promise<RecordType[]> {
       return await runClearOperation(this, options, configs, {
         throwRecordNotFoundError: true
