@@ -29,11 +29,15 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "22"
+          node-version: "22.14.0"
           cache: "pnpm"
 
+      # Keep npm CLI in a version with stable Trusted Publishing/OIDC behavior.
+      - name: Upgrade npm CLI (Trusted Publishing / provenance)
+        run: npm i -g npm@11.5.1
+
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
 
       - name: Test
         run: pnpm run test:ci
@@ -41,6 +45,9 @@ jobs:
       - name: Run semantic-release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_CONFIG_REGISTRY: https://registry.npmjs.org/
+          NPM_CONFIG_PROVENANCE: true
+          NPM_CONFIG_ACCESS: public
         run: npx semantic-release
 
       # Additional steps to build and publish the documentation
