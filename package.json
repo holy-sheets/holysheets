@@ -94,6 +94,19 @@
       "path": "./node_modules/cz-conventional-changelog"
     }
   },
+  "pnpm": {
+    "overrides": {
+      "handlebars": "4.7.9",
+      "picomatch@<2.3.2": "2.3.2",
+      "flatted@<3.4.2": "3.4.2",
+      "svgo@>=3.0.0 <3.3.3": "3.3.3",
+      "minimatch@<3.1.4": "3.1.4",
+      "minimatch@>=9.0.0 <9.0.7": "9.0.7",
+      "rollup@>=4.0.0 <4.59.0": "4.59.0",
+      "jws@4.0.0": "4.0.1",
+      "glob@>=10.2.0 <10.5.0": "10.5.0"
+    }
+  },
   "dependencies": {
     "uuid": "11.0.5"
   }
