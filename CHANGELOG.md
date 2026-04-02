@@ -1,3 +1,11 @@
+## [2.3.1](https://github.com/holy-sheets/holysheets/compare/v2.3.0...v2.3.1) (2026-04-02)
+
+
+### Bug Fixes
+
+* rollback lodash-es override to 4.17.23 to restore semantic-release ([9795c1c](https://github.com/holy-sheets/holysheets/commit/9795c1c70a12b64b18a5a8848c9743a4280e5054))
+* update lodash-es to 4.18.0 for dependabot alerts [#68](https://github.com/holy-sheets/holysheets/issues/68) and [#69](https://github.com/holy-sheets/holysheets/issues/69) ([2d9a918](https://github.com/holy-sheets/holysheets/commit/2d9a9180bd53342ca75b94fb510ca2ecbe0574c4))
+
 # [2.3.0](https://github.com/holy-sheets/holysheets/compare/v2.2.2...v2.3.0) (2026-03-31)
 
 

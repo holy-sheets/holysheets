@@ -1,6 +1,6 @@
 {
   "name": "holysheets",
-  "version": "2.3.0",
+  "version": "2.3.1",
   "description": "A Node.js library for interacting with Google Sheets",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
