@@ -1,10 +1,12 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import HolySheets from '@/index'
 import { DeleteOperation } from '@/operations/delete/DeleteOperation'
 import { MultipleRecordsFoundForUniqueError } from '@/errors/MultipleRecordsFoundForUniqueError'
+import { RecordNotFoundError } from '@/errors/RecordNotFoundError'
 import type {
   OperationOptions,
-  OperationConfigs
+  OperationConfigs,
+  OperationOptionsWithSlice
 } from '@/operations/types/BaseOperation.types'
 
 interface DummyRecord {
@@ -36,6 +38,9 @@ const setupTestEnvironment = () => {
 describe('WithDeleteOperations', () => {
   let instance: HolySheets<DummyRecord>
   const dummyOptions: OperationOptions<DummyRecord> = {}
+  const sliceOptions: OperationOptionsWithSlice<DummyRecord> = {
+    slice: [2, 4]
+  }
   const dummyConfigs: OperationConfigs = { returnRecords: true }
 
   beforeEach(() => {
@@ -78,5 +83,91 @@ describe('WithDeleteOperations', () => {
   it('deleteAll should return all records', async () => {
     const result = await instance.deleteAll(dummyOptions, dummyConfigs)
     expect(result).toEqual([{ id: 1 }, { id: 2 }])
+  })
+
+  it('deleteSlice should use provided slice', async () => {
+    const result = await instance.deleteSlice(sliceOptions, dummyConfigs)
+    expect(result).toEqual([{ id: 1 }, { id: 2 }])
+    expect(DeleteOperation).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ slice: [2, 4] }),
+      dummyConfigs
+    )
+  })
+
+  it('deleteSliceOrThrow should use provided slice and throw when empty', async () => {
+    ;(DeleteOperation as ReturnType<typeof vi.fn>).mockImplementationOnce(() => ({
+      executeOperation: vi.fn().mockResolvedValue([])
+    }))
+
+    await expect(
+      instance.deleteSliceOrThrow(sliceOptions, dummyConfigs)
+    ).rejects.toThrow(RecordNotFoundError)
+    expect(DeleteOperation).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ slice: [2, 4] }),
+      dummyConfigs
+    )
+  })
+
+  it('deleteManyOrThrow should throw RecordNotFoundError when no records are returned', async () => {
+    ;(DeleteOperation as ReturnType<typeof vi.fn>).mockImplementationOnce(() => ({
+      executeOperation: vi.fn().mockResolvedValue([])
+    }))
+
+    await expect(
+      instance.deleteManyOrThrow(dummyOptions, dummyConfigs)
+    ).rejects.toThrow(RecordNotFoundError)
+  })
+
+  it('deleteFirstOrThrow should return first record when found', async () => {
+    const result = await instance.deleteFirstOrThrow(dummyOptions, dummyConfigs)
+    expect(result).toEqual({ id: 1 })
+  })
+
+  it('deleteFirstOrThrow should throw RecordNotFoundError when empty', async () => {
+    ;(DeleteOperation as ReturnType<typeof vi.fn>).mockImplementationOnce(() => ({
+      executeOperation: vi.fn().mockResolvedValue([])
+    }))
+
+    await expect(
+      instance.deleteFirstOrThrow(dummyOptions, dummyConfigs)
+    ).rejects.toThrow(RecordNotFoundError)
+  })
+
+  it('deleteUniqueOrThrow should throw for multiple results', async () => {
+    await expect(
+      instance.deleteUniqueOrThrow(dummyOptions, dummyConfigs)
+    ).rejects.toThrow(MultipleRecordsFoundForUniqueError)
+  })
+
+  it('deleteUniqueOrThrow should throw RecordNotFoundError when empty', async () => {
+    ;(DeleteOperation as ReturnType<typeof vi.fn>).mockImplementationOnce(() => ({
+      executeOperation: vi.fn().mockResolvedValue([])
+    }))
+
+    await expect(
+      instance.deleteUniqueOrThrow(dummyOptions, dummyConfigs)
+    ).rejects.toThrow(RecordNotFoundError)
+  })
+
+  it('deleteLastOrThrow should throw RecordNotFoundError when empty', async () => {
+    ;(DeleteOperation as ReturnType<typeof vi.fn>).mockImplementationOnce(() => ({
+      executeOperation: vi.fn().mockResolvedValue([])
+    }))
+
+    await expect(
+      instance.deleteLastOrThrow(dummyOptions, dummyConfigs)
+    ).rejects.toThrow(RecordNotFoundError)
+  })
+
+  it('deleteAllOrThrow should throw RecordNotFoundError when empty', async () => {
+    ;(DeleteOperation as ReturnType<typeof vi.fn>).mockImplementationOnce(() => ({
+      executeOperation: vi.fn().mockResolvedValue([])
+    }))
+
+    await expect(
+      instance.deleteAllOrThrow(dummyOptions, dummyConfigs)
+    ).rejects.toThrow(RecordNotFoundError)
   })
 })
