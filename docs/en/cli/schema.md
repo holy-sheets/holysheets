@@ -17,7 +17,7 @@ Point to a JSON file containing an array of schema definitions:
 ```bash
 holysheets read find-many \
   --spreadsheet-id <ID> \
-  --sheet places \
+  --sheet <sheet-name> \
   --schema-file ./schema.json
 ```
 
@@ -38,7 +38,7 @@ Pass the schema directly as a JSON string:
 ```bash
 holysheets read find-many \
   --spreadsheet-id <ID> \
-  --sheet places \
+  --sheet <sheet-name> \
   --schema-json '[{"key":"name","type":"string"},{"key":"rating","type":"number"}]'
 ```
 
@@ -49,7 +49,7 @@ Define the schema field by field using grouped flags:
 ```bash
 holysheets read find-many \
   --spreadsheet-id <ID> \
-  --sheet places \
+  --sheet <sheet-name> \
   --schema-field nome_estabelecimento --schema-type string \
   --schema-field rating --schema-type number \
   --schema-field visitado_em --schema-type date --schema-nullable
@@ -88,7 +88,7 @@ Use `--schema-alias` to rename columns in the output:
 ```bash
 holysheets read find-many \
   --spreadsheet-id <ID> \
-  --sheet places \
+  --sheet <sheet-name> \
   --schema-field nome_estabelecimento --schema-type string --schema-alias name \
   --schema-field rating --schema-type number
 ```

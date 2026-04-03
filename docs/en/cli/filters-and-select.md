@@ -1,6 +1,6 @@
 # CLI Filters and Select
 
-Use `--where-*` flags to filter records and `--select` to choose which fields to return.
+Use `--where-*` flags to filter records, `--select` to include fields, and `--omit` to exclude fields.
 
 ---
 
@@ -11,7 +11,7 @@ Filters are built using grouped flags. Each `--where-field` starts a new filter 
 ```bash
 holysheets read find-many \
   --spreadsheet-id <ID> \
-  --sheet places \
+  --sheet <sheet-name> \
   --where-field rating --where-op gte --where-value 4 \
   --where-field name --where-op contains --where-value bar
 ```
@@ -71,7 +71,7 @@ You can apply multiple operators to the same field:
 ```bash
 holysheets read find-many \
   --spreadsheet-id <ID> \
-  --sheet places \
+  --sheet <sheet-name> \
   --where-field rating --where-op gte --where-value 3 \
   --where-field rating --where-op lte --where-value 5
 ```
@@ -87,7 +87,7 @@ Use `--select` to return only specific fields. It is repeatable:
 ```bash
 holysheets read find-many \
   --spreadsheet-id <ID> \
-  --sheet places \
+  --sheet <sheet-name> \
   --select name \
   --select rating
 ```
@@ -96,4 +96,26 @@ When `--select` is omitted, all fields are returned.
 
 ::: warning
 `--select` is not allowed with `read describe`.
+:::
+
+---
+
+## Omit
+
+Use `--omit` to exclude specific fields from the output. It is repeatable:
+
+```bash
+holysheets read find-many \
+  --spreadsheet-id <ID> \
+  --sheet <sheet-name> \
+  --omit instagram \
+  --omit endereco
+```
+
+::: warning
+`--omit` cannot be used together with `--select` in the same command.
+:::
+
+::: warning
+`--omit` is not allowed with `read describe`.
 :::
