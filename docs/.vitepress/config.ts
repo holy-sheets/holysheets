@@ -44,6 +44,7 @@ export default defineConfig({
           text: 'CLI',
           items: [
             { text: 'Overview', link: '/en/cli/overview' },
+            { text: 'Complete Guide', link: '/en/cli/complete-guide' },
             { text: 'Commands', link: '/en/cli/commands' },
             { text: 'Configuration', link: '/en/cli/configuration' },
             { text: 'Schema', link: '/en/cli/schema' },
