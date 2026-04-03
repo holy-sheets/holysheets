@@ -11,6 +11,9 @@
       "require": "./dist/index.cjs"
     }
   },
+  "bin": {
+    "holysheets": "./dist/cli.js"
+  },
   "type": "module",
   "scripts": {
     "build": "tsup",
@@ -120,6 +123,7 @@
     }
   },
   "dependencies": {
+    "cac": "6.7.14",
     "uuid": "11.0.5"
   }
 }
