@@ -12,7 +12,7 @@ Create a JSON file (e.g., `holysheets.config.json`):
 {
   "defaults": {
     "spreadsheetId": "1AbCDefGhIJkLMNOPQRS_TUVWXYZ",
-    "sheet": "places",
+    "sheet": "<sheet-name>",
     "headerRow": 2,
     "format": "json",
     "pretty": true
@@ -48,7 +48,7 @@ CLI flags always take priority over config file values:
 CLI flags  >  Config file defaults  >  Internal defaults
 ```
 
-For example, if your config file sets `"sheet": "places"` but you pass `--sheet cities`, the CLI will use `cities`.
+For example, if your config file sets `"sheet": "<sheet-name>"` but you pass `--sheet cities`, the CLI will use `cities`.
 
 ---
 

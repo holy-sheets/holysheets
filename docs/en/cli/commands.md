@@ -16,7 +16,7 @@ Returns all records matching the given filters.
 ```bash
 holysheets read find-many \
   --spreadsheet-id <ID> \
-  --sheet places \
+  --sheet <sheet-name> \
   --where-field rating --where-op gte --where-value 4 \
   --format json
 ```
@@ -32,15 +32,93 @@ Returns the first record matching the filters, or `null` if none is found.
 ```bash
 holysheets read find-first \
   --spreadsheet-id <ID> \
-  --sheet places \
+  --sheet <sheet-name> \
   --where-field name --where-op equals --where-value "Cafe Central"
 ```
 
-Supported output formats: `json`, `ndjson`.
+---
+
+## `read find-unique`
+
+Returns a single record matching the filters, or `null` if none is found. Throws an error if **more than one** record matches.
+
+```bash
+holysheets read find-unique \
+  --spreadsheet-id <ID> \
+  --sheet <sheet-name> \
+  --where-field id --where-op equals --where-value "42"
+```
 
 ::: warning
-`csv` format is not supported for `find-first`.
+If multiple records match the filters, the command will exit with an error.
 :::
+
+---
+
+## `read find-last`
+
+Returns the last record matching the filters, or `null` if none is found.
+
+```bash
+holysheets read find-last \
+  --spreadsheet-id <ID> \
+  --sheet <sheet-name> \
+  --where-field city --where-op equals --where-value "São Paulo"
+```
+
+---
+
+## `read find-many-or-throw`
+
+Same as `find-many`, but exits with an error if **no records** are found.
+
+```bash
+holysheets read find-many-or-throw \
+  --spreadsheet-id <ID> \
+  --sheet <sheet-name> \
+  --where-field rating --where-op gte --where-value 4
+```
+
+Supports all output formats: `json`, `csv`, `ndjson`.
+
+---
+
+## `read find-first-or-throw`
+
+Same as `find-first`, but exits with an error if **no records** are found.
+
+```bash
+holysheets read find-first-or-throw \
+  --spreadsheet-id <ID> \
+  --sheet <sheet-name> \
+  --where-field name --where-op equals --where-value "Cafe Central"
+```
+
+---
+
+## `read find-unique-or-throw`
+
+Same as `find-unique`, but exits with an error if **no records** are found or if **multiple records** match.
+
+```bash
+holysheets read find-unique-or-throw \
+  --spreadsheet-id <ID> \
+  --sheet <sheet-name> \
+  --where-field id --where-op equals --where-value "42"
+```
+
+---
+
+## `read find-last-or-throw`
+
+Same as `find-last`, but exits with an error if **no records** are found.
+
+```bash
+holysheets read find-last-or-throw \
+  --spreadsheet-id <ID> \
+  --sheet <sheet-name> \
+  --where-field city --where-op equals --where-value "São Paulo"
+```
 
 ---
 
@@ -51,7 +129,7 @@ Returns metadata about the sheet, including detected columns and resolved schema
 ```bash
 holysheets read describe \
   --spreadsheet-id <ID> \
-  --sheet places \
+  --sheet <sheet-name> \
   --header-row 2
 ```
 
@@ -61,7 +139,7 @@ Example output:
 {
   "source": "google-sheets",
   "spreadsheetId": "abc123",
-  "sheet": "places",
+  "sheet": "<sheet-name>",
   "headerRow": 2,
   "columns": [
     { "index": 0, "name": "nome_estabelecimento" },
@@ -72,7 +150,7 @@ Example output:
 ```
 
 ::: warning
-`describe` does not accept `--where-*` or `--select` flags.
+`describe` does not accept `--where-*`, `--select`, or `--omit` flags.
 :::
 
 ---
@@ -91,6 +169,7 @@ All read commands accept the following flags:
 | `--output`         | Write output to file                    | stdout     |
 | `--pretty`         | Pretty-print JSON output                | `false`    |
 | `--select`         | Select specific fields (repeatable)     | all fields |
+| `--omit`           | Omit specific fields (repeatable)       | none       |
 
 See [Configuration](./configuration.md) for details on config files and flag precedence.
 

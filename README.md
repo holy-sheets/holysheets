@@ -33,10 +33,10 @@ You can run commands in both forms:
 
 ```bash
 # implicit source (google-sheets is the default)
-npx holysheets read find-many --sheet places --spreadsheet-id <ID>
+npx holysheets read find-many --sheet <sheet-name> --spreadsheet-id <ID>
 
 # explicit source
-npx holysheets google-sheets read find-many --sheet places --spreadsheet-id <ID>
+npx holysheets google-sheets read find-many --sheet <sheet-name> --spreadsheet-id <ID>
 ```
 
 ### Supported Commands
@@ -82,8 +82,8 @@ Example config file:
 ```json
 {
   "defaults": {
-    "spreadsheetId": "abc123",
-    "sheet": "places",
+    "spreadsheetId": "<ID>",
+    "sheet": "<sheet-name>",
     "headerRow": 2
   }
 }
@@ -116,7 +116,7 @@ Example:
 
 ```bash
 holysheets read find-many \
-  --sheet places \
+  --sheet <sheet-name> \
   --spreadsheet-id <ID> \
   --schema-field nome_estabelecimento --schema-type string \
   --schema-field rating --schema-type number \
@@ -141,7 +141,7 @@ Example:
 
 ```bash
 holysheets read find-many \
-  --sheet places \
+  --sheet <sheet-name> \
   --spreadsheet-id <ID> \
   --where-field rating --where-op gte --where-value 4 \
   --where-field nome_estabelecimento --where-op contains --where-value bar
@@ -153,11 +153,25 @@ holysheets read find-many \
 
 ```bash
 holysheets read find-many \
-  --sheet places \
+  --sheet <sheet-name> \
   --spreadsheet-id <ID> \
   --select nome_estabelecimento \
   --select rating
 ```
+
+### Omit
+
+`--omit` is repeatable:
+
+```bash
+holysheets read find-many \
+  --sheet <sheet-name> \
+  --spreadsheet-id <ID> \
+  --omit instagram \
+  --omit endereco
+```
+
+`--select` and `--omit` cannot be used together in the same command.
 
 ### Output and Formats
 
@@ -177,13 +191,14 @@ Output behavior:
 Examples:
 
 ```bash
-holysheets read find-many --sheet places --spreadsheet-id <ID> --format json --output ./out/places.json
-holysheets read find-many --sheet places --spreadsheet-id <ID> --format csv --output ./out/places.csv
+holysheets read find-many --sheet <sheet-name> --spreadsheet-id <ID> --format json --output ./out/data.json
+holysheets read find-many --sheet <sheet-name> --spreadsheet-id <ID> --format csv --output ./out/data.csv
 ```
 
 ### Describe Behavior
 
 `read describe` is metadata-focused and does not return data rows.
+It does not accept `--where-*`, `--select`, or `--omit`.
 
 It returns:
 
@@ -197,7 +212,7 @@ It returns:
 Example:
 
 ```bash
-holysheets read describe --sheet places --spreadsheet-id <ID> --header-row 2
+holysheets read describe --sheet <sheet-name> --spreadsheet-id <ID> --header-row 2
 ```
 
 Typical JSON output:
@@ -205,8 +220,8 @@ Typical JSON output:
 ```json
 {
   "source": "google-sheets",
-  "spreadsheetId": "abc123",
-  "sheet": "places",
+  "spreadsheetId": "<ID>",
+  "sheet": "<sheet-name>",
   "headerRow": 2,
   "columns": [
     { "index": 0, "name": "nome_estabelecimento" },

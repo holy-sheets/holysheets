@@ -11,12 +11,12 @@ The CLI ships with the `holysheets` package. Install it globally or use `npx`:
 ::: code-group
 
 ```bash [npx]
-npx holysheets read find-many --sheet places --spreadsheet-id <ID>
+npx holysheets read find-many --sheet <sheet-name> --spreadsheet-id <ID>
 ```
 
 ```bash [global install]
 npm install -g holysheets
-holysheets read find-many --sheet places --spreadsheet-id <ID>
+holysheets read find-many --sheet <sheet-name> --spreadsheet-id <ID>
 ```
 
 :::
@@ -41,11 +41,17 @@ Both forms are functionally identical. The explicit form exists for future exten
 
 ## Available Operations
 
-| Operation    | Description                                  |
-| ------------ | -------------------------------------------- |
-| `find-many`  | Returns all records matching the filters.    |
-| `find-first` | Returns the first matching record.           |
-| `describe`   | Returns sheet metadata (columns and schema). |
+| Operation              | Description                                            |
+| ---------------------- | ------------------------------------------------------ |
+| `find-many`            | Returns all records matching the filters.              |
+| `find-first`           | Returns the first matching record.                     |
+| `find-unique`          | Returns a single matching record (errors if multiple). |
+| `find-last`            | Returns the last matching record.                      |
+| `find-many-or-throw`   | Like `find-many`, but errors if no records found.      |
+| `find-first-or-throw`  | Like `find-first`, but errors if no records found.     |
+| `find-unique-or-throw` | Like `find-unique`, but errors if none or multiple.    |
+| `find-last-or-throw`   | Like `find-last`, but errors if no records found.      |
+| `describe`             | Returns sheet metadata (columns and schema).           |
 
 ---
 
@@ -54,7 +60,7 @@ Both forms are functionally identical. The explicit form exists for future exten
 ```bash
 holysheets read find-many \
   --spreadsheet-id 1AbCDefGhIJkLMNOPQRS_TUVWXYZ \
-  --sheet places \
+  --sheet <sheet-name> \
   --where-field rating --where-op gte --where-value 4 \
   --select name \
   --select rating \

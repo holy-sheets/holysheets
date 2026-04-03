@@ -14,14 +14,20 @@ Control how the CLI formats and delivers results using `--format`, `--output`, a
 
 ### Format Compatibility
 
-| Operation    | `json` | `ndjson` | `csv` |
-| ------------ | :----: | :------: | :---: |
-| `find-many`  |   ✅   |    ✅    |  ✅   |
-| `find-first` |   ✅   |    ✅    |  ❌   |
-| `describe`   |   ✅   |    ✅    |  ❌   |
+| Operation              | `json` | `ndjson` | `csv` |
+| ---------------------- | :----: | :------: | :---: |
+| `find-many`            |   ✅   |    ✅    |  ✅   |
+| `find-many-or-throw`   |   ✅   |    ✅    |  ✅   |
+| `find-first`           |   ✅   |    ✅    |  ✅   |
+| `find-unique`          |   ✅   |    ✅    |  ✅   |
+| `find-last`            |   ✅   |    ✅    |  ✅   |
+| `find-first-or-throw`  |   ✅   |    ✅    |  ✅   |
+| `find-unique-or-throw` |   ✅   |    ✅    |  ✅   |
+| `find-last-or-throw`   |   ✅   |    ✅    |  ✅   |
+| `describe`             |   ✅   |    ✅    |  ❌   |
 
-::: warning
-`csv` is only supported for `find-many` in this version. Using it with other commands will produce an error.
+::: tip
+`csv` works with all find operations. Single-record operations output a header row plus one data row. Only `describe` does not support CSV.
 :::
 
 ---
@@ -33,7 +39,7 @@ Use `--pretty` to format JSON output with indentation:
 ```bash
 holysheets read find-many \
   --spreadsheet-id <ID> \
-  --sheet places \
+  --sheet <sheet-name> \
   --format json \
   --pretty
 ```
@@ -64,7 +70,7 @@ By default, output is printed to **stdout**. Use `--output` to write to a file i
 ```bash
 holysheets read find-many \
   --spreadsheet-id <ID> \
-  --sheet places \
+  --sheet <sheet-name> \
   --format csv \
   --output ./out/places.csv
 ```
@@ -80,7 +86,7 @@ Export all records as JSON to a file:
 ```bash
 holysheets read find-many \
   --spreadsheet-id <ID> \
-  --sheet places \
+  --sheet <sheet-name> \
   --format json \
   --pretty \
   --output ./out/places.json
@@ -91,7 +97,7 @@ Stream as NDJSON (useful for piping):
 ```bash
 holysheets read find-many \
   --spreadsheet-id <ID> \
-  --sheet places \
+  --sheet <sheet-name> \
   --format ndjson | jq '.name'
 ```
 
@@ -100,7 +106,7 @@ Export filtered data as CSV:
 ```bash
 holysheets read find-many \
   --spreadsheet-id <ID> \
-  --sheet places \
+  --sheet <sheet-name> \
   --where-field rating --where-op gte --where-value 4 \
   --format csv \
   --output ./out/top-places.csv
