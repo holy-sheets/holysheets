@@ -1,3 +1,10 @@
+# [2.4.0](https://github.com/holy-sheets/holysheets/compare/v2.3.1...v2.4.0) (2026-04-03)
+
+
+### Features
+
+* **cli:** add public read CLI for google sheets ([0897036](https://github.com/holy-sheets/holysheets/commit/08970364ef71c67437644ee3379ab968988b2538))
+
 ## [2.3.1](https://github.com/holy-sheets/holysheets/compare/v2.3.0...v2.3.1) (2026-04-02)
 
 
