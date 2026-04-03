@@ -1,3 +1,15 @@
+# [2.5.0](https://github.com/holy-sheets/holysheets/compare/v2.4.0...v2.5.0) (2026-04-03)
+
+
+### Bug Fixes
+
+* **public-read:** add skip sheet validation escape hatch ([3dd4c23](https://github.com/holy-sheets/holysheets/commit/3dd4c23ca0ae1485326c4372365541cbd34e50c1))
+
+
+### Features
+
+* **cli:** expand read operations and harden flag handling ([b40abbd](https://github.com/holy-sheets/holysheets/commit/b40abbdf396f993b759a4ab4b013270641a83ed8))
+
 # [2.4.0](https://github.com/holy-sheets/holysheets/compare/v2.3.1...v2.4.0) (2026-04-03)
 
 
