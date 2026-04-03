@@ -31,13 +31,20 @@ function readTailArgs(
   argv: string[],
   commandTokens: readonly string[]
 ): string[] {
-  if (argv.length < commandTokens.length) {
-    return []
-  }
   return argv.slice(commandTokens.length)
 }
 
-const READ_OPERATIONS: ReadOperation[] = ['find-many', 'find-first', 'describe']
+const READ_OPERATIONS: ReadOperation[] = [
+  'find-many',
+  'find-first',
+  'find-unique',
+  'find-last',
+  'find-many-or-throw',
+  'find-first-or-throw',
+  'find-unique-or-throw',
+  'find-last-or-throw',
+  'describe'
+]
 
 function isReadOperation(operation: string): operation is ReadOperation {
   return READ_OPERATIONS.includes(operation as ReadOperation)
@@ -74,6 +81,7 @@ function addReadOptions(command: Command): Command {
     )
     .option('--where-value <value>', 'Where value')
     .option('--select <field>', 'Select field (repeatable)')
+    .option('--omit <field>', 'Omit field (repeatable)')
 }
 
 async function executeReadFromCli(

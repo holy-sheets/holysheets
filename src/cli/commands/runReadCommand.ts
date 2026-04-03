@@ -12,12 +12,44 @@ type PublicReadTable = {
   defineSchema: (schema: RecordSchema<CliRecord>) => unknown
   findMany: (options: {
     where: WhereClause<CliRecord>
-    select: string[]
+    select?: string[]
+    omit?: string[]
   }) => Promise<CliRecord[]>
   findFirst: (options: {
     where: WhereClause<CliRecord>
-    select: string[]
+    select?: string[]
+    omit?: string[]
   }) => Promise<CliRecord | undefined>
+  findUnique: (options: {
+    where: WhereClause<CliRecord>
+    select?: string[]
+    omit?: string[]
+  }) => Promise<CliRecord | undefined>
+  findLast: (options: {
+    where: WhereClause<CliRecord>
+    select?: string[]
+    omit?: string[]
+  }) => Promise<CliRecord | undefined>
+  findManyOrThrow: (options: {
+    where: WhereClause<CliRecord>
+    select?: string[]
+    omit?: string[]
+  }) => Promise<CliRecord[]>
+  findFirstOrThrow: (options: {
+    where: WhereClause<CliRecord>
+    select?: string[]
+    omit?: string[]
+  }) => Promise<CliRecord>
+  findUniqueOrThrow: (options: {
+    where: WhereClause<CliRecord>
+    select?: string[]
+    omit?: string[]
+  }) => Promise<CliRecord>
+  findLastOrThrow: (options: {
+    where: WhereClause<CliRecord>
+    select?: string[]
+    omit?: string[]
+  }) => Promise<CliRecord>
   getHeaders: () => Promise<HeaderColumn[]>
 }
 
@@ -36,32 +68,66 @@ export async function runReadCommand(
     table.defineSchema(command.schema)
   }
 
-  if (command.operation === 'find-many') {
-    const records = await table.findMany({
-      where: command.where,
-      select: command.select
-    })
-    return records
+  const findOptions: {
+    where: WhereClause<CliRecord>
+    select?: string[]
+    omit?: string[]
+  } = {
+    where: command.where
   }
 
-  if (command.operation === 'find-first') {
-    const record = await table.findFirst({
-      where: command.where,
-      select: command.select
-    })
-    return record ?? null
+  if (command.select.length > 0) {
+    findOptions.select = command.select
   }
 
-  const headers = await table.getHeaders()
-  return {
-    source: command.source,
-    spreadsheetId: command.spreadsheetId,
-    sheet: command.sheet,
-    headerRow: command.headerRow,
-    columns: headers.map(header => ({
-      index: header.column,
-      name: header.header
-    })),
-    schema: command.schema ?? []
+  if (command.omit.length > 0) {
+    findOptions.omit = command.omit
+  }
+
+  switch (command.operation) {
+    case 'find-many':
+      return await table.findMany(findOptions)
+
+    case 'find-first': {
+      const record = await table.findFirst(findOptions)
+      return record ?? null
+    }
+
+    case 'find-unique': {
+      const record = await table.findUnique(findOptions)
+      return record ?? null
+    }
+
+    case 'find-last': {
+      const record = await table.findLast(findOptions)
+      return record ?? null
+    }
+
+    case 'find-many-or-throw':
+      return await table.findManyOrThrow(findOptions)
+
+    case 'find-first-or-throw':
+      return await table.findFirstOrThrow(findOptions)
+
+    case 'find-unique-or-throw':
+      return await table.findUniqueOrThrow(findOptions)
+
+    case 'find-last-or-throw':
+      return await table.findLastOrThrow(findOptions)
+
+    case 'describe': {
+      const headers = await table.getHeaders()
+      return {
+        source: command.source,
+        spreadsheetId: command.spreadsheetId,
+        sheet: command.sheet,
+        headerRow: command.headerRow,
+        columns: headers.map(header => ({
+          index: header.column,
+          name: header.header
+        })),
+        schema: command.schema ?? []
+      }
+    }
   }
 }
