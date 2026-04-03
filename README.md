@@ -25,6 +25,197 @@ You can install `HolySheets!` using npm:
 npm install holysheets
 ```
 
+## CLI (Public Read)
+
+HolySheets now includes a CLI focused on public read operations from Google Sheets.
+
+You can run commands in both forms:
+
+```bash
+# implicit source (google-sheets is the default)
+npx holysheets read find-many --sheet places --spreadsheet-id <ID>
+
+# explicit source
+npx holysheets google-sheets read find-many --sheet places --spreadsheet-id <ID>
+```
+
+### Supported Commands
+
+```bash
+holysheets read find-many
+holysheets read find-first
+holysheets read describe
+
+holysheets google-sheets read find-many
+holysheets google-sheets read find-first
+holysheets google-sheets read describe
+```
+
+### Help
+
+```bash
+holysheets --help
+holysheets read --help
+holysheets read find-many --help
+holysheets google-sheets read find-many --help
+```
+
+### Common Flags
+
+```bash
+--config <path>
+--spreadsheet-id <id>
+--sheet <name>
+--header-row <number>
+--format <json|csv|ndjson>
+--output <path>
+--pretty
+```
+
+Config precedence:
+
+- CLI flags override config file values.
+- Config file values override internal defaults.
+
+Example config file:
+
+```json
+{
+  "defaults": {
+    "spreadsheetId": "abc123",
+    "sheet": "places",
+    "headerRow": 2
+  }
+}
+```
+
+### Schema Input
+
+You can provide schema in one (and only one) of these ways:
+
+```bash
+--schema-file <path>
+--schema-json <json-string>
+```
+
+Or explicit repeatable flags:
+
+```bash
+--schema-field <name>
+--schema-type <string|number|boolean|date>
+--schema-nullable
+--schema-alias <name>
+```
+
+Schema block grouping rule:
+
+- Each `--schema-field` starts a new schema field definition.
+- Following `--schema-type`, `--schema-nullable`, and `--schema-alias` apply to the latest field.
+
+Example:
+
+```bash
+holysheets read find-many \
+  --sheet places \
+  --spreadsheet-id <ID> \
+  --schema-field nome_estabelecimento --schema-type string \
+  --schema-field rating --schema-type number \
+  --schema-field visitado_em --schema-type date --schema-nullable
+```
+
+### Filters (`where`)
+
+```bash
+--where-field <field>
+--where-op <equals|not|in|notIn|lt|lte|gt|gte|contains|startsWith|endsWith|search>
+--where-value <value>
+```
+
+Filter block grouping rule:
+
+- Each `--where-field` starts a new filter block.
+- Following `--where-op` and `--where-value` apply to the latest field.
+- Multiple blocks are combined with `AND`.
+
+Example:
+
+```bash
+holysheets read find-many \
+  --sheet places \
+  --spreadsheet-id <ID> \
+  --where-field rating --where-op gte --where-value 4 \
+  --where-field nome_estabelecimento --where-op contains --where-value bar
+```
+
+### Select
+
+`--select` is repeatable:
+
+```bash
+holysheets read find-many \
+  --sheet places \
+  --spreadsheet-id <ID> \
+  --select nome_estabelecimento \
+  --select rating
+```
+
+### Output and Formats
+
+- `--format` controls serialization.
+- `--output` controls destination.
+- Without `--output`, data is printed to stdout.
+- With `--output`, data is written to file.
+
+Output behavior:
+
+- `find-many`: `json`, `csv`, `ndjson`
+- `find-first`: `json`, `ndjson`
+- `describe`: `json`, `ndjson`
+
+`csv` is intentionally supported only for `find-many` in this version.
+
+Examples:
+
+```bash
+holysheets read find-many --sheet places --spreadsheet-id <ID> --format json --output ./out/places.json
+holysheets read find-many --sheet places --spreadsheet-id <ID> --format csv --output ./out/places.csv
+```
+
+### Describe Behavior
+
+`read describe` is metadata-focused and does not return data rows.
+
+It returns:
+
+- source
+- spreadsheetId
+- sheet
+- headerRow
+- detected columns (`index` + `name`)
+- resolved schema (when provided)
+
+Example:
+
+```bash
+holysheets read describe --sheet places --spreadsheet-id <ID> --header-row 2
+```
+
+Typical JSON output:
+
+```json
+{
+  "source": "google-sheets",
+  "spreadsheetId": "abc123",
+  "sheet": "places",
+  "headerRow": 2,
+  "columns": [
+    { "index": 0, "name": "nome_estabelecimento" },
+    { "index": 1, "name": "rating" }
+  ],
+  "schema": []
+}
+```
+
 ## Authentication and Credentials
 
 Before using HolySheets!, you need Google credentials (Service Account or OAuth2) with access to your target spreadsheet. For guidance, check the [Getting Credentials](docs/getting-credentials.md) documentation.

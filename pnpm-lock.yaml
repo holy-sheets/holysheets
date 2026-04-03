@@ -31,6 +31,9 @@ importers:
 
   .:
     dependencies:
+      cac:
+        specifier: 6.7.14
+        version: 6.7.14
       googleapis:
         specifier: 137.1.0
         version: 137.1.0
