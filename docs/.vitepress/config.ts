@@ -41,6 +41,17 @@ export default defineConfig({
           ]
         },
         {
+          text: 'CLI',
+          items: [
+            { text: 'Overview', link: '/en/cli/overview' },
+            { text: 'Commands', link: '/en/cli/commands' },
+            { text: 'Configuration', link: '/en/cli/configuration' },
+            { text: 'Schema', link: '/en/cli/schema' },
+            { text: 'Filters & Select', link: '/en/cli/filters-and-select' },
+            { text: 'Output', link: '/en/cli/output' }
+          ]
+        },
+        {
           text: 'Guides',
           items: [
             { text: 'Public Mode', link: '/en/guides/public-mode' },
