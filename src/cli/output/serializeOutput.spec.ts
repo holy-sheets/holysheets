@@ -13,6 +13,7 @@ function baseCommand(
     spreadsheetId: 'id',
     sheet: 'places',
     headerRow: 1,
+    skipSheetValidation: false,
     format: 'json',
     pretty: false,
     select: [],

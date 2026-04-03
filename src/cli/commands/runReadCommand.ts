@@ -61,7 +61,8 @@ export async function runReadCommand(
   })
 
   const table = reader.base<CliRecord>(command.sheet, {
-    headerRow: command.headerRow
+    headerRow: command.headerRow,
+    skipSheetValidation: command.skipSheetValidation
   }) as unknown as PublicReadTable
 
   if (command.schema) {

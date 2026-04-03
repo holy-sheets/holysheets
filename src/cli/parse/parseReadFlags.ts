@@ -24,7 +24,11 @@ const VALUE_FLAGS = new Set([
   '--where-value'
 ])
 
-const BOOLEAN_FLAGS = new Set(['--pretty', '--schema-nullable'])
+const BOOLEAN_FLAGS = new Set([
+  '--pretty',
+  '--schema-nullable',
+  '--skip-sheet-validation'
+])
 
 const ALL_FLAGS = new Set([...VALUE_FLAGS, ...BOOLEAN_FLAGS])
 
@@ -68,6 +72,7 @@ function readFlagValue(
 
 export function parseReadFlags(args: string[]): ParsedReadFlags {
   const parsed: ParsedReadFlags = {
+    skipSheetValidation: false,
     pretty: false,
     select: [],
     omit: [],
@@ -109,6 +114,10 @@ export function parseReadFlags(args: string[]): ParsedReadFlags {
 
       if (name === '--pretty') {
         parsed.pretty = true
+      }
+
+      if (name === '--skip-sheet-validation') {
+        parsed.skipSheetValidation = true
       }
 
       if (name === '--schema-nullable') {

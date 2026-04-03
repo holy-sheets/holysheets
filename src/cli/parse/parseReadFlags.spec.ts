@@ -84,6 +84,7 @@ describe('parseReadFlags', () => {
       spreadsheetId: 'sheet-id',
       sheet: 'pokemon',
       headerRow: '2',
+      skipSheetValidation: false,
       format: 'ndjson',
       output: './out.ndjson',
       schemaFile: './schema.json',
@@ -94,6 +95,11 @@ describe('parseReadFlags', () => {
       schemaBlocks: [],
       whereBlocks: [{ field: 'id', op: 'equals', values: ['1'] }]
     })
+  })
+
+  it('parses --skip-sheet-validation as a boolean flag', () => {
+    const parsed = parseReadFlags(['--skip-sheet-validation'])
+    expect(parsed.skipSheetValidation).toBe(true)
   })
 
   it('throws when receiving positional args', () => {
@@ -111,6 +117,14 @@ describe('parseReadFlags', () => {
   it('throws when boolean flag receives inline value', () => {
     expect(() => parseReadFlags(['--pretty=true'])).toThrowError(
       new CliError('Option "--pretty" does not accept a value.')
+    )
+  })
+
+  it('throws when --skip-sheet-validation receives inline value', () => {
+    expect(() =>
+      parseReadFlags(['--skip-sheet-validation=true'])
+    ).toThrowError(
+      new CliError('Option "--skip-sheet-validation" does not accept a value.')
     )
   })
 

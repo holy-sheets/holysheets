@@ -37,6 +37,9 @@ holysheets google-sheets read <operation> [flags]
 
 Both forms are functionally identical. The explicit form exists for future extensibility.
 
+By default, commands validate that `--sheet` exists before querying.  
+Use `--skip-sheet-validation` only as an escape hatch when you intentionally prefer fewer requests over stricter safety.
+
 ---
 
 ## Available Operations
