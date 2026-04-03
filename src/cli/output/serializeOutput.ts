@@ -58,7 +58,7 @@ export function serializeOutput(
   }
 
   if (format === 'ndjson') {
-    if (operation === 'find-many') {
+    if (operation === 'find-many' || operation === 'find-many-or-throw') {
       const rows = Array.isArray(data) ? data : []
       return rows.map(row => JSON.stringify(row)).join('\n')
     }
@@ -66,10 +66,15 @@ export function serializeOutput(
   }
 
   if (format === 'csv') {
-    if (operation !== 'find-many') {
-      throw new CliError('Format "csv" is only supported for "read find-many".')
+    if (operation === 'describe') {
+      throw new CliError('Format "csv" is not supported for "read describe".')
     }
-    return toCsv(Array.isArray(data) ? (data as CliRecord[]) : [])
+    const rows = Array.isArray(data)
+      ? (data as CliRecord[])
+      : data
+        ? [data as CliRecord]
+        : []
+    return toCsv(rows)
   }
 
   throw new CliError('Unsupported output format.')

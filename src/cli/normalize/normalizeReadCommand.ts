@@ -277,10 +277,7 @@ function mergeWhereCondition(
     return
   }
 
-  const conditionObject: WhereCondition =
-    typeof existingCondition === 'string'
-      ? { equals: existingCondition }
-      : existingCondition
+  const conditionObject = existingCondition as WhereCondition
 
   const alreadyDefined = conditionObject[op as keyof WhereCondition]
   if (alreadyDefined !== undefined) {
@@ -303,7 +300,7 @@ function mergeWhereCondition(
 }
 
 function resolveWhere(flags: ParsedReadFlags): WhereClause<CliRecord> {
-  const where: WhereClause<CliRecord> = {}
+  const where: WhereClause<CliRecord> = Object.create(null)
 
   for (const block of flags.whereBlocks) {
     if (!block.op) {
@@ -363,10 +360,18 @@ export function normalizeReadCommand({
     throw new CliError('Command "read describe" does not accept "--select".')
   }
 
-  if (format === 'csv' && operation !== 'find-many') {
+  if (operation === 'describe' && flags.omit.length > 0) {
+    throw new CliError('Command "read describe" does not accept "--omit".')
+  }
+
+  if (flags.select.length > 0 && flags.omit.length > 0) {
     throw new CliError(
-      `Format "csv" is only supported for "read find-many" in this version.`
+      'Options "--select" and "--omit" cannot be used together in the same command.'
     )
+  }
+
+  if (format === 'csv' && operation === 'describe') {
+    throw new CliError('Format "csv" is not supported for "read describe".')
   }
 
   return {
@@ -379,6 +384,7 @@ export function normalizeReadCommand({
     output: flags.output,
     pretty,
     select: flags.select,
+    omit: flags.omit,
     where,
     schema
   }

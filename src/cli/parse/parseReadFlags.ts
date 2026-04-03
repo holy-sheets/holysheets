@@ -13,6 +13,7 @@ const VALUE_FLAGS = new Set([
   '--format',
   '--output',
   '--select',
+  '--omit',
   '--schema-file',
   '--schema-json',
   '--schema-field',
@@ -69,6 +70,7 @@ export function parseReadFlags(args: string[]): ParsedReadFlags {
   const parsed: ParsedReadFlags = {
     pretty: false,
     select: [],
+    omit: [],
     schemaBlocks: [],
     whereBlocks: []
   }
@@ -145,6 +147,9 @@ export function parseReadFlags(args: string[]): ParsedReadFlags {
       case '--select':
         parsed.select.push(value)
         break
+      case '--omit':
+        parsed.omit.push(value)
+        break
       case '--schema-file':
         parsed.schemaFile = value
         break
@@ -206,10 +211,6 @@ export function parseReadFlags(args: string[]): ParsedReadFlags {
         }
         currentWhereBlock.values.push(value)
         break
-      default:
-        throw new CliError(
-          `Unknown option "${name}". Use --help to list options.`
-        )
     }
   }
 

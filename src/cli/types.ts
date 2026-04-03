@@ -3,7 +3,16 @@ import { WhereClause } from '@/services/where/types/where.types'
 
 export type CliSource = 'google-sheets'
 
-export type ReadOperation = 'find-many' | 'find-first' | 'describe'
+export type ReadOperation =
+  | 'find-many'
+  | 'find-first'
+  | 'find-unique'
+  | 'find-last'
+  | 'find-many-or-throw'
+  | 'find-first-or-throw'
+  | 'find-unique-or-throw'
+  | 'find-last-or-throw'
+  | 'describe'
 
 export type OutputFormat = 'json' | 'csv' | 'ndjson'
 
@@ -33,6 +42,7 @@ export interface ParsedReadFlags {
   output?: string
   pretty: boolean
   select: string[]
+  omit: string[]
   schemaFile?: string
   schemaJson?: string
   schemaBlocks: ParsedSchemaFlagBlock[]
@@ -61,6 +71,7 @@ export interface NormalizedReadCommand {
   output?: string
   pretty: boolean
   select: string[]
+  omit: string[]
   where: WhereClause<CliRecord>
   schema?: RecordSchema<CliRecord>
 }
