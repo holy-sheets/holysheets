@@ -10,6 +10,7 @@ import { ParsedReadFlags } from '@/cli/types'
 
 function createBaseFlags(): ParsedReadFlags {
   return {
+    skipSheetValidation: false,
     pretty: false,
     select: [],
     omit: [],
@@ -46,6 +47,7 @@ describe('normalizeReadCommand', () => {
     expect(normalized.spreadsheetId).toBe('flag-id')
     expect(normalized.sheet).toBe('places')
     expect(normalized.headerRow).toBe(2)
+    expect(normalized.skipSheetValidation).toBe(false)
     expect(normalized.where).toEqual({
       rating: { gte: 4, lte: 5 }
     })
@@ -193,6 +195,43 @@ describe('normalizeReadCommand', () => {
     })
 
     expect(normalized.pretty).toBe(true)
+  })
+
+  it('uses skipSheetValidation=true from config when cli flag is absent', () => {
+    const flags = createBaseFlags()
+    flags.spreadsheetId = 'id'
+    flags.sheet = 'places'
+
+    const normalized = normalizeReadCommand({
+      operation: 'find-first',
+      flags,
+      config: {
+        defaults: {
+          skipSheetValidation: true
+        }
+      }
+    })
+
+    expect(normalized.skipSheetValidation).toBe(true)
+  })
+
+  it('uses skipSheetValidation=true from cli flag even when config default is false', () => {
+    const flags = createBaseFlags()
+    flags.spreadsheetId = 'id'
+    flags.sheet = 'places'
+    flags.skipSheetValidation = true
+
+    const normalized = normalizeReadCommand({
+      operation: 'find-first',
+      flags,
+      config: {
+        defaults: {
+          skipSheetValidation: false
+        }
+      }
+    })
+
+    expect(normalized.skipSheetValidation).toBe(true)
   })
 
   it('fails when spreadsheet id is missing in flags and config', () => {

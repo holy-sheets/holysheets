@@ -165,11 +165,17 @@ All read commands accept the following flags:
 | `--sheet`          | Sheet name (**required**)               | —          |
 | `--config`         | Path to a JSON config file              | —          |
 | `--header-row`     | Header row number                       | `1`        |
+| `--skip-sheet-validation` | Skip pre-validation of sheet name (escape hatch) | `false` |
 | `--format`         | Output format (`json`, `csv`, `ndjson`) | `json`     |
 | `--output`         | Write output to file                    | stdout     |
 | `--pretty`         | Pretty-print JSON output                | `false`    |
 | `--select`         | Select specific fields (repeatable)     | all fields |
 | `--omit`           | Omit specific fields (repeatable)       | none       |
+
+::: warning
+`--skip-sheet-validation` disables the extra pre-check that fails fast when a sheet does not exist.  
+Use it only if you explicitly prefer fewer calls over stricter safety.
+:::
 
 See [Configuration](./configuration.md) for details on config files and flag precedence.
 

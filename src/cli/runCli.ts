@@ -65,6 +65,10 @@ function addReadOptions(command: Command): Command {
     .option('--spreadsheet-id <id>', 'Google Spreadsheet ID')
     .option('--sheet <name>', 'Sheet name')
     .option('--header-row <number>', 'Header row number (default: 1)')
+    .option(
+      '--skip-sheet-validation',
+      'Skip sheet-name validation before reading (faster, less safe)'
+    )
     .option('--format <json|csv|ndjson>', 'Output format (default: json)')
     .option('--output <path>', 'Write output to file instead of stdout')
     .option('--pretty', 'Pretty-print JSON output')

@@ -14,6 +14,7 @@ Create a JSON file (e.g., `holysheets.config.json`):
     "spreadsheetId": "1AbCDefGhIJkLMNOPQRS_TUVWXYZ",
     "sheet": "<sheet-name>",
     "headerRow": 2,
+    "skipSheetValidation": false,
     "format": "json",
     "pretty": true
   }
@@ -35,6 +36,7 @@ holysheets read find-many --config holysheets.config.json
 | `spreadsheetId` | `string`  | Google Spreadsheet ID |
 | `sheet`         | `string`  | Sheet name            |
 | `headerRow`     | `number`  | Header row number     |
+| `skipSheetValidation` | `boolean` | Skip pre-validation of sheet name |
 | `format`        | `string`  | Output format         |
 | `pretty`        | `boolean` | Pretty-print JSON     |
 

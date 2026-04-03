@@ -67,6 +67,7 @@ holysheets google-sheets read find-many --help
 --spreadsheet-id <id>
 --sheet <name>
 --header-row <number>
+--skip-sheet-validation
 --format <json|csv|ndjson>
 --output <path>
 --pretty
@@ -84,10 +85,14 @@ Example config file:
   "defaults": {
     "spreadsheetId": "<ID>",
     "sheet": "<sheet-name>",
-    "headerRow": 2
+    "headerRow": 2,
+    "skipSheetValidation": false
   }
 }
 ```
+
+`--skip-sheet-validation` is an escape hatch that disables pre-checking whether the sheet name exists in public metadata.  
+It can reduce one network call, but it may allow silent fallback behavior from Google endpoints when the sheet name is invalid.
 
 ### Schema Input
 

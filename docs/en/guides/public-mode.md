@@ -205,5 +205,6 @@ Sets the target sheet.
 | ----------- | -------- | ------- | ----------------------------- |
 | `sheetName` | `string` | —       | The name of the sheet (tab).  |
 | `headerRow` | `number` | `1`     | The row number of the header. |
+| `skipSheetValidation` | `boolean` | `false` | Skip pre-validation of sheet name before querying. |
 
 **Returns**: A typed reader with find methods.

@@ -39,6 +39,7 @@ function flushActions() {
 
 describe('runCli', () => {
   const defaultParsedFlags = {
+    skipSheetValidation: false,
     pretty: false,
     select: [],
     omit: [],
@@ -52,6 +53,7 @@ describe('runCli', () => {
     spreadsheetId: 'id',
     sheet: 'pokemon',
     headerRow: 1,
+    skipSheetValidation: false,
     format: 'json' as const,
     output: './out.json',
     pretty: false,

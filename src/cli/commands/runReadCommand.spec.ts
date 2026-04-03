@@ -32,6 +32,7 @@ function createCommand(
     spreadsheetId: 'spreadsheet-id',
     sheet: 'pokemon',
     headerRow: 1,
+    skipSheetValidation: false,
     format: 'json',
     pretty: false,
     select: [],
@@ -86,7 +87,19 @@ describe('runReadCommand', () => {
     expect(publicMock).toHaveBeenCalledWith({
       spreadsheetId: 'spreadsheet-id'
     })
-    expect(baseMock).toHaveBeenCalledWith('pokemon', { headerRow: 1 })
+    expect(baseMock).toHaveBeenCalledWith('pokemon', {
+      headerRow: 1,
+      skipSheetValidation: false
+    })
+  })
+
+  it('passes skipSheetValidation=true to base when provided by normalized command', async () => {
+    await runReadCommand(createCommand({ skipSheetValidation: true }))
+
+    expect(baseMock).toHaveBeenCalledWith('pokemon', {
+      headerRow: 1,
+      skipSheetValidation: true
+    })
   })
 
   it('calls defineSchema when schema is provided', async () => {

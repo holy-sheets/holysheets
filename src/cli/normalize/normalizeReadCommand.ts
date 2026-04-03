@@ -334,6 +334,9 @@ export function normalizeReadCommand({
   const spreadsheetId = flags.spreadsheetId ?? defaults.spreadsheetId
   const sheet = flags.sheet ?? defaults.sheet
   const headerRow = parseHeaderRow(flags.headerRow ?? defaults.headerRow)
+  const skipSheetValidation = flags.skipSheetValidation
+    ? true
+    : Boolean(defaults.skipSheetValidation ?? false)
   const format = parseFormat(flags.format ?? defaults.format)
   const pretty = flags.pretty ? true : Boolean(defaults.pretty ?? false)
 
@@ -380,6 +383,7 @@ export function normalizeReadCommand({
     spreadsheetId,
     sheet,
     headerRow,
+    skipSheetValidation,
     format,
     output: flags.output,
     pretty,

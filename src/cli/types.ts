@@ -38,6 +38,7 @@ export interface ParsedReadFlags {
   spreadsheetId?: string
   sheet?: string
   headerRow?: string
+  skipSheetValidation: boolean
   format?: string
   output?: string
   pretty: boolean
@@ -53,6 +54,7 @@ export interface CliConfigDefaults {
   spreadsheetId?: string
   sheet?: string
   headerRow?: number
+  skipSheetValidation?: boolean
   format?: OutputFormat
   pretty?: boolean
 }
@@ -67,6 +69,7 @@ export interface NormalizedReadCommand {
   spreadsheetId: string
   sheet: string
   headerRow: number
+  skipSheetValidation: boolean
   format: OutputFormat
   output?: string
   pretty: boolean
