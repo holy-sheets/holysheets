@@ -1,3 +1,10 @@
+## [2.5.1](https://github.com/holy-sheets/holysheets/compare/v2.5.0...v2.5.1) (2026-04-04)
+
+
+### Bug Fixes
+
+* **cli:** update schema to allow nullable fields in example commands ([08c8553](https://github.com/holy-sheets/holysheets/commit/08c85539d8f7de0a8d6a9df59d6e9e3ea772a4cc))
+
 # [2.5.0](https://github.com/holy-sheets/holysheets/compare/v2.4.0...v2.5.0) (2026-04-03)
 
 
