@@ -87,7 +87,7 @@ holysheets read find-many \
 holysheets read find-many \
   --spreadsheet-id 1E0NPuF242etl5WaEa1A5W90I2NjY5WSBE_0eSkHrZbY \
   --sheet moves \
-  --schema-json '[{"key":"move_name","type":"string"},{"key":"power","type":"number"}]'
+  --schema-json '[{"key":"move_name","type":"string"},{"key":"power","type":"number","nullable":true}]'
 ```
 
 ### Schema via explicit blocks
@@ -97,9 +97,9 @@ holysheets read find-many \
   --spreadsheet-id 1E0NPuF242etl5WaEa1A5W90I2NjY5WSBE_0eSkHrZbY \
   --sheet moves \
   --schema-field move_name --schema-type string \
-  --schema-field power --schema-type number \
-  --schema-field accuracy --schema-type number \
-  --schema-field pp --schema-type number --schema-nullable
+  --schema-field power --schema-type number --schema-nullable \
+  --schema-field accuracy --schema-type number --schema-nullable \
+  --schema-field pp --schema-type number
 ```
 
 Block rule:
